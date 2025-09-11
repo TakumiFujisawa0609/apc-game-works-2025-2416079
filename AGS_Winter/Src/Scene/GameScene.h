@@ -15,11 +15,14 @@ public:
 	static constexpr VECTOR GAMEOVER_POINT = { 450.0f, 30.0f, 75.0f };
 	static constexpr float GAMEOVER_RADIUS = 35.0f;
 
+	static constexpr float CAMERA_TO_PLAYER = 800.0f;
+
+	static constexpr float SENSITIVITY = 0.003f;
+
 	static constexpr int SHAKE_MAX = 20;
 
 	// コンストラクタ
 	GameScene(void);
-
 	// デストラクタ
 	~GameScene(void);
 
@@ -54,5 +57,8 @@ private:
 	int cntShake_;
 	VECTOR prevCameraPos_;
 
+	bool cameraReset_;
+
 	void Collision(void);
+	void GameCamera(VECTOR playerPos);
 };

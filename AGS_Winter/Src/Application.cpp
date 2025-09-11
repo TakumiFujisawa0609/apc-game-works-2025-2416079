@@ -10,6 +10,7 @@ Application* Application::instance_ = nullptr;
 const std::string Application::PATH_DATA = "Data/";
 const std::string Application::PATH_IMAGE = PATH_DATA + "Image/";
 const std::string Application::PATH_MODEL = PATH_DATA + "Model/";
+const std::string Application::PATH_ANIMATION = PATH_DATA + "Animation/";
 const std::string Application::PATH_EFFECT = PATH_DATA + "Effect/";
 
 void Application::CreateInstance(void)
@@ -44,6 +45,7 @@ void Application::Init(void)
 		isInitFail_ = true;
 		return;
 	}
+	SetMouseDispFlag(false);
 
 	InitEffekseer();
 

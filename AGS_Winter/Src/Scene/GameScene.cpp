@@ -37,6 +37,9 @@ void GameScene::Init(void)
 	player_ = new Player();
 	player_->Init();
 
+	cameraReset_ = true;
+	GameCamera(player_->GetPos());
+	cameraReset_ = true;
 
 	imgGameover_ = LoadGraph((Application::PATH_IMAGE + "Gameover.png").c_str());
 	imgGameclear_ = LoadGraph((Application::PATH_IMAGE + "Gameclear.png").c_str());
@@ -52,6 +55,7 @@ void GameScene::Init(void)
 
 void GameScene::Update(void)
 {
+	VECTOR playerPrevPos = player_->GetPos();
 	player_->Update();
 
 	if (!gameoverFlg_ && !gameclearFlg_ && !waveFlg_) {
@@ -165,33 +169,7 @@ void GameScene::Update(void)
 			waveFlg_ = false;
 		}
 	}
-	//// カメラの移動
-	//VECTOR cameraMove = { 0.0f, 0.0f, 0.0f };
-
-	//if (CheckHitKey(KEY_INPUT_A)) { cameraMove.x = -1.0f; }
-	//if (CheckHitKey(KEY_INPUT_D)) { cameraMove.x = 1.0f; }
-	//if (CheckHitKey(KEY_INPUT_W)) { cameraMove.z = 1.0f; }
-	//if (CheckHitKey(KEY_INPUT_S)) { cameraMove.z = -1.0f; }
-	//if (CheckHitKey(KEY_INPUT_RSHIFT) || CheckHitKey(KEY_INPUT_LSHIFT)) { cameraMove.y = -1.0f; }
-	//if (CheckHitKey(KEY_INPUT_SPACE)) { cameraMove.y = 1.0f; }
-
-	//if (!AsoUtility::EqualsVZero(cameraMove)) {
-	//		
-	//	camera->MoveCameraPos(VScale(VNorm(cameraMove), 10.0f));
-	//}
-
-	//// カメラの角度変更
-	//VECTOR cameraAngle = { 0.0f, 0.0f, 0.0f };
-
-	//if (CheckHitKey(KEY_INPUT_UP)) { cameraAngle.x = -1.0f; }
-	//if (CheckHitKey(KEY_INPUT_DOWN)) { cameraAngle.x = 1.0f; }
-	//if (CheckHitKey(KEY_INPUT_LEFT)) { cameraAngle.y = -1.0f; }
-	//if (CheckHitKey(KEY_INPUT_RIGHT)) { cameraAngle.y = 1.0f; }
-
-	//if (!AsoUtility::EqualsVZero(cameraAngle)) {
-
-	//	camera->MoveCameraAngle(VScale(VNorm(cameraAngle), 0.01f));
-	//}
+	GameCamera(playerPrevPos);
 }
 
 void GameScene::Collision(void)
@@ -215,6 +193,59 @@ void GameScene::Collision(void)
 			gameoverFlg_ = true;
 		}
 	}
+}
+
+void GameScene::GameCamera(VECTOR playerPos)
+{
+	Camera* camera = SceneManager::GetInstance().GetCamera();
+	VECTOR headPos = VAdd(playerPos, { 0.0f, 150.0f, 0.0f });
+
+	static bool first = true;
+
+	static float yaw = 0.0f;   // 左右回転
+	static float pitch = 0.3f;   // 上下回転（初期は少し見下ろす）
+
+	//画面の中央の座標
+	const int centerX = Application::SCREEN_SIZE_X / 2;
+	const int centerY = Application::SCREEN_SIZE_Y / 2;
+
+	int mouseX, mouseY;
+
+	// 初回は基準をセットして抜ける
+	if (cameraReset_) {
+		// 中心に戻す
+		SetMousePoint(centerX, centerY);
+		yaw = 0.0f;
+		pitch = 0.3f;
+		cameraReset_ = false;
+	}
+	GetMousePoint(&mouseX, &mouseY);
+
+	// 相対移動量を計算
+	int deltaX = mouseX - centerX;
+	int deltaY = mouseY - centerY;
+
+	// 中心に戻す
+	SetMousePoint(centerX, centerY);
+
+	yaw += deltaX * SENSITIVITY;
+	pitch += deltaY * SENSITIVITY;
+
+	// ピッチに制限（真上や真下を防ぐ）
+	if (pitch > DX_PI_F / 2.0f - 0.1f) pitch = DX_PI_F / 2.0f - 0.1f;
+	if (pitch < -DX_PI_F / 2.0f + 0.1f) pitch = -DX_PI_F / 2.0f + 0.1f;
+
+	// カメラの位置を計算
+	VECTOR newPos;
+	newPos.x = headPos.x - CAMERA_TO_PLAYER * cosf(pitch) * sinf(yaw);
+	newPos.y = headPos.y + CAMERA_TO_PLAYER * sinf(pitch);
+	newPos.z = headPos.z - CAMERA_TO_PLAYER * cosf(pitch) * cosf(yaw);
+
+	camera->SetAbsCameraPos(newPos);
+	camera->SetAbsCameraAngles({ pitch, yaw, 0.0f });
+
+	//カメラの追従
+	camera->SetCameraPos(VSub(player_->GetPos(), playerPos));
 }
 
 void GameScene::Draw(void)

@@ -8,7 +8,7 @@ public:
 	// カメラの初期位置
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 500.0f, -1000.0f };
 	// カメラの初期角度
-	static constexpr VECTOR DEFAULT_ANGLES = { 20.0f * DX_PI_F / 180.0f, 0.0f, 0.0f };
+	static constexpr VECTOR DEFAULT_ANGLES = { DX_PI_F / 9.0f, 0.0f, 0.0f };
 
 	// カメラクリップ：NEAR
 	static constexpr float CAMERA_NEAR = 3.0f;
@@ -30,7 +30,11 @@ public:
 	// 解放
 	void Release(void);
 
-	void SetCameraPos(VECTOR pos) { pos_ = pos; }
+	void SetCameraPos(VECTOR pos) { pos_ = VAdd(pos_, pos); }
+	void SetAbsCameraPos(VECTOR pos) { pos_ = pos; }
+	void SetLookAt(VECTOR target);
+	void SetCameraAngles(VECTOR angle) { angles_ = VAdd(angles_, angle); }
+	void SetAbsCameraAngles(VECTOR angle) { angles_ = angle; }
 	VECTOR GetCameraPos(void) { return pos_; }
 	VECTOR GetCameraAngles(void) { return angles_; }
 

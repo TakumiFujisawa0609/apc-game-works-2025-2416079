@@ -222,6 +222,7 @@ void SceneManager::DoChangeScene(SCENE_ID sceneId)
 
 	// ŠeƒV[ƒ“‚Ì‰Šú‰»
 	scene_->Init();
+	camera_->SetBeforeDraw();
 
 	ResetDeltaTime();
 
@@ -248,10 +249,10 @@ void SceneManager::Fade(void)
 		// ˆÃ“]’†
 		if (fader_->IsEnd()){
 
-			// Š®‘S‚ÉˆÃ“]‚µ‚Ä‚©‚çƒV[ƒ“‘JˆÚ
-			DoChangeScene(waitSceneId_);
 			// ƒJƒƒ‰‚Ì‰Šú‰»
 			camera_->Init();
+			// Š®‘S‚ÉˆÃ“]‚µ‚Ä‚©‚çƒV[ƒ“‘JˆÚ
+			DoChangeScene(waitSceneId_);
 			// ˆÃ“]‚©‚ç–¾“]‚Ö
 			fader_->SetFade(Fader::STATE::FADE_IN);
 		}

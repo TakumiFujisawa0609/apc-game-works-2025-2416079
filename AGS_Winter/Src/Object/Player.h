@@ -22,23 +22,13 @@ public:
 	// アニメーション種別
 	enum class ANIM_TYPE
 	{
-		DEATH,
-		DUCK,
-		HIT_REACT,
-		IDLE,
-		JUMP,
-		JUMP_IDLE,
-		JUMP_LAND,
-		NO,
-		PUNCH,
-		RUN,
+		T,
 		WALK,
-		WAVE,
-		WEAPON,
-		YES,
+		ATTACK,
 		MAX,
 	};
 
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 0.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
 
 	// コンストラクタ
@@ -125,4 +115,6 @@ protected:
 
 	// 移動
 	void Move(void);
+	//攻撃
+	void Attack(void);
 };

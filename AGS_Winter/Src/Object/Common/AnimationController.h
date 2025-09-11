@@ -36,6 +36,7 @@ public:
 
 	int GetPlayType(void) const { return playType_; }
 	bool IsEnd(void) const;
+	bool IsLoop(void) const { return isLoop_; }
 
 private:
 

@@ -77,3 +77,11 @@ void Camera::Draw(void)
 void Camera::Release(void)
 {
 }
+
+void Camera::SetLookAt(VECTOR target)
+{
+	// 注視方向ベクトルを角度に変換
+	angles_.x = atan2f(target.y, sqrtf(target.x * target.x + target.z * target.z));
+	angles_.y = atan2f(target.x, target.z);
+	angles_.z = 0.0f;
+}

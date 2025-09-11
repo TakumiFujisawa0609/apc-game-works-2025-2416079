@@ -22,6 +22,7 @@ public:
 	static const std::string PATH_DATA;
 	static const std::string PATH_IMAGE;
 	static const std::string PATH_MODEL;
+	static const std::string PATH_ANIMATION;
 	static const std::string PATH_EFFECT;
 	//-------------------------------------------
 
