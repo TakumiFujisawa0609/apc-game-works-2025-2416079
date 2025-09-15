@@ -17,6 +17,7 @@ Player::~Player(void)
 void Player::Init()
 {
 	modelId_ = MV1LoadModel((Application::PATH_MODEL + "Walking.mv1").c_str());
+	bladeModel_ = MV1LoadModel((Application::PATH_MODEL + "blade.mv1").c_str());
 
 	pos_ = DEFAULT_POS;
 	angles_ = VAdd({ 0.0f, 0.0f, 0.0f }, DIFF_ANGLES);
@@ -61,6 +62,7 @@ void Player::ChangeState(STATE state)
 void Player::Draw(void)
 {
 	MV1DrawModel(modelId_);
+	MV1DrawModel(bladeModel_);
 }
 
 void Player::Release(void)
@@ -69,6 +71,7 @@ void Player::Release(void)
 	delete animationController_;
 
 	MV1DeleteModel(modelId_);
+	MV1DeleteModel(bladeModel_);
 }
 
 VECTOR Player::GetCollisionPos(void)

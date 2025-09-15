@@ -72,6 +72,8 @@ protected:
 
 	// モデルのハンドルID
 	int modelId_;
+	//剣モデルのハンドルID
+	int bladeModel_;
 
 	// 座標
 	VECTOR pos_;
