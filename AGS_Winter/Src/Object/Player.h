@@ -12,9 +12,9 @@ public:
 	// 状態
 	enum class STATE
 	{
-		NONE,
-		STANDBY,
-		HIT_REACT,
+		WAIT,
+		MOVE,
+		ATTACK,
 		DEAD_REACT,
 		END,
 	};
@@ -81,7 +81,7 @@ protected:
 	VECTOR angles_;
 	// 大きさ
 	VECTOR scales_;
-
+	VECTOR pos;
 	// 移動方向
 	VECTOR moveDir_;
 	// 移動速度
@@ -93,15 +93,15 @@ protected:
 	int deadCnt_;
 
 	// 状態遷移
-	void ChangeStandby(void);
-	void ChangeDeadReact(void);
-	void ChangeHitReact(void);
+	void ChangeWait(void);
+	void ChangeMove(void);
+	void ChangeAttack(void);
 	void ChangeEnd(void);
 
 	// 状態別更新
-	void UpdateStandby(void);
-	void UpdateHitReact(void);
-	void UpdateDeadReact(void);
+	void UpdateWait(void);
+	void UpdateMove(void);
+	void UpdateAttack(void);
 	void UpdateEnd(void);
 
 	// 状態別描画
@@ -114,9 +114,4 @@ protected:
 	float collisionRadius_;
 	// 衝突判定用の球体中心座標の調整
 	VECTOR collisionLocalPos_;
-
-	// 移動
-	void Move(void);
-	//攻撃
-	void Attack(void);
 };

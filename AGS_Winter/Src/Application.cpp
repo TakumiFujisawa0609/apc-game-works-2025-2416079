@@ -89,10 +89,11 @@ void Application::Run(void)
 			
 			sceneManager.Draw();
 		}
-		fpsControll_->Wait();
+		else {
 
+			fpsControll_->Wait();
+		}
 		ScreenFlip();
-
 	}
 
 }

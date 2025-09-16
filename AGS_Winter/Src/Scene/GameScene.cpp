@@ -231,9 +231,15 @@ void GameScene::GameCamera(VECTOR playerPos)
 	yaw += deltaX * SENSITIVITY;
 	pitch += deltaY * SENSITIVITY;
 
-	// ピッチに制限（真上や真下を防ぐ）
-	if (pitch > DX_PI_F / 2.0f - 0.1f) pitch = DX_PI_F / 2.0f - 0.1f;
-	if (pitch < -DX_PI_F / 2.0f + 0.1f) pitch = -DX_PI_F / 2.0f + 0.1f;
+	// ピッチに制限（真上と床下を防ぐ）
+	if (pitch > DX_PI_F / 2.0f - 0.1f) {
+
+		pitch = DX_PI_F / 2.0f - 0.1f;
+	}
+	if (pitch < -DX_PI_F / 18.0f) {
+
+		pitch = -DX_PI_F / 18.0f;
+	}
 
 	// カメラの位置を計算
 	VECTOR newPos;

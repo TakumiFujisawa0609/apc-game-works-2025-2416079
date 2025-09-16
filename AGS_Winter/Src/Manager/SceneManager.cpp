@@ -275,7 +275,7 @@ void SceneManager::Init3D(void)
 
 	// ライト設定
 	SetUseLighting(true);
-	ChangeLightTypeDir({ 0.00f, -1.00f, 1.00f });
+	ChangeLightTypeDir({ 0.00f, -100.00f, 0.00f });
 
 	//#pragma region Step1 ポイントライト
 	//
