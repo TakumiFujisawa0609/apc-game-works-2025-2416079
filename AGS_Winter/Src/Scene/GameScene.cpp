@@ -1,7 +1,5 @@
 #include <EffekseerForDXLib.h>
-#include "GameScene.h"
 #include "../Object/Stage.h"
-#include "../Object/Enemy/EnemyManager.h"
 #include "../Object/Enemy/EnemyBase.h"
 #include "../Object/Player.h"
 #include "../Manager/InputManager.h"
@@ -10,6 +8,8 @@
 #include "../Manager/Camera.h"
 #include "../Application.h"
 #include "../Utility/AsoUtility.h"
+#include "../Utility/AngleUtility.h"
+#include "GameScene.h"
 
 
 GameScene::GameScene(void)
@@ -26,11 +26,11 @@ void GameScene::Init(void)
 	stage_ = new Stage();
 	stage_->Init();
 
-	enemyManager_ = new EnemyManager();
-	enemyManager_->Init();
-
 	player_ = new Player();
 	player_->Init();
+
+	enemyBase_ = new EnemyBase(player_);
+	enemyBase_->Init();
 
 	cameraReset_ = true;
 	GameCamera();
@@ -44,27 +44,31 @@ void GameScene::Init(void)
 void GameScene::Update(void)
 {
 	player_->Update();
+	enemyBase_->Update();
 	GameCamera();
 
 	// ステージの更新
 	stage_->Update();
+
+	Collision();
 }
 
 void GameScene::Collision(void)
 {
-	int modelId = stage_->GetModelId();
+	MV1_COLL_RESULT_POLY_DIM info{};
 
-	// 敵を取得する
-	std::vector<EnemyBase*> enemys = enemyManager_->GetEnemys();
+	if (player_->IsAttack()) {
+		
+		info = MV1CollCheck_Capsule(enemyBase_->GetModelId(), -1, player_->GetAttackStartPos(), player_->GetAttackEndPos(), 10.0f);
 
-	// 弾を取得する
-	for (EnemyBase* enemy : enemys) {
-		if (!enemy->IsCollisionState()) {
+		if (info.HitNum > 0) {
 
-			// 爆発中や処理終了後は、以降の処理は実行しない
-			continue;
+			hitFlg_ = true;
 		}
-		// ゲームオーバー判定との衝突判定
+		else {
+
+			hitFlg_ = false;
+		}
 	}
 }
 
@@ -130,8 +134,13 @@ void GameScene::Draw(void)
 {
 	SceneBase::Draw();
 	stage_->Draw();
-	enemyManager_->Draw();
 	player_->Draw();
+	enemyBase_->Draw();
+
+	if (hitFlg_) {
+
+		DrawString(0, 0, "あたった", 0xff00ff);
+	}
 
 	//std::vector<ShotBase*> shots = cannon_->GetShots();
 	//for (ShotBase* shot : shots) {
@@ -149,13 +158,19 @@ void GameScene::Release(void)
 	stage_->Release();
 	delete stage_;
 
-	enemyManager_->Release();
-	delete enemyManager_;
-
 	player_->Release();
 	delete player_;
+
+	enemyBase_->Release();
+	delete enemyBase_;
 
 	DeleteGraph(imgGameover_);
 	DeleteGraph(imgGameclear_);
 	DeleteGraph(imgNextwave_);
+}
+
+void GameScene::EnemyToPlayer(void)
+{
+	MATRIX angles = AngleUtility::GetMatrixRotateXYZ(VSub(player_->GetPos(), enemyBase_->GetPos()));
+	enemyBase_->SetAngle(VTransform(enemyBase_->GetAngle(), angles));
 }

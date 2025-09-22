@@ -5,7 +5,7 @@
 
 class SceneManager;
 class Stage;
-class EnemyManager;
+class EnemyBase;
 class Player;
 
 class GameScene : public SceneBase
@@ -26,12 +26,14 @@ public:
 	void Update(void) override;
 	void Draw(void) override;
 	void Release(void) override;
+	
+	void EnemyToPlayer(void);
 
 private:
 
 	// ステージ
 	Stage* stage_;
-	EnemyManager* enemyManager_;
+	EnemyBase* enemyBase_;
 	Player* player_;
 
 	// 画像
@@ -40,6 +42,7 @@ private:
 	int imgNextwave_;
 
 	bool cameraReset_;
+	bool hitFlg_;
 
 	void Collision(void);
 	void GameCamera(void);

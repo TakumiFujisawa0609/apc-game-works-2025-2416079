@@ -22,7 +22,7 @@ public:
 	// アニメーション種別
 	enum class ANIM_TYPE
 	{
-		T,
+		IDLE,
 		WALK,
 		ATTACK,
 		MAX,
@@ -30,6 +30,7 @@ public:
 
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 0.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
+	static constexpr VECTOR SWORD_POS = { 75.0f, 30.0f, -10.0f };
 
 	// コンストラクタ
 	Player(void);
@@ -47,21 +48,20 @@ public:
 	// 解放処理
 	void Release(void);
 
+	//モデルの取得
 	int GetModelId(void) { return modelId_; }
 
 	// 座標取得
 	VECTOR GetPos(void) { return pos_; }
-
-	// 衝突判定用半径
-	float GetCollisionRadius(void) { return collisionRadius_; }
-	// 衝突判定用調整後座標取得
-	VECTOR GetCollisionPos(void);
+	//攻撃座標の取得
+	VECTOR GetAttackStartPos(void) { return attackPos1_; }
+	VECTOR GetAttackEndPos(void) { return attackPos2_; }
 
 	// ダメージを与える
 	void Damage(int damage);
 	// 衝突判定が有効な状態
 	bool IsCollisionState(void);
-	bool IsDead(void);
+	bool IsAttack(void);
 
 protected:
 
@@ -72,8 +72,6 @@ protected:
 
 	// モデルのハンドルID
 	int modelId_;
-	//剣モデルのハンドルID
-	int bladeModel_;
 
 	// 座標
 	VECTOR pos_;
@@ -81,11 +79,13 @@ protected:
 	VECTOR angles_;
 	// 大きさ
 	VECTOR scales_;
-	VECTOR pos;
 	// 移動方向
 	VECTOR moveDir_;
 	// 移動速度
 	float speed_;
+	//攻撃判定の始点と終点
+	VECTOR attackPos1_;
+	VECTOR attackPos2_;
 
 	// HP
 	int hp_;
@@ -109,9 +109,4 @@ protected:
 	void DrawDeadReact(void);
 	void DrawHitReact(void);
 	void DrawEnd(void);
-
-	// 衝突判定用半径
-	float collisionRadius_;
-	// 衝突判定用の球体中心座標の調整
-	VECTOR collisionLocalPos_;
 };

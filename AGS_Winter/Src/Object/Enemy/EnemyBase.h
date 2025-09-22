@@ -4,69 +4,41 @@
 
 
 class AnimationController;
+class Player;
 
 class EnemyBase
 {
 public:
 
-	// エネミー種別
-	enum class TYPE
-	{
-		BIRB,
-		BEE,
-		MAX,
-	};
-
 	// 状態
 	enum class STATE
 	{
-		NONE,
-		STANDBY,
-		HIT_REACT,
+		WAIT,
+		MOVE,
+		ATTACK,
 		DEAD_REACT,
 		END,
 	};
 
 	// アニメーション種別
-	enum class ANIM_TYPE_A
+	enum class ANIM_TYPE
 	{
-		DEATH,
-		DUCK,
-		HIT_REACT,
-		IDLE,
-		JUMP,
-		JUMP_IDLE,
-		JUMP_LAND,
-		NO,
-		PUNCH,
-		RUN,
+		T,
 		WALK,
-		WAVE,
-		WEAPON,
-		YES,
+		ATTACK,
 		MAX,
 	};
 
-	enum class ANIM_TYPE_B
-	{
-		DEATH,
-		FLY_MOVE,
-		FLY_IDLE,
-		HEADBUTT,
-		HIT_REACT,
-		NO,
-		PUNCH,
-		YES,
-		MAX,
-	};
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 0.0f };
+	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
 
 	// コンストラクタ
-	EnemyBase(void);
+	EnemyBase(Player* pl);
 	// デストラクタ
-	virtual ~EnemyBase(void);
+	~EnemyBase(void);
 
 	// 初期処理
-	void Init(TYPE type, int baseModelId);
+	void Init();
 	// 更新処理
 	void Update(void);
 	// 状態遷移
@@ -76,28 +48,34 @@ public:
 	// 解放処理
 	void Release(void);
 
+	//モデルの取得
 	int GetModelId(void) { return modelId_; }
 
 	// 座標取得
 	VECTOR GetPos(void) { return pos_; }
+	// 座標設定
+	void SetPos(VECTOR pos) { pos_ = pos; }
+	
+	// 角度取得
+	VECTOR GetAngle(void) { return angles_; }
+	// 角度設定
+	void SetAngle(VECTOR angles) { angles_ = angles; }
+	
+	//攻撃座標の取得
+	VECTOR GetAttackPos(void) { return attackPos_; }
 
-	// 衝突判定用半径
-	float GetCollisionRadius(void) { return collisionRadius_; }
-	// 衝突判定用調整後座標取得
-	VECTOR GetCollisionPos(void);
-
-	// ダメージを与える
-	void Damage(int damage);
-	// 衝突判定が有効な状態
-	bool IsCollisionState(void);
-	bool IsDead(void);
+	//// ダメージを与える
+	//void Damage(int damage);
+	//// 衝突判定が有効な状態
+	//bool IsCollisionState(void);
+	//bool IsAttack(void);
 
 protected:
 
 	// アニメーションコントローラ
 	AnimationController* animationController_;
-	// 種別
-	TYPE type_;
+	//ゲームシーン
+	Player* player_;
 	// 状態
 	STATE state_;
 
@@ -110,43 +88,35 @@ protected:
 	VECTOR angles_;
 	// 大きさ
 	VECTOR scales_;
-
 	// 移動方向
 	VECTOR moveDir_;
 	// 移動速度
 	float speed_;
+	//攻撃判定の中心
+	VECTOR attackPos_;
 
 	// HP
 	int hp_;
 
-	int deadCnt_;
+	int cnt_;
 
-	// パラメータ設定(純粋仮想関数)
-	virtual void SetParam(void) = 0;
+	void LookPlayer(void);
 
-	// 状態遷移
-	virtual void ChangeStandby(void) = 0;
-	virtual void ChangeDeadReact(void);
-	virtual void ChangeHitReact(void) = 0;
-	virtual void ChangeEnd(void);
+	//// 状態遷移
+	//void ChangeWait(void);
+	//void ChangeMove(void);
+	//void ChangeAttack(void);
+	//void ChangeEnd(void);
 
-	// 状態別更新
-	virtual void UpdateStandby(void);
-	virtual void UpdateHitReact(void);
-	virtual void UpdateDeadReact(void);
-	virtual void UpdateEnd(void);
+	//// 状態別更新
+	//void UpdateWait(void);
+	//void UpdateMove(void);
+	//void UpdateAttack(void);
+	//void UpdateEnd(void);
 
-	// 状態別描画
-	virtual void DrawStandby(void);
-	virtual void DrawDeadReact(void);
-	virtual void DrawHitReact(void);
-	virtual void DrawEnd(void);
-
-	// 衝突判定用半径
-	float collisionRadius_;
-	// 衝突判定用の球体中心座標の調整
-	VECTOR collisionLocalPos_;
-
-	// 移動
-	virtual void Move(void) = 0;
+	//// 状態別描画
+	//void DrawStandby(void);
+	//void DrawDeadReact(void);
+	//void DrawHitReact(void);
+	//void DrawEnd(void);
 };

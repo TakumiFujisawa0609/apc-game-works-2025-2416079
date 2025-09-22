@@ -1,6 +1,8 @@
 #include "Player.h"
 #include "../Application.h"
-#include "../Utility/AsoUtility.h"
+#include "../Utility/Utility.h"
+#include "../Utility/VectorUtility.h"
+#include "../Utility/AngleUtility.h"
 #include "Common/AnimationController.h"
 #include "../Manager/SceneManager.h"
 #include "../Manager/Camera.h"
@@ -17,36 +19,45 @@ Player::~Player(void)
 void Player::Init()
 {
 	//モデルのロード
-	modelId_ = MV1LoadModel((Application::PATH_MODEL + "Walking.mv1").c_str());
+	modelId_ = MV1LoadModel((Application::PATH_MODEL + "Player.mv1").c_str());
 
 	//変数の初期化
 	pos_ = DEFAULT_POS;
-	angles_ = VAdd({ 0.0f, 0.0f, 0.0f }, DIFF_ANGLES);
+	angles_ = Utility::VECTOR_ZERO;
 	moveDir_ = angles_;
 	scales_ = { 1.0f, 1.0f, 1.0f };
 
 	speed_ = 5.0f;
 
-	state_ = STATE::WAIT;
-
 	//モデルの設定
 	MV1SetPosition(modelId_, pos_);
-	MV1SetRotationXYZ(modelId_, angles_);
+	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
 	MV1SetScale(modelId_, scales_);
+	MV1SetupCollInfo(modelId_);
 
 	//アニメーションのロード
 	animationController_ = new AnimationController(modelId_);
 
 	for (int i = 0; i < static_cast<int>(ANIM_TYPE::MAX); i++) {
-		if (i <= 1) {
-			
+		switch (i) {
+		case 0:
+	
 			animationController_->AddInFbx(i, 60.0f, i);
-		}
-		else {
+			break;
+
+		case 1:
+
+			animationController_->Add(i, 60.0f, (Application::PATH_ANIMATION + "Walking.mv1").c_str());
+			break;
+		
+		case 2:
 
 			animationController_->Add(i, 60.0f, (Application::PATH_ANIMATION + "Sword And Shield Slash.mv1").c_str());
+			break;
 		}
 	}
+
+	ChangeWait();
 }
 
 void Player::Update(void)
@@ -71,7 +82,7 @@ void Player::Update(void)
 	}
 	//モデルの設定
 	MV1SetPosition(modelId_, pos_);
-	MV1SetRotationXYZ(modelId_, angles_);
+	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
 	MV1SetScale(modelId_, scales_);
 
 	animationController_->Update();
@@ -85,7 +96,7 @@ void Player::Draw(void)
 {
 	//モデルの描画
 	MV1DrawModel(modelId_);
-	MV1DrawModel(bladeModel_);
+	DrawCapsule3D(attackPos1_, attackPos2_, 10.0f, 16, 0x00ffff, 0x00ffff, false);
 	//DrawSphere3D(pos, 25.0f, 16, 0x00ff00, 0x00ff00, true);
 }
 
@@ -99,11 +110,6 @@ void Player::Release(void)
 	MV1DeleteModel(modelId_);
 }
 
-VECTOR Player::GetCollisionPos(void)
-{
-	return VECTOR();
-}
-
 void Player::Damage(int damage)
 {
 }
@@ -113,15 +119,22 @@ bool Player::IsCollisionState(void)
 	return false;
 }
 
-bool Player::IsDead(void)
+bool Player::IsAttack(void)
 {
-	return false;
+	if (state_ == STATE::ATTACK) {
+
+		return true;
+	}
+	else {
+
+		return false;
+	}
 }
 
 void Player::ChangeWait(void)
 {
 	//待機モーション
-	animationController_->Play(static_cast<int>(ANIM_TYPE::T), true);
+	animationController_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
 
 	state_ = STATE::WAIT;
 }
@@ -184,7 +197,7 @@ void Player::UpdateMove(void)
 		dir = VAdd(dir, VTransform({ -1.0f, 0.0f, 0.0f }, mat));
 	}
 
-	if (!AsoUtility::EqualsVZero(dir)) {
+	if (!VectorUtility::EqualsVZero(dir)) {
 	
 		//カメラのY軸回転をもらう
 		Camera* camera = SceneManager::GetInstance().GetCamera();
@@ -196,7 +209,7 @@ void Player::UpdateMove(void)
 		
 		//移動とプレイヤーを回転させる
 		pos_ = VAdd(pos_, VScale(moveDir_, speed_));
-		angles_.y = atan2f(moveDir_.x, moveDir_.z) + DX_PI_F;
+		angles_.y = atan2f(moveDir_.x, moveDir_.z);
 	}
 	else {
 
@@ -208,7 +221,8 @@ void Player::UpdateMove(void)
 void Player::UpdateAttack(void)
 {
 	//当たり判定の中心
-	pos = MV1GetFramePosition(modelId_, 46);
+	attackPos1_ = MV1GetFramePosition(modelId_, 58);
+	attackPos2_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(modelId_, 37));
 
 	if (animationController_->IsEnd()) {
 
