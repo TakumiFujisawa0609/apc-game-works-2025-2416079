@@ -39,13 +39,8 @@ void AnimationController::Play(int type, bool isLoop)
 		return;
 	}
 
-	if (playType_ != -1)
-	{
-		//アニメーションを外す
-		MV1DetachAnim(modelId_, playAnim_.attachNo);
-	}
-
 	// アニメーション種別を変更
+	prevAnim_ = playAnim_;
 	playType_ = type;
 	playAnim_ = animations_[type];
 
@@ -68,12 +63,27 @@ void AnimationController::Play(int type, bool isLoop)
 		//総持続時間の取得
 		playAnim_.totalTime = MV1GetAnimTotalTime(playAnim_.model, playAnim_.animIndex);
 	}
-	
- 	isLoop_ = isLoop;
+	isLoop_ = isLoop;
+	blendRate_ = 0.0f;
 }
 
 void AnimationController::Update(void)
 {
+
+	while(blendRate_ <= 1.0f) {
+		if (blendRate_ >= 1.0f) {
+
+			MV1SetAttachAnimBlendRate(modelId_, playAnim_.animIndex);
+			MV1DetachAnim(modelId_, prevAnim_.attachNo);
+
+			break;
+		}
+		MV1SetAttachAnimBlendRate(modelId_, prevAnim_.animIndex, 1.0f - blendRate_);
+		MV1SetAttachAnimBlendRate(modelId_, playAnim_.animIndex, blendRate_);
+
+		break;
+	}
+	blendRate_ += 0.01f;
 
 	if (isLoop_){
 		if (playAnim_.step > playAnim_.totalTime){

@@ -25,6 +25,7 @@
     <ClInclude Include="Src\Common\Vector2.h" />
     <ClInclude Include="Src\main.h" />
     <ClInclude Include="Src\Manager\Camera.h" />
+    <ClInclude Include="Src\Manager\Controller.h" />
     <ClInclude Include="Src\Manager\EffectResManager.h" />
     <ClInclude Include="Src\Manager\FpsControll.h" />
     <ClInclude Include="Src\Manager\InputManager.h" />
@@ -50,6 +51,7 @@
     <ClCompile Include="Src\Common\Vector2.cpp" />
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\Manager\Camera.cpp" />
+    <ClCompile Include="Src\Manager\Controller.cpp" />
     <ClCompile Include="Src\Manager\EffectResManager.cpp" />
     <ClCompile Include="Src\Manager\FpsControll.cpp" />
     <ClCompile Include="Src\Manager\InputManager.cpp" />

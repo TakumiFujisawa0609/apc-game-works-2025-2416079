@@ -2,7 +2,7 @@
 #include "../Application.h"
 #include "../Utility/AsoUtility.h"
 #include "../Manager/SceneManager.h"
-#include "../Manager/InputManager.h"
+#include "../Manager/Controller.h"
 #include "TitleScene.h"
 
 
@@ -24,9 +24,10 @@ void TitleScene::Init(void)
 void TitleScene::Update(void)
 {
 	// ÉVÅ[ÉìëJà⁄
-	InputManager& ins = InputManager::GetInstance();
+	Controller& ins = Controller::GetInstance();
+	Controller::JOYPAD_IN_STATE state = ins.GetJPadInputState(Controller::JOYPAD_NO::PAD1);
 
-	if (ins.IsTrgDown(KEY_INPUT_SPACE)){
+	if (state.ButtonsNew[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
 
 		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::GAME);
 	}

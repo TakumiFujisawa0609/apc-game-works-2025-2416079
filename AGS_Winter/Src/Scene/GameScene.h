@@ -14,9 +14,6 @@ public:
 	//カメラとプレイヤーの距離
 	static constexpr float CAMERA_TO_PLAYER = 800.0f;
 
-	//カメラ感度
-	static constexpr float SENSITIVITY = 0.003f;
-
 	// コンストラクタ
 	GameScene(void);
 	// デストラクタ
@@ -41,7 +38,6 @@ private:
 	int imgGameclear_;
 	int imgNextwave_;
 
-	bool cameraReset_;
 	bool hitFlg_;
 
 	void Collision(void);

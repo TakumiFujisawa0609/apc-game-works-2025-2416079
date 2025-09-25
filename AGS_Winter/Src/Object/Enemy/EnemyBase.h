@@ -106,13 +106,13 @@ protected:
 	//void ChangeWait(void);
 	//void ChangeMove(void);
 	//void ChangeAttack(void);
-	//void ChangeEnd(void);
+	//void ChangeDodge(void);
 
 	//// ó‘Ô•ÊXV
 	//void UpdateWait(void);
 	//void UpdateMove(void);
 	//void UpdateAttack(void);
-	//void UpdateEnd(void);
+	//void UpdateDodge(void);
 
 	//// ó‘Ô•Ê•`‰æ
 	//void DrawStandby(void);

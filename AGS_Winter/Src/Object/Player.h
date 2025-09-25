@@ -15,7 +15,8 @@ public:
 		WAIT,
 		MOVE,
 		ATTACK,
-		DEAD_REACT,
+		COMBO,
+		DOGDE,
 		END,
 	};
 
@@ -24,7 +25,12 @@ public:
 	{
 		IDLE,
 		WALK,
+		RUN,
 		ATTACK,
+		COMBO_1,
+		COMBO_2,
+		COMBO_3,
+		DODGE,
 		MAX,
 	};
 
@@ -96,13 +102,15 @@ protected:
 	void ChangeWait(void);
 	void ChangeMove(void);
 	void ChangeAttack(void);
-	void ChangeEnd(void);
+	void ChangeCombo(void);
+	void ChangeDodge(void);
 
 	// èÛë‘ï çXêV
 	void UpdateWait(void);
 	void UpdateMove(void);
 	void UpdateAttack(void);
-	void UpdateEnd(void);
+	void UpdateCombo(void);
+	void UpdateDodge(void);
 
 	// èÛë‘ï ï`âÊ
 	void DrawStandby(void);

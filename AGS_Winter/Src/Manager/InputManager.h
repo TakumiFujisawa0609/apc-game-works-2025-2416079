@@ -64,16 +64,13 @@ public:
 
 	// インスタンスを明示的に生成
 	static void CreateInstance(void);
-
 	// インスタンスの取得
 	static InputManager& GetInstance(void);
 
 	// 初期化
 	void Init(void);
-
 	// 更新
 	void Update(void);
-
 	// リソースの破棄
 	void Destroy(void);
 

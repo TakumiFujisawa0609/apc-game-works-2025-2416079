@@ -2,6 +2,7 @@
 #include "Manager/InputManager.h"
 #include "Manager/EffectResManager.h"
 #include "Manager/SceneManager.h"
+#include "Manager/Controller.h"
 #include "Manager/FpsControll.h"
 #include "Application.h"
 
@@ -76,6 +77,7 @@ void Application::Run(void)
 {
 
 	InputManager& inputManager = InputManager::GetInstance();
+	Controller& controller = Controller::GetInstance();
 	SceneManager& sceneManager = SceneManager::GetInstance();
 
 	// ゲームループ
@@ -83,6 +85,7 @@ void Application::Run(void)
 	{
 
 		inputManager.Update();
+		controller.Update();
 		sceneManager.Update();
 
 		if (!fpsControll_->SkipDrawScene()){
@@ -106,6 +109,9 @@ void Application::Destroy(void)
 
 	// エフェクト管理解放
 	EffectResManager::GetInstance().Destroy();
+
+	// 入力制御解放
+	Controller::GetInstance().Destroy();
 
 	// 入力制御解放
 	InputManager::GetInstance().Destroy();

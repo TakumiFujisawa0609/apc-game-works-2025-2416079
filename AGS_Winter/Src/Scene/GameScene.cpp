@@ -2,13 +2,14 @@
 #include "../Object/Stage.h"
 #include "../Object/Enemy/EnemyBase.h"
 #include "../Object/Player.h"
-#include "../Manager/InputManager.h"
 #include "../Manager/EffectResManager.h"
 #include "../Manager/SceneManager.h"
 #include "../Manager/Camera.h"
+#include "../Manager/Controller.h"
 #include "../Application.h"
 #include "../Utility/AsoUtility.h"
 #include "../Utility/AngleUtility.h"
+#include "../Utility/VectorUtility.h"
 #include "GameScene.h"
 
 
@@ -32,9 +33,7 @@ void GameScene::Init(void)
 	enemyBase_ = new EnemyBase(player_);
 	enemyBase_->Init();
 
-	cameraReset_ = true;
 	GameCamera();
-	cameraReset_ = true;
 
 	imgGameover_ = LoadGraph((Application::PATH_IMAGE + "Gameover.png").c_str());
 	imgGameclear_ = LoadGraph((Application::PATH_IMAGE + "Gameclear.png").c_str());
@@ -82,32 +81,54 @@ void GameScene::GameCamera(void)
 	static float yaw = 0.0f; 
 	static float pitch = 0.3f;
 
-	//画面の中央の座標
-	const int centerX = Application::SCREEN_SIZE_X / 2;
-	const int centerY = Application::SCREEN_SIZE_Y / 2;
+	static bool isFirst = false;
 
-	int mouseX, mouseY;
+	if (!isFirst) {
 
-	// 初回は基準をセットして抜ける
-	if (cameraReset_) {
+		// カメラの位置を計算
+		VECTOR newPos;
+		newPos.x = headPos.x - CAMERA_TO_PLAYER * cosf(pitch) * sinf(yaw);
+		newPos.y = headPos.y + CAMERA_TO_PLAYER * sinf(pitch);
+		newPos.z = headPos.z - CAMERA_TO_PLAYER * cosf(pitch) * cosf(yaw);
 
-		// 中心に戻す
-		SetMousePoint(centerX, centerY);
-		yaw = 0.0f;
-		pitch = 0.3f;
-		cameraReset_ = false;
+		//カメラの位置の設定
+		camera->SetAbsCameraPos(newPos);
+		camera->SetAbsCameraAngles({ pitch, yaw, 0.0f });
+
+		isFirst = true;
+
+		return;
 	}
-	GetMousePoint(&mouseX, &mouseY);
 
-	// 相対移動量を計算
-	int deltaX = mouseX - centerX;
-	int deltaY = mouseY - centerY;
+	//前後左右の移動処理
+	if (GetJoypadNum() == 0) {
 
-	// 中心に戻す
-	SetMousePoint(centerX, centerY);
+		if (CheckHitKey(KEY_INPUT_UP) == 1) {
 
-	yaw += deltaX * SENSITIVITY;
-	pitch += deltaY * SENSITIVITY;
+			pitch += 0.1f;
+		}
+		if (CheckHitKey(KEY_INPUT_DOWN) == 1) {
+
+			pitch -= 0.1f;
+		}
+		if (CheckHitKey(KEY_INPUT_RIGHT) == 1) {
+
+			yaw += 0.1f;
+		}
+		if (CheckHitKey(KEY_INPUT_LEFT) == 1) {
+
+			yaw -= 0.1f;
+		}
+	}
+	else {
+
+		Controller& ctrl = Controller::GetInstance();
+		//ゲームパッドの情報を取得
+		Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadInputState(Controller::JOYPAD_NO::PAD1);
+		//方向の取得
+		pitch += padState.AKeyRY / 20000.0f;
+		yaw += padState.AKeyRX / 9000.0f;
+	}
 
 	// ピッチに制限（真上と床下を防ぐ）
 	if (pitch > DX_PI_F / 2.0f - 0.1f) {

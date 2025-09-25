@@ -38,6 +38,9 @@ public:
 	bool IsEnd(void) const;
 	bool IsLoop(void) const { return isLoop_; }
 
+	float GetTotalTime(void) { return playAnim_.totalTime; }
+	float GetTime(void) { return playAnim_.step; }
+
 private:
 
 	// アニメーションするモデルのハンドルID
@@ -49,6 +52,9 @@ private:
 	// 再生中のアニメーション
 	int playType_;
 	Animation playAnim_;
+	Animation prevAnim_;
+
+	float blendRate_;
 
 	bool isLoop_;
 
