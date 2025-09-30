@@ -29,8 +29,9 @@ public:
 		MAX,
 	};
 
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 0.0f };
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 1000.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
+	static constexpr VECTOR ATTACK_POS = { 0.0f, 450.0f, 450.0f };
 
 	// コンストラクタ
 	EnemyBase(Player* pl);
@@ -62,7 +63,7 @@ public:
 	void SetAngle(VECTOR angles) { angles_ = angles; }
 	
 	//攻撃座標の取得
-	VECTOR GetAttackPos(void) { return attackPos_; }
+	VECTOR GetAttackPos(void) { return attackPos1_; }
 
 	//// ダメージを与える
 	//void Damage(int damage);
@@ -93,12 +94,15 @@ protected:
 	// 移動速度
 	float speed_;
 	//攻撃判定の中心
-	VECTOR attackPos_;
+	VECTOR attackPos1_;
+	VECTOR attackPos2_;
+	VECTOR attackDir_;
 
 	// HP
 	int hp_;
 
-	int cnt_;
+	float cnt_;
+	bool attackFlg_;
 
 	void LookPlayer(void);
 

@@ -4,6 +4,7 @@
 #include "../Common/Fader.h"
 #include "../Scene/TitleScene.h"
 #include "../Scene/GameScene.h"
+#include "../Application.h"
 #include "SceneManager.h"
 
 SceneManager* SceneManager::instance_ = nullptr;
@@ -186,13 +187,13 @@ SceneManager::SceneManager(void)
 	isSceneChanging_ = false;
 
 	// デルタタイム
-	deltaTime_ = 1.0f / 60.0f;
+	deltaTime_ = 1.0f / Application::FPS;
 
 }
 
 void SceneManager::ResetDeltaTime(void)
 {
-	deltaTime_ = 0.016f;
+	deltaTime_ = 1.0f / Application::FPS;
 	preTime_ = std::chrono::system_clock::now();
 }
 

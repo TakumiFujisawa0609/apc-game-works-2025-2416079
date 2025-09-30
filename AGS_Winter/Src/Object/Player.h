@@ -34,7 +34,7 @@ public:
 		MAX,
 	};
 
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 0.0f };
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, -500.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
 	static constexpr VECTOR SWORD_POS = { 75.0f, 30.0f, -10.0f };
 
@@ -68,6 +68,9 @@ public:
 	// Õ“Ë”»’è‚ª—LŒø‚Èó‘Ô
 	bool IsCollisionState(void);
 	bool IsAttack(void);
+	bool IsDodge(void) { return dodgeFlg_; }
+
+	int DodgeCount(void) { return dodgeCnt_; }
 
 protected:
 
@@ -96,7 +99,8 @@ protected:
 	// HP
 	int hp_;
 
-	int deadCnt_;
+	int dodgeCnt_;
+	bool dodgeFlg_;
 
 	// ó‘Ô‘JˆÚ
 	void ChangeWait(void);

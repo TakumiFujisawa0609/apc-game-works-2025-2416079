@@ -5,11 +5,7 @@
 #include <string>
 
 
-FpsControll::FpsControll(const int targetfps)
-:TargetFpsValue(targetfps)
-,OneFrameTime(static_cast<int>(1000.0 / targetfps))
-,ListMax(targetfps * 2)
-,SkipDrawScreen(false){}
+FpsControll::FpsControll(const int targetfps) : TargetFpsValue(targetfps), OneFrameTime(static_cast<int>(1000.0 / targetfps)), ListMax(targetfps * 2), SkipDrawScreen(false){}
 
 // 待ち時間
 void FpsControll::Wait(void) {
@@ -117,11 +113,6 @@ bool FpsControll::TargetFpsIsValid(void) const {
 
 	//マイナス値は入れない
 	if (TargetFpsValue <= 0) {
-
-		return false;
-	}
-	//1秒に1フレーム以上入れない
-	if (TargetFpsValue > 60) {
 
 		return false;
 	}

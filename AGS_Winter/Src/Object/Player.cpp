@@ -409,7 +409,19 @@ void Player::UpdateDodge(void)
 	
 		//移動させる
 		pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 0.9f));
+		dodgeCnt_++;
+		
+		if (!dodgeFlg_) {
+		
+			dodgeFlg_ = true;
+		}
 	}
+	else if (dodgeFlg_){
+
+		dodgeFlg_ = false;
+		dodgeCnt_ = 0;
+	}
+
 	if (animationController_->IsEnd()) {
 
 		//待機モーションに移行
