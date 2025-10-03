@@ -63,10 +63,15 @@ public:
 	void SetAngle(VECTOR angles) { angles_ = angles; }
 	
 	//攻撃座標の取得
-	VECTOR GetAttackPos(void) { return attackPos1_; }
+	VECTOR GetAttackStartPos(void) { return attackPos1_; }
+	VECTOR GetAttackEndPos(void) { return attackPos2_; }
 
-	//// ダメージを与える
-	//void Damage(int damage);
+	bool IsAttack(void) { return attackFlg_; }
+
+	// ダメージを与える
+	void Damage(int damage) { hp_ -= damage; }
+
+	bool ClearFlg(void) { return clearFlg_; }
 	//// 衝突判定が有効な状態
 	//bool IsCollisionState(void);
 	//bool IsAttack(void);
@@ -100,6 +105,8 @@ protected:
 
 	// HP
 	int hp_;
+
+	bool clearFlg_;
 
 	float cnt_;
 	bool attackFlg_;

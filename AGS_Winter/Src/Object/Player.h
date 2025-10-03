@@ -37,6 +37,7 @@ public:
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, -500.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
 	static constexpr VECTOR SWORD_POS = { 75.0f, 30.0f, -10.0f };
+	static constexpr int MAX_HP = 10;
 
 	// コンストラクタ
 	Player(void);
@@ -65,12 +66,18 @@ public:
 
 	// ダメージを与える
 	void Damage(int damage);
+
+	int GetPower(void) { return power_; }
+	void SetPower(int pow) { power_ = pow; }
+
 	// 衝突判定が有効な状態
 	bool IsCollisionState(void);
 	bool IsAttack(void);
 	bool IsDodge(void) { return dodgeFlg_; }
 
 	int DodgeCount(void) { return dodgeCnt_; }
+
+	bool OverFlg(void) { return overFlg_; }
 
 protected:
 
@@ -98,6 +105,9 @@ protected:
 
 	// HP
 	int hp_;
+	bool overFlg_;
+
+	int power_;
 
 	int dodgeCnt_;
 	bool dodgeFlg_;

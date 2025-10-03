@@ -81,7 +81,7 @@ void Application::Run(void)
 	SceneManager& sceneManager = SceneManager::GetInstance();
 
 	// ƒQ[ƒ€ƒ‹[ƒv
-	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
+	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0 && controller.GetJPadInputState(Controller::JOYPAD_NO::PAD1).ButtonsNew[12] == 0)
 	{
 
 		inputManager.Update();
@@ -91,9 +91,8 @@ void Application::Run(void)
 		if (!fpsControll_->SkipDrawScene()){
 			
 			sceneManager.Draw();
+			fpsControll_->Wait();
 		}
-
-		fpsControll_->Wait();
 		ScreenFlip();
 	}
 

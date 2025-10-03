@@ -106,6 +106,18 @@ Controller::JOYPAD_IN_STATE Controller::GetJPadInputState(JOYPAD_NO no)
 
 		idx = static_cast<int>(JOYPAD_BTN::DOWN);
 		ret.ButtonsNew[idx] = d.Buttons[0];// A
+		
+		idx = static_cast<int>(JOYPAD_BTN::TOP_DPAD);
+		ret.ButtonsNew[idx] = x.Buttons[0];// UP
+
+		idx = static_cast<int>(JOYPAD_BTN::LEFT_DPAD);
+		ret.ButtonsNew[idx] = x.Buttons[2];// LEFT
+
+		idx = static_cast<int>(JOYPAD_BTN::RIGHT_DPAD);
+		ret.ButtonsNew[idx] = x.Buttons[3];// RIGHT
+
+		idx = static_cast<int>(JOYPAD_BTN::DOWN_DPAD);
+		ret.ButtonsNew[idx] = x.Buttons[1];// DOWN
 
 		idx = static_cast<int>(JOYPAD_BTN::R);
 		ret.ButtonsNew[idx] = d.Buttons[5];// R

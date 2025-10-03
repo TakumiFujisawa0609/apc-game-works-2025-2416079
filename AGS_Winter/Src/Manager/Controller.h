@@ -38,10 +38,10 @@ public:
 		RIGHT,
 		TOP,
 		DOWN,
-		LEFT_CROSS,
-		RIGHT_CROSS,
-		TOP_CROSS,
-		DOWN_CROSS,
+		LEFT_DPAD,
+		RIGHT_DPAD,
+		TOP_DPAD,
+		DOWN_DPAD,
 		R,
 		L,
 		R2_TRIGGER,
@@ -83,7 +83,7 @@ public:
 	// アナログキーの最大値
 	static constexpr float AKEY_VAL_MAX = 1000.0f;
 	// アナログキーの入力受付しきい値(0.0～1.0)
-	static constexpr float THRESHOLD = 0.1f;
+	static constexpr float THRESHOLD = 0.05f;
 
 	// アナログキーの入力値から方向を取得
 	VECTOR GetDirectionXZAKey(int aKeyX, int aKeyY);

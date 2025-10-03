@@ -28,7 +28,12 @@ void Player::Init()
 	moveDir_ = { 0.0f, 0.0f, 1.0f };
 	scales_ = { 1.0f, 1.0f, 1.0f };
 
-	speed_ = 5.0f;
+	power_ = 1;
+
+	hp_ = MAX_HP;
+	overFlg_ = false;
+
+	speed_ = 6.0f;
 
 	//モデルの設定
 	MV1SetPosition(modelId_, pos_);
@@ -58,27 +63,27 @@ void Player::Init()
 		
 		case 3:
 
-			animationController_->Add(i, 60.0f, (Application::PATH_ANIMATION + "Slash.mv1").c_str());
+			animationController_->Add(i, 90.0f, (Application::PATH_ANIMATION + "Slash.mv1").c_str());
 			break;	
 	
 		case 4:
 
-			animationController_->Add(i, 60.0f, (Application::PATH_ANIMATION + "Slash_1.mv1").c_str());
+			animationController_->Add(i, 90.0f, (Application::PATH_ANIMATION + "Slash_1.mv1").c_str());
 			break;	
 	
 		case 5:
 
-			animationController_->Add(i, 60.0f, (Application::PATH_ANIMATION + "Slash_2.mv1").c_str());
+			animationController_->Add(i, 90.0f, (Application::PATH_ANIMATION + "Slash_2.mv1").c_str());
 			break;	
 			
 		case 6:
 
-			animationController_->Add(i, 60.0f, (Application::PATH_ANIMATION + "Slash_3.mv1").c_str());
+			animationController_->Add(i, 90.0f, (Application::PATH_ANIMATION + "Slash_3.mv1").c_str());
 			break;	
 
 		case 7:
 
-			animationController_->Add(i, 60.0f, (Application::PATH_ANIMATION + "Dodge.mv1").c_str());
+			animationController_->Add(i, 90.0f, (Application::PATH_ANIMATION + "Dodge.mv1").c_str());
 			break;
 		}
 	}
@@ -122,6 +127,7 @@ void Player::Update(void)
 	MV1SetScale(modelId_, scales_);
 
 	animationController_->Update();
+	MV1SetupCollInfo(modelId_);
 }
 
 void Player::ChangeState(STATE state)
@@ -132,15 +138,35 @@ void Player::Draw(void)
 {
 	//モデルの描画
 	MV1DrawModel(modelId_);
-	DrawCapsule3D(attackPos1_, attackPos2_, 10.0f, 16, 0x00ffff, 0x00ffff, false);
-	//DrawSphere3D(pos, 25.0f, 16, 0x00ff00, 0x00ff00, true);
-	Controller& ctrl = Controller::GetInstance();
-	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadInputState(Controller::JOYPAD_NO::PAD1);
-	for (int i = 0; i < static_cast<int>(Controller::JOYPAD_BTN::MAX); i++) {
-		DrawFormatString(0, 20 * i, 0x000000, "%d", padState.ButtonsNew[i]);
+
+	if (power_ >= 3) {
+
+		DrawSphere3D(MV1GetFramePosition(modelId_, 58), 10, 16, 0xff0000, 0xff0000, true);
 	}
-	DrawFormatString(50, 15, 0xfffff , "%.2f", animationController_->GetTime());
+	else if (power_ >= 2) {
+
+		DrawSphere3D(MV1GetFramePosition(modelId_, 58), 10, 16, 0xffffff, 0xffffff, true);
+	}
+	int x = Application::SCREEN_SIZE_X;
+	int dx = x / MAX_HP;
+	x -= 10;
+	dx *= hp_;
+
+	DrawBox(10, 10, x, 25, 0x222222, true);
+	DrawBox(10, 10, dx, 25, 0x00ff00, true);
+
+	//デバック
+	/*int i = Controller::GetInstance().GetJPadInputState(Controller::JOYPAD_NO::PAD1).ButtonsNew[4];
+	DrawFormatString(5, 5, 0xffffff, "%d", i);*/
+	//DrawCapsule3D(attackPos1_, attackPos2_, 10.0f, 16, 0x00ffff, 0x00ffff, false);
+	//DrawSphere3D(pos, 25.0f, 16, 0x00ff00, 0x00ff00, true);
+	//Controller& ctrl = Controller::GetInstance();
+	//ゲームパッドの情報を取得
+	//Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadInputState(Controller::JOYPAD_NO::PAD1);
+	//for (int i = 0; i < static_cast<int>(Controller::JOYPAD_BTN::MAX); i++) {
+	//	DrawFormatString(0, 20 * i, 0x000000, "%d", padState.ButtonsNew[i]);
+	//}
+	//DrawFormatString(50, 15, 0xfffff , "%.2f", animationController_->GetTime());
 }
 
 void Player::Release(void)
@@ -155,6 +181,12 @@ void Player::Release(void)
 
 void Player::Damage(int damage)
 {
+	hp_ -= damage;
+
+	if (hp_ <= 0) {
+
+		overFlg_ = true;
+	}
 }
 
 bool Player::IsCollisionState(void)
@@ -206,6 +238,7 @@ void Player::ChangeCombo(void)
 void Player::ChangeDodge(void)
 {
 	animationController_->Play(static_cast<int>(ANIM_TYPE::DODGE), false);
+	dodgeCnt_ = 0;
 
 	state_ = STATE::DOGDE;
 }
@@ -318,7 +351,7 @@ void Player::UpdateMove(void)
 			animationController_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
 
 			//移動させる
-			pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 1.5f));
+			pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 1.75f));
 		}
 		else {
 
@@ -405,10 +438,10 @@ void Player::UpdateCombo(void)
 
 void Player::UpdateDodge(void)
 {
-	if (animationController_->GetTime() <= 83.0f) {
+	if (animationController_->GetTime() <= 70.0f) {
 	
 		//移動させる
-		pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 0.9f));
+		pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 1.1f));
 		dodgeCnt_++;
 		
 		if (!dodgeFlg_) {

@@ -23,6 +23,9 @@ void EnemyBase::Init()
 	angles_ = { 0.0f, 0.0f, 0.0f };
 	scales_ = { 10.0f, 10.0f ,10.0f };
 
+	hp_ = 20;
+	clearFlg_ = false;
+
 	cnt_ = 0;
 	attackFlg_ = false;
 	attackPos1_ = attackPos2_ = ATTACK_POS;
@@ -38,7 +41,7 @@ void EnemyBase::Init()
 
 void EnemyBase::Update(void)
 {
-	if (cnt_ < SceneManager::GetInstance().GetDeltaTime() * 144) {
+	if (cnt_ < SceneManager::GetInstance().GetDeltaTime() * 180) {
 
 		cnt_ += SceneManager::GetInstance().GetDeltaTime();
 	}
@@ -47,7 +50,7 @@ void EnemyBase::Update(void)
 		cnt_ = 0;
 		attackFlg_ = !attackFlg_;
 		attackPos1_ = VAdd(pos_, VTransform(ATTACK_POS, AngleUtility::GetMatrixRotateXYZ(angles_)));
-		attackDir_ = VSub(player_->GetPos(), attackPos1_);
+		attackDir_ = VSub(VAdd(player_->GetPos(), {0.0f, 80.0f, 0.0f}), attackPos1_);
 	}
 
 	if (attackFlg_) {
@@ -59,6 +62,10 @@ void EnemyBase::Update(void)
 		
 		LookPlayer();
 	}
+	if (hp_ <= 0) {
+
+		clearFlg_ = true;
+	}
 }
 
 void EnemyBase::ChangeState(STATE state)
@@ -68,10 +75,11 @@ void EnemyBase::ChangeState(STATE state)
 void EnemyBase::Draw(void)
 {
 	MV1DrawModel(modelId_);
-	DrawFormatString(Application::SCREEN_SIZE_X - 100, 20, 0x000000, "%f", cnt_);
+	DrawFormatString(Application::SCREEN_SIZE_X - 100, 20, 0x000000, "%.0f", 3.0f - cnt_, SetFontSize(25));
+
 	if (attackFlg_) {
 	
-		DrawCapsule3D(attackPos1_, attackPos2_, 10.0f, 16, 0x00ffff, 0x00ffff, false);
+		DrawCapsule3D(attackPos1_, attackPos2_, 10.0f, 16, 0x00ffff, 0x00ffff, true);
 	}
 }
 

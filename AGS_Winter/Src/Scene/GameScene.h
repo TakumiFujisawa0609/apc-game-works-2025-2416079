@@ -38,7 +38,8 @@ private:
 	int imgGameclear_;
 	int imgNextwave_;
 
-	bool hitFlg_;
+	bool hitFlgP_;
+	bool hitFlgE_;
 
 	void Collision(void);
 	void GameCamera(void);
