@@ -22,4 +22,9 @@ public:
 	//eq‚ÌŠp“x‚ğ‡¬
 	static MATRIX Multiplication(const VECTOR& child, const VECTOR& parent);
 	static MATRIX Multiplication(const MATRIX& child, const MATRIX& parent);
+
+	// Šp“x‚ğ -ƒÎ ` +ƒÎ ‚É³‹K‰»
+	static float NormalizeAngle(float rad);
+	// Šp“x‚ÌüŒ`•âŠÔ(í‚ÉÅ’ZŒo˜H)
+	static float LerpAngle(float from, float to, float t);
 };

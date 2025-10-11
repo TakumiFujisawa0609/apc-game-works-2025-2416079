@@ -1,4 +1,5 @@
 #include <EffekseerForDXLib.h>
+#include <cmath>
 #include "../Object/Stage.h"
 #include "../Object/Enemy/EnemyBase.h"
 #include "../Object/Player.h"
@@ -34,6 +35,11 @@ void GameScene::Init(void)
 	enemyBase_ = new EnemyBase(player_);
 	enemyBase_->Init();
 
+	pitch_ = 0.3f;
+	yaw_ = 0.0f;
+	isFirst_ = false;
+	isLockon_ = false;
+		
 	GameCamera();
 
 	imgGameover_ = LoadGraph((Application::PATH_IMAGE + "Gameover.png").c_str());
@@ -64,8 +70,8 @@ void GameScene::Collision(void)
 		
 		info = MV1CollCheck_Capsule(enemyBase_->GetModelId(), -1, player_->GetAttackStartPos(), player_->GetAttackEndPos(), 10.0f);
 
-		if (info.HitNum > 0) {
-			if (!hitFlgE_) {
+		if (!hitFlgE_) {
+			if (info.HitNum > 0) {
 			
 				hitFlgE_ = true;
 				enemyBase_->Damage(player_->GetPower());
@@ -80,10 +86,10 @@ void GameScene::Collision(void)
 				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
 			}
 		}
-		else {
+	}
+	else {
 
-			hitFlgE_ = false;
-		}
+		hitFlgE_ = false;
 	}
 	if (enemyBase_->IsAttack() == true) {
 
@@ -123,27 +129,23 @@ void GameScene::GameCamera(void)
 {
 	//カメラのインスタンスとプレイヤーの頭の位置を取る
 	Camera* camera = SceneManager::GetInstance().GetCamera();
-	VECTOR headPos = VAdd(player_->GetPos(), {0.0f, 150.0f, 0.0f});
+	VECTOR headPos = VAdd(player_->GetPos(), { 0.0f, 150.0f, 0.0f });
 
 	// 上下左右回転
-	static float yaw = 0.0f; 
-	static float pitch = 0.3f;
 
-	static bool isFirst = false;
-
-	if (!isFirst) {
+	if (!isFirst_) {
 
 		// カメラの位置を計算
 		VECTOR newPos;
-		newPos.x = headPos.x - CAMERA_TO_PLAYER * cosf(pitch) * sinf(yaw);
-		newPos.y = headPos.y + CAMERA_TO_PLAYER * sinf(pitch);
-		newPos.z = headPos.z - CAMERA_TO_PLAYER * cosf(pitch) * cosf(yaw);
+		newPos.x = headPos.x - CAMERA_TO_PLAYER * cosf(pitch_) * sinf(yaw_);
+		newPos.y = headPos.y + CAMERA_TO_PLAYER * sinf(pitch_);
+		newPos.z = headPos.z - CAMERA_TO_PLAYER * cosf(pitch_) * cosf(yaw_);
 
 		//カメラの位置の設定
 		camera->SetAbsCameraPos(newPos);
-		camera->SetAbsCameraAngles({ pitch, yaw, 0.0f });
+		camera->SetAbsCameraAngles({ pitch_, yaw_, 0.0f });
 
-		isFirst = true;
+		isFirst_ = true;
 
 		return;
 	}
@@ -161,11 +163,11 @@ void GameScene::GameCamera(void)
 	//	}
 	//	if (CheckHitKey(KEY_INPUT_RIGHT) == 1) {
 
-	//		yaw += 0.1f;
+	//		yaw_ += 0.1f;
 	//	}
 	//	if (CheckHitKey(KEY_INPUT_LEFT) == 1) {
 
-	//		yaw -= 0.1f;
+	//		yaw_ -= 0.1f;
 	//	}
 	//}
 	//else {
@@ -173,39 +175,57 @@ void GameScene::GameCamera(void)
 
 	Controller& ctrl = Controller::GetInstance();
 	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadInputState(Controller::JOYPAD_NO::PAD1);
-	//方向の取得
-	pitch += padState.AKeyRY / 25000.0f;
-	yaw += padState.AKeyRX / 12000.0f;
+	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
-	if (padState.ButtonsNew[9]) {
+	if (!isLockon_) {
+	
+		//方向の取得
+		pitch_ += padState.AKeyRY / 25000.0f;
+		yaw_ += padState.AKeyRX / 12000.0f;
+
+		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::L)] || CheckHitKey(KEY_INPUT_O)) {
+
+			isLockon_ = true;
+		}
+	}
+	else {
 
 		VECTOR dir = VSub(VAdd(enemyBase_->GetPos(), { 0.0f, 50.0f, 0.0f }), headPos);
-		VECTOR newPos = Utility::VECTOR_ZERO;
 
-		pitch = -VNorm(dir).y;
-		yaw = atan2f(VNorm(dir).x, VNorm(dir).z);
+		float prevPitch = pitch_;
+		float prevYaw = yaw_;
+
+		pitch_ = -VNorm(dir).y;
+		yaw_ = atan2f(VNorm(dir).x, VNorm(dir).z);
+
+		pitch_ = AngleUtility::LerpAngle(prevPitch, pitch_, 0.8f);
+		yaw_ = AngleUtility::LerpAngle(prevYaw, yaw_, 0.8f);
+
+		if ((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f) || std::abs(prevYaw - yaw_) > 1.0f || std::abs(prevPitch - pitch_) > 1.0f) {
+
+			isLockon_ = false;
+		}
 	}
 
 	// ピッチに制限（真上と床下を防ぐ）
-	if (pitch > DX_PI_F / 2.0f - 0.1f) {
+	if (pitch_ > DX_PI_F / 2.0f - 0.1f) {
 
-		pitch = DX_PI_F / 2.0f - 0.1f;
+		pitch_ = DX_PI_F / 2.0f - 0.1f;
 	}
-	if (pitch < -DX_PI_F / 18.0f) {
+	if (pitch_ < -DX_PI_F / 18.0f) {
 
-		pitch = -DX_PI_F / 18.0f;
+		pitch_ = -DX_PI_F / 18.0f;
 	}
 
 	// カメラの位置を計算
 	VECTOR newPos;
-	newPos.x = headPos.x - CAMERA_TO_PLAYER * cosf(pitch) * sinf(yaw);
-	newPos.y = headPos.y + CAMERA_TO_PLAYER * sinf(pitch);
-	newPos.z = headPos.z - CAMERA_TO_PLAYER * cosf(pitch) * cosf(yaw);
+	newPos.x = headPos.x - CAMERA_TO_PLAYER * cosf(pitch_) * sinf(yaw_);
+	newPos.y = headPos.y + CAMERA_TO_PLAYER * sinf(pitch_);
+	newPos.z = headPos.z - CAMERA_TO_PLAYER * cosf(pitch_) * cosf(yaw_);
 
 	//カメラの位置の設定
 	camera->SetAbsCameraPos(newPos);
-	camera->SetAbsCameraAngles({ pitch, yaw, 0.0f });
+	camera->SetAbsCameraAngles({ pitch_, yaw_, 0.0f });
 }
 
 void GameScene::Draw(void)

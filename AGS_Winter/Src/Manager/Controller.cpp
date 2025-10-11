@@ -22,14 +22,10 @@ void Controller::Init(void)
 {
 }
 
-void Controller::Update(void)
+void Controller::Update(JOYPAD_NO i)
 {
 	// パッド情報
-	//SetJPadInState(JOYPAD_NO::KEY_PAD1);
-	for (int i = 1; i < GetJoypadNum()+1; i++) {
-	
-		SetJPadInState(static_cast<Controller::JOYPAD_NO>(i));
-	}
+	SetJPadInState(i);
 }
 
 void Controller::Destroy(void)
@@ -138,10 +134,10 @@ Controller::JOYPAD_IN_STATE Controller::GetJPadInputState(JOYPAD_NO no)
 		ret.ButtonsNew[idx] = d.Buttons[6];// SELECT
 		
 		idx = static_cast<int>(JOYPAD_BTN::R3_PUSH);
-		ret.ButtonsNew[idx] = d.Buttons[9];// START
+		ret.ButtonsNew[idx] = d.Buttons[9];// R3
 
 		idx = static_cast<int>(JOYPAD_BTN::L3_PUSH);
-		ret.ButtonsNew[idx] = d.Buttons[8];// SELECT
+		ret.ButtonsNew[idx] = d.Buttons[8];// L3
 
 		// 左スティック
 		ret.AKeyLX = d.X;
@@ -161,6 +157,7 @@ Controller::JOYPAD_IN_STATE Controller::GetJPadInputState(JOYPAD_NO no)
 	{
 
 		auto d = GetJPadDInputState(no);
+
 		int idx;
 
 		//   △
@@ -178,6 +175,76 @@ Controller::JOYPAD_IN_STATE Controller::GetJPadInputState(JOYPAD_NO no)
 
 		idx = static_cast<int>(JOYPAD_BTN::DOWN);
 		ret.ButtonsNew[idx] = d.Buttons[1];// ×
+
+		idx = static_cast<int>(JOYPAD_BTN::TOP_DPAD);
+		if ((int)d.POV[0] == 0 || (int)d.POV[0] == 4500 || (int)d.POV[0] == 31500) {
+		
+			ret.ButtonsNew[idx] = 128;// TOP
+		}
+		else {
+
+			ret.ButtonsNew[idx] = 0;
+		}
+
+		idx = static_cast<int>(JOYPAD_BTN::LEFT_DPAD);
+		if ((int)d.POV[0] == 22500 || (int)d.POV[0] == 27000 || (int)d.POV[0] == 31500) {
+
+			ret.ButtonsNew[idx] = 128;// TOP
+		}
+		else {
+
+			ret.ButtonsNew[idx] = 0;
+		}
+
+		idx = static_cast<int>(JOYPAD_BTN::RIGHT_DPAD);
+		if ((int)d.POV[0] == 4500 || (int)d.POV[0] == 9000 || (int)d.POV[0] == 13500) {
+
+			ret.ButtonsNew[idx] = 128;// TOP
+		}
+		else {
+
+			ret.ButtonsNew[idx] = 0;
+		}
+
+		idx = static_cast<int>(JOYPAD_BTN::DOWN_DPAD);
+		if ((int)d.POV[0] == 13500 || (int)d.POV[0] == 18000 || (int)d.POV[0] == 22500) {
+
+			ret.ButtonsNew[idx] = 128;// TOP
+		}
+		else {
+
+			ret.ButtonsNew[idx] = 0;
+		}
+
+		idx = static_cast<int>(JOYPAD_BTN::R);
+		ret.ButtonsNew[idx] = d.Buttons[5];// R
+
+		idx = static_cast<int>(JOYPAD_BTN::L);
+		ret.ButtonsNew[idx] = d.Buttons[4];// L
+
+		idx = static_cast<int>(JOYPAD_BTN::R2_TRIGGER);
+		ret.ButtonsNew[idx] = d.Buttons[7];// R2
+
+		idx = static_cast<int>(JOYPAD_BTN::L2_TRIGGER);
+		ret.ButtonsNew[idx] = d.Buttons[6];// L2
+
+		idx = static_cast<int>(JOYPAD_BTN::START);
+		ret.ButtonsNew[idx] = d.Buttons[9];// START
+
+		idx = static_cast<int>(JOYPAD_BTN::SELECT);
+		if (d.Buttons[8] >= 1 || d.Buttons[13] >= 1) {
+
+			ret.ButtonsNew[idx] = 128;// SELECT
+		}
+		else {
+			ret.ButtonsNew[idx] = 0;
+		}
+
+		idx = static_cast<int>(JOYPAD_BTN::R3_PUSH);
+		ret.ButtonsNew[idx] = d.Buttons[11];// R3
+
+		idx = static_cast<int>(JOYPAD_BTN::L3_PUSH);
+		ret.ButtonsNew[idx] = d.Buttons[10];// L3
 
 		// 左スティック
 		ret.AKeyLX = d.X;

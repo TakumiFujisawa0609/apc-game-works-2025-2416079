@@ -72,6 +72,7 @@ public:
 
 	// Õ“Ë”»’è‚ª—LŒø‚Èó‘Ô
 	bool IsCollisionState(void);
+	bool IsAttackMotion(void);
 	bool IsAttack(void);
 	bool IsDodge(void) { return dodgeFlg_; }
 
@@ -107,6 +108,7 @@ protected:
 	int hp_;
 	bool overFlg_;
 
+	bool isAttack_;
 	int power_;
 
 	int dodgeCnt_;

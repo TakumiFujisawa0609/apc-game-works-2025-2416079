@@ -265,7 +265,7 @@ void SceneManager::Fade(void)
 void SceneManager::Init3D(void)
 {
 	//	背景色の設定
-	SetBackgroundColor(0, 139, 139);
+	SetBackgroundColor(200, 200, 200);
 
 	// Zバッファの設定
 	SetUseZBuffer3D(true);
@@ -304,7 +304,7 @@ void SceneManager::Init3D(void)
 	// フォグ設定
 	SetFogEnable(true);
 	// フォグの色
-	SetFogColor(100, 100, 100);
+	SetFogColor(200, 200, 200);
 	// フォグを発生させる奥行きの最小、最大距離
-	SetFogStartEnd(5000.0f, 7000.0f);
+	SetFogStartEnd(10000.0f, 12000.0f);
 }

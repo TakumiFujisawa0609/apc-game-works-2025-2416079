@@ -25,9 +25,9 @@ void TitleScene::Update(void)
 {
 	// ÉVÅ[ÉìëJà⁄
 	Controller& ins = Controller::GetInstance();
-	Controller::JOYPAD_IN_STATE state = ins.GetJPadInputState(Controller::JOYPAD_NO::PAD1);
+	Controller::JOYPAD_IN_STATE state = ins.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
-	if (state.ButtonsNew[static_cast<int>(Controller::JOYPAD_BTN::DOWN)] || CheckHitKey(KEY_INPUT_SPACE) == 1) {
+	if (state.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)] || CheckHitKey(KEY_INPUT_SPACE) == 1) {
 
 		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::GAME);
 	}

@@ -55,3 +55,22 @@ MATRIX AngleUtility::Multiplication(const MATRIX& child, const MATRIX& parent)
 {
 	return MMult(child, parent);
 }
+
+float AngleUtility::NormalizeAngle(float rad)
+{
+	while (rad > DX_PI)
+	{
+		rad -= DX_TWO_PI;
+	}
+	while (rad < -DX_PI)
+	{
+		rad += DX_TWO_PI;
+	}
+	return rad;
+}
+
+float AngleUtility::LerpAngle(float from, float to, float t)
+{
+	float diff = NormalizeAngle(to - from); // Å’ZŒo˜H‚ÌŠp“x·‚ðŒvŽZ
+	return from + diff * t; // ·•ª‚¾‚¯•âŠÔ‚µ‚Ä‘«‚·
+}

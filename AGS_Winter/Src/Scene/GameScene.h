@@ -41,6 +41,12 @@ private:
 	bool hitFlgP_;
 	bool hitFlgE_;
 
+	float yaw_;
+	float pitch_;
+
+	bool isFirst_;
+	bool isLockon_;
+
 	void Collision(void);
 	void GameCamera(void);
 };

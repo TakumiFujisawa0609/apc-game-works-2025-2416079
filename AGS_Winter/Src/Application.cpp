@@ -81,11 +81,11 @@ void Application::Run(void)
 	SceneManager& sceneManager = SceneManager::GetInstance();
 
 	// ƒQ[ƒ€ƒ‹[ƒv
-	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0 && controller.GetJPadInputState(Controller::JOYPAD_NO::PAD1).ButtonsNew[12] == 0)
+	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0 && controller.GetJPadState(Controller::JOYPAD_NO::PAD1).ButtonsNew[12] == 0)
 	{
 
 		inputManager.Update();
-		controller.Update();
+		controller.Update(Controller::JOYPAD_NO::PAD1);
 		sceneManager.Update();
 
 		if (!fpsControll_->SkipDrawScene()){

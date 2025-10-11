@@ -29,6 +29,7 @@ void Player::Init()
 	scales_ = { 1.0f, 1.0f, 1.0f };
 
 	power_ = 1;
+	isAttack_ = false;
 
 	hp_ = MAX_HP;
 	overFlg_ = false;
@@ -156,15 +157,15 @@ void Player::Draw(void)
 	DrawBox(10, 10, dx, 25, 0x00ff00, true);
 
 	//デバック
-	/*int i = Controller::GetInstance().GetJPadInputState(Controller::JOYPAD_NO::PAD1).ButtonsNew[4];
+	/*int i = Controller::GetInstance().GetJPadInputState(Controller::JOYPAD_NO::PAD1).IsTrgDown[4];
 	DrawFormatString(5, 5, 0xffffff, "%d", i);*/
 	//DrawCapsule3D(attackPos1_, attackPos2_, 10.0f, 16, 0x00ffff, 0x00ffff, false);
 	//DrawSphere3D(pos, 25.0f, 16, 0x00ff00, 0x00ff00, true);
 	//Controller& ctrl = Controller::GetInstance();
-	//ゲームパッドの情報を取得
+	////ゲームパッドの情報を取得
 	//Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadInputState(Controller::JOYPAD_NO::PAD1);
 	//for (int i = 0; i < static_cast<int>(Controller::JOYPAD_BTN::MAX); i++) {
-	//	DrawFormatString(0, 20 * i, 0x000000, "%d", padState.ButtonsNew[i]);
+	//	DrawFormatString(0, 20 * i, 0x000000, "%d", padState.IsTrgDown[i]);
 	//}
 	//DrawFormatString(50, 15, 0xfffff , "%.2f", animationController_->GetTime());
 }
@@ -194,7 +195,7 @@ bool Player::IsCollisionState(void)
 	return false;
 }
 
-bool Player::IsAttack(void)
+bool Player::IsAttackMotion(void)
 {
 	if (state_ == STATE::ATTACK || state_ == STATE::COMBO) {
 
@@ -223,6 +224,7 @@ void Player::ChangeAttack(void)
 {
 	//攻撃モーション
 	animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK), false);
+	isAttack_ = true;
 
 	state_ = STATE::ATTACK;
 }
@@ -231,6 +233,7 @@ void Player::ChangeCombo(void)
 {
 	//攻撃モーション
 	animationController_->Play(static_cast<int>(ANIM_TYPE::COMBO_1), false);
+	isAttack_ = true;
 
 	state_ = STATE::COMBO;
 }
@@ -271,14 +274,14 @@ void Player::UpdateWait(void)
 
 		Controller& ctrl = Controller::GetInstance();
 		//ゲームパッドの情報を取得
-		Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadInputState(Controller::JOYPAD_NO::PAD1);
+		Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 		
-		if (padState.ButtonsNew[static_cast<int>(Controller::JOYPAD_BTN::TOP)]) {
+		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP)]) {
 
 			//攻撃モーションに移行
 			ChangeAttack();
 		}		
-		if (padState.ButtonsNew[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
+		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
 			//攻撃モーションに移行
 			ChangeCombo();
@@ -288,7 +291,7 @@ void Player::UpdateWait(void)
 			//移動モーションに移行
 			ChangeMove();
 		}
-		if (padState.ButtonsNew[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
+		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
 
 			//回避モーションに移行
 			ChangeDodge();
@@ -300,7 +303,7 @@ void Player::UpdateMove(void)
 {
 	Controller& ctrl = Controller::GetInstance();
 	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadInputState(Controller::JOYPAD_NO::PAD1);
+	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
 	//行列と方向の設定
 	MATRIX mat = MGetIdent();
@@ -345,7 +348,7 @@ void Player::UpdateMove(void)
 		dir = VNorm(dir);
 		moveDir_ = VTransform(dir, mat);
 
-		if (padState.ButtonsNew[static_cast<int>(Controller::JOYPAD_BTN::R)]) {
+		if (padState.IsNew[static_cast<int>(Controller::JOYPAD_BTN::R)]) {
 
 			//移動モーション
 			animationController_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
@@ -361,18 +364,18 @@ void Player::UpdateMove(void)
 			//移動させる
 			pos_ = VAdd(pos_, VScale(moveDir_, speed_));
 
-			if (padState.ButtonsNew[static_cast<int>(Controller::JOYPAD_BTN::TOP)]) {
+			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP)]) {
 
 				//攻撃モーションに移行
 				ChangeAttack();
 			}
-			if (padState.ButtonsNew[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
+			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
 				//攻撃モーションに移行
 				ChangeCombo();
 			}
 		}
-		if (padState.ButtonsNew[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
+		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
 
 			//回避モーションに移行
 			ChangeDodge();
@@ -398,6 +401,7 @@ void Player::UpdateAttack(void)
 
 	if (animationController_->IsEnd()) {
 
+		isAttack_ = false;
 		//待機モーションに移行
 		ChangeWait();
 	}
@@ -411,26 +415,35 @@ void Player::UpdateCombo(void)
 
 	Controller& ctrl = Controller::GetInstance();
 	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadInputState(Controller::JOYPAD_NO::PAD1);
+	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
 	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_1)) {
 		if (animationController_->GetTime() >= 67.5f) {
-			if (padState.ButtonsNew[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
+			
+			isAttack_ = false;
 
+			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
+
+				isAttack_ = true;
 				animationController_->Play(static_cast<int>(ANIM_TYPE::COMBO_2), false);
 			}
 		}
 	}
 	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_2)) {
 		if (animationController_->GetTime() >= 75.0f) {
-			if (padState.ButtonsNew[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
+			
+			isAttack_ = false;
 
+			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
+
+				isAttack_ = true;
 				animationController_->Play(static_cast<int>(ANIM_TYPE::COMBO_3), false);
 			}
 		}
 	}
 	if (animationController_->IsEnd()) {
 
+		isAttack_ = false;
 		//待機モーションに移行
 		ChangeWait();
 	}

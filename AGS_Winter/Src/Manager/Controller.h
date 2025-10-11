@@ -76,7 +76,7 @@ public:
 	// 初期化
 	void Init(void);
 	// 更新
-	void Update(void);
+	void Update(JOYPAD_NO i);
 	// リソースの破棄
 	void Destroy(void);
 
@@ -89,7 +89,7 @@ public:
 	VECTOR GetDirectionXZAKey(int aKeyX, int aKeyY);
 
 	// コントローラの入力情報を取得する
-	JOYPAD_IN_STATE GetJPadInputState(JOYPAD_NO no);
+	JOYPAD_IN_STATE GetJPadState(JOYPAD_NO no) { return padInfos_[static_cast<int>(no)]; }
 
 	JOYPAD_TYPE GetJPadType(JOYPAD_NO no) { return GetJPadDType(no); }
 
@@ -118,4 +118,6 @@ private:
 	// コントローラの入力情報を更新する
 	void SetJPadInState(JOYPAD_NO jpNo);
 
+	// コントローラの入力情報を取得する
+	JOYPAD_IN_STATE GetJPadInputState(JOYPAD_NO no);
 };
