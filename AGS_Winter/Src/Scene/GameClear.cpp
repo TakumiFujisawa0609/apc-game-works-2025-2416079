@@ -3,25 +3,25 @@
 #include "../Utility/AsoUtility.h"
 #include "../Manager/SceneManager.h"
 #include "../Manager/Controller.h"
-#include "TitleScene.h"
+#include "GameClear.h"
 
 
-TitleScene::TitleScene(void)
+GameClear::GameClear(void)
 {
 	imgTitle_ = -1;
 }
 
-TitleScene::~TitleScene(void)
+GameClear::~GameClear(void)
 {
 }
 
-void TitleScene::Init(void)
+void GameClear::Init(void)
 {
 	//imgTitle_ = LoadGraph((Application::PATH_IMAGE + "Title.png").c_str());
 	//imgBg_ = LoadGraph((Application::PATH_IMAGE + "Background.png").c_str());
 }
 
-void TitleScene::Update(void)
+void GameClear::Update(void)
 {
 	// ÉVÅ[ÉìëJà⁄
 	Controller& ins = Controller::GetInstance();
@@ -29,22 +29,22 @@ void TitleScene::Update(void)
 
 	if (state.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)] || CheckHitKey(KEY_INPUT_SPACE) == 1) {
 
-		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::GAME);
+		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
 	}
 }
 
-void TitleScene::Draw(void)
+void GameClear::Draw(void)
 {
 	SceneBase::Draw();
 
-	DrawFormatString(100, 100, 0x000000, "Title", SetFontSize(30));
+	DrawFormatString(100, 100, 0x000000, "GameClear", SetFontSize(30));
 	DrawFormatString(100, 150, 0x000000, "Press A", SetFontSize(30));
 
 	//DrawRotaGraph(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 1.0f, 0.0, imgBg_, true);
 	//DrawRotaGraph( Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2 - 100, 1.0f, 0.0, imgTitle_, true);
 }
 
-void TitleScene::Release(void)
+void GameClear::Release(void)
 {
 	//DeleteGraph(imgTitle_);
 	//DeleteGraph(imgBg_);

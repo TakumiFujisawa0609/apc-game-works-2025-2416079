@@ -1,9 +1,12 @@
 #include <EffekseerForDxlib.h>
 #include "Camera.h"
+#include "../Utility/Utility.h"
 #include "../Object/Grid.h"
 #include "../Common/Fader.h"
 #include "../Scene/TitleScene.h"
 #include "../Scene/GameScene.h"
+#include "../Scene/GameOver.h"
+#include "../Scene/GameClear.h"
 #include "../Application.h"
 #include "SceneManager.h"
 
@@ -11,15 +14,17 @@ SceneManager* SceneManager::instance_ = nullptr;
 
 void SceneManager::CreateInstance()
 {
-	if (instance_ == nullptr)
-	{
-		instance_ = new SceneManager();
-	}
+	instance_ = new SceneManager();
+
 	instance_->Init();
 }
 
 SceneManager& SceneManager::GetInstance(void)
 {
+	if (instance_ == nullptr)
+	{
+		instance_ = new SceneManager();
+	}
 	return *instance_;
 }
 
@@ -37,6 +42,12 @@ void SceneManager::Init(void)
 	// フェード機能の初期化
 	fader_ = new Fader();
 	fader_->Init();
+
+	backGround_ = MV1LoadModel((Application::PATH_MODEL + "Sky.mv1").c_str());
+
+	MV1SetPosition(backGround_, Utility::VECTOR_ZERO);
+	MV1SetRotationXYZ(backGround_, Utility::VECTOR_ZERO);
+	MV1SetScale(backGround_, { 7.0f, 7.0f, 7.0f });
 
 	isSceneChanging_ = false;
 
@@ -94,6 +105,8 @@ void SceneManager::Draw(void)
 	camera_->SetBeforeDraw();
 
 	UpdateEffekseer3D();
+
+	MV1DrawModel(backGround_);
 
 	// 各シーンの描画処理
 	scene_->Draw();
@@ -219,6 +232,16 @@ void SceneManager::DoChangeScene(SCENE_ID sceneId)
 
 		scene_ = new GameScene();
 		break;
+
+	case SCENE_ID::OVER:
+
+		scene_ = new GameOver();
+		break;
+
+	case SCENE_ID::CLEAR:
+
+		scene_ = new GameClear();
+		break;
 	}
 
 	// 各シーンの初期化
@@ -276,7 +299,7 @@ void SceneManager::Init3D(void)
 
 	// ライト設定
 	SetUseLighting(true);
-	ChangeLightTypeDir({ 0.00f, -100.00f, 0.00f });
+	ChangeLightTypeDir({ 0.00f, -1.00f, 0.00f });
 
 	//#pragma region Step1 ポイントライト
 	//
@@ -306,5 +329,5 @@ void SceneManager::Init3D(void)
 	// フォグの色
 	SetFogColor(200, 200, 200);
 	// フォグを発生させる奥行きの最小、最大距離
-	SetFogStartEnd(10000.0f, 12000.0f);
+	SetFogStartEnd(12000.0f, 14000.0f);
 }

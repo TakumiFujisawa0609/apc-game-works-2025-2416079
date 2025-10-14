@@ -20,6 +20,8 @@ public:
 		NONE,
 		TITLE,
 		GAME,
+		OVER,
+		CLEAR,
 	};
 	
 	// インスタンスの生成
@@ -70,6 +72,8 @@ private:
 
 	// 各種シーン
 	SceneBase* scene_;
+
+	int backGround_;
 
 	// シーン遷移中判定
 	bool isSceneChanging_;

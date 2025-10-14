@@ -148,13 +148,12 @@ void Player::Draw(void)
 
 		DrawSphere3D(MV1GetFramePosition(modelId_, 58), 10, 16, 0xffffff, 0xffffff, true);
 	}
-	int x = Application::SCREEN_SIZE_X;
-	int dx = x / MAX_HP;
-	x -= 10;
+	float x = Application::SCREEN_SIZE_X - 25;
+	float dx = x / MAX_HP;
 	dx *= hp_;
 
-	DrawBox(10, 10, x, 25, 0x222222, true);
-	DrawBox(10, 10, dx, 25, 0x00ff00, true);
+	DrawBox(25, 20, x, 35, 0x222222, true);
+	DrawBox(25, 20, dx, 35, 0x00ff00, true);
 
 	//デバック
 	/*int i = Controller::GetInstance().GetJPadInputState(Controller::JOYPAD_NO::PAD1).IsTrgDown[4];
@@ -390,10 +389,27 @@ void Player::UpdateMove(void)
 
 void Player::UpdateAttack(void)
 {
+	if (animationController_->GetTime() >= 61.0f && animationController_->GetTime() <= 62.0f) {
+		
+		isAttack_ = true;
+	}
+	if (animationController_->GetTime() >= 92.0f && animationController_->GetTime() <= 93.0f) {
+
+		isAttack_ = false;
+	}
+	if (animationController_->GetTime() >= 115.0f && animationController_->GetTime() <= 116.0f) {
+
+		isAttack_ = true;
+	}
 	if (animationController_->GetTime() <= 138.0f) {
 	
 		//移動させる
 		pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 0.2f));
+	}
+	else {
+
+		isAttack_ = true;
+		power_ = 3;
 	}
 	//当たり判定の中心
 	attackPos1_ = MV1GetFramePosition(modelId_, 58);
@@ -401,6 +417,7 @@ void Player::UpdateAttack(void)
 
 	if (animationController_->IsEnd()) {
 
+		power_ = 1;
 		isAttack_ = false;
 		//待機モーションに移行
 		ChangeWait();

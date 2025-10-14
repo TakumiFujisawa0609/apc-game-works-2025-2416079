@@ -3,6 +3,7 @@
 #include "../Object/Stage.h"
 #include "../Object/Enemy/EnemyBase.h"
 #include "../Object/Player.h"
+#include "../Manager/Sound.h"
 #include "../Manager/EffectResManager.h"
 #include "../Manager/SceneManager.h"
 #include "../Manager/Camera.h"
@@ -48,6 +49,11 @@ void GameScene::Init(void)
 
 	hitFlgE_ = false;
 	hitFlgP_ = false;
+
+	shadowMap_ = MakeShadowMap(8192, 8192);
+
+	SetShadowMapLightDirection(shadowMap_, { 0.2f, -0.8f, 0.0f });
+	SetShadowMapDrawArea(shadowMap_, { -5000.0f, 0.0f, -5000.0f }, { 5000.0f, 0.0f, 5000.0f });
 }
 
 void GameScene::Update(void)
@@ -60,10 +66,20 @@ void GameScene::Update(void)
 	stage_->Update();
 
 	Collision();
+
+	if (enemyBase_->ClearFlg() == true) {
+
+		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
+	}
+	if (player_->OverFlg() == true) {
+
+		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::OVER);
+	}
 }
 
 void GameScene::Collision(void)
 {
+	Sound& sound = Sound::GetInstance();
 	MV1_COLL_RESULT_POLY_DIM info{};
 
 	if (player_->IsAttack()) {
@@ -73,6 +89,7 @@ void GameScene::Collision(void)
 		if (!hitFlgE_) {
 			if (info.HitNum > 0) {
 			
+				sound.Play(Sound::SE_TYPE::E_SE_SLASH_1);
 				hitFlgE_ = true;
 				enemyBase_->Damage(player_->GetPower());
 
@@ -81,45 +98,61 @@ void GameScene::Collision(void)
 					player_->SetPower(1);
 				}
 			}
-			if (enemyBase_->ClearFlg() == true) {
-
-				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
-			}
 		}
 	}
 	else {
 
 		hitFlgE_ = false;
 	}
-	if (enemyBase_->IsAttack() == true) {
+	if (enemyBase_->IsAttackA()) {
 
-		info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackEndPos(), 20.0f);
+		info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemyBase_->GetAttackPos(), EnemyBase::ATTACK_RADIUS);
 
 		if (info.HitNum > 0) {
-			if (player_->IsDodge() == false) {
-				if (!hitFlgP_) {
+			if (!hitFlgP_) {
+				if (!player_->IsDodge()) {
 
 					hitFlgP_ = true;
 					player_->Damage(1);
 				}
-			}
-			else {
-				if (player_->DodgeCount() <= 10) {
-				
-					player_->SetPower(3);
-				}
-				else if (player_->DodgeCount() <= 20) {
-					
-					player_->SetPower(2);
-				}
-			}
-			if (player_->OverFlg() == true) {
+				else {
+					if (player_->DodgeCount() <= 10) {
 
-				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
+						player_->SetPower(3);
+					}
+					else if (player_->DodgeCount() <= 20) {
+
+						player_->SetPower(2);
+					}
+				}
 			}
 		}
 	}
-	else {
+	if (enemyBase_->IsAttackB()) {
+
+		info = MV1CollCheck_Triangle(player_->GetModelId(), -1, enemyBase_->GetAttackPos(), enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackEndPos());
+
+		if (info.HitNum > 0) {
+			if (!hitFlgP_) {
+				if (!player_->IsDodge()) {
+
+					hitFlgP_ = true;
+					player_->Damage(2);
+				}
+				else {
+					if (player_->DodgeCount() <= 10) {
+
+						player_->SetPower(3);
+					}
+					else if (player_->DodgeCount() <= 20) {
+
+						player_->SetPower(2);
+					}
+				}
+			}
+		}
+	}
+	if (!enemyBase_->IsAttackA() && !enemyBase_->IsAttackB()) {
 
 		hitFlgP_ = false;
 	}
@@ -201,7 +234,7 @@ void GameScene::GameCamera(void)
 		pitch_ = AngleUtility::LerpAngle(prevPitch, pitch_, 0.8f);
 		yaw_ = AngleUtility::LerpAngle(prevYaw, yaw_, 0.8f);
 
-		if ((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f) || std::abs(prevYaw - yaw_) > 1.0f || std::abs(prevPitch - pitch_) > 1.0f) {
+		if (((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f)) || yaw_ < 0.0f) {
 
 			isLockon_ = false;
 		}
@@ -230,10 +263,21 @@ void GameScene::GameCamera(void)
 
 void GameScene::Draw(void)
 {
+	ShadowMap_DrawSetup(shadowMap_);
+
+	MV1DrawModel(player_->GetModelId());
+	MV1DrawModel(enemyBase_->GetModelId());
+
+	ShadowMap_DrawEnd();
+
+	SetUseShadowMap(0, shadowMap_);
+
 	SceneBase::Draw();
 	stage_->Draw();
 	player_->Draw();
 	enemyBase_->Draw();
+
+	SetUseShadowMap(0, -1);
 
 	//if (hitFlgP_) {
 
@@ -253,6 +297,8 @@ void GameScene::Draw(void)
 
 void GameScene::Release(void)
 {
+	DeleteShadowMap(shadowMap_);
+
 	stage_->Release();
 	delete stage_;
 

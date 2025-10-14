@@ -26,6 +26,9 @@ public:
 	
 	void EnemyToPlayer(void);
 
+	Player* GetPlayer(void) { return player_; }
+	EnemyBase* GetEnemyBase(void) { return enemyBase_; }
+
 private:
 
 	// ステージ
@@ -37,6 +40,8 @@ private:
 	int imgGameover_;
 	int imgGameclear_;
 	int imgNextwave_;
+
+	int shadowMap_;
 
 	bool hitFlgP_;
 	bool hitFlgE_;

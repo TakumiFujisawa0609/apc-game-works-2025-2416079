@@ -31,7 +31,9 @@ public:
 
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 1000.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
-	static constexpr VECTOR ATTACK_POS = { 0.0f, 450.0f, 450.0f };
+	static constexpr VECTOR ATTACK_POS_A = { 0.0f, 380.0f, 380.0f };
+	static constexpr VECTOR ATTACK_POS_B = { 0.0f, 2.5f, 200.0f };
+	static constexpr float ATTACK_RADIUS = 35.0f;
 
 	// コンストラクタ
 	EnemyBase(Player* pl);
@@ -63,10 +65,12 @@ public:
 	void SetAngle(VECTOR angles) { angles_ = angles; }
 	
 	//攻撃座標の取得
+	VECTOR GetAttackPos(void) { return attackPos_; }
 	VECTOR GetAttackStartPos(void) { return attackPos1_; }
 	VECTOR GetAttackEndPos(void) { return attackPos2_; }
 
-	bool IsAttack(void) { return attackFlg_; }
+	bool IsAttackA(void) { return attackAFlg_; }
+	bool IsAttackB(void) { return attackBFlg_; }
 
 	// ダメージを与える
 	void Damage(int damage) { hp_ -= damage; }
@@ -74,7 +78,7 @@ public:
 	bool ClearFlg(void) { return clearFlg_; }
 	//// 衝突判定が有効な状態
 	//bool IsCollisionState(void);
-	//bool IsAttack(void);
+	//bool IsAttackA(void);
 
 protected:
 
@@ -99,9 +103,11 @@ protected:
 	// 移動速度
 	float speed_;
 	//攻撃判定の中心
+	VECTOR attackPos_;
 	VECTOR attackPos1_;
 	VECTOR attackPos2_;
 	VECTOR attackDir_;
+	float attackSpeed_;
 
 	// HP
 	int hp_;
@@ -109,7 +115,12 @@ protected:
 	bool clearFlg_;
 
 	float cnt_;
-	bool attackFlg_;
+	int attack_;
+	int coolDown_;
+	bool isCoolDown_;
+
+	bool attackAFlg_;
+	bool attackBFlg_;
 
 	void LookPlayer(void);
 
