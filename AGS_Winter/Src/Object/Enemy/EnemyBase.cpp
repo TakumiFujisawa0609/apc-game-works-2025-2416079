@@ -28,7 +28,7 @@ void EnemyBase::Init()
 	angles_ = { 0.0f, 0.0f, 0.0f };
 	scales_ = { 8.0f, 8.0f ,8.0f };
 
-	hp_ = 20;
+	hp_ = 25;
 	clearFlg_ = false;
 
 	attack_ = 0;
@@ -138,7 +138,7 @@ void EnemyBase::Draw(void)
 {
 	MV1DrawModel(modelId_);
 	DrawFormatString(Application::SCREEN_SIZE_X - 100, 20, 0x000000, "%.2f", (300.0f - cnt_) / 60.0f, SetFontSize(25));
-	DrawFormatString(100, 20, 0x000000, "%.d", hp_, SetFontSize(25));
+	//DrawFormatString(100, 20, 0x000000, "%.d", hp_, SetFontSize(25));
 
 	if (attackAFlg_) {
 	
