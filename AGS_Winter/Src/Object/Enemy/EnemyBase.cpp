@@ -1,5 +1,6 @@
 #include <cmath>
 #include "../../Application.h"
+#include "../../Utility/Utility.h"
 #include "../../Utility/AngleUtility.h"
 #include "../Common/AnimationController.h"
 #include "../../Manager/SceneManager.h"
@@ -22,7 +23,8 @@ void EnemyBase::Init()
 
 	animationController_ = new AnimationController(modelId_);
 
-	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::WALK), 30, 5);
+	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::IDLE), 30, 3);
+	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::WALK), 30, 6);
 
 	pos_ = DEFAULT_POS;
 	angles_ = { 0.0f, 0.0f, 0.0f };
@@ -38,7 +40,7 @@ void EnemyBase::Init()
 	cnt_ = 0;
 	attackSpeed_ = 22.0f;
 	attackAFlg_ = attackBFlg_ = false;
-	attackPos_ = attackPos1_ = attackPos2_ = ATTACK_POS_A;
+	attackPos_ = attackPos1_ = attackPos2_ = Utility::VECTOR_ZERO;
 
 	MV1SetPosition(modelId_, pos_);
 	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
@@ -58,13 +60,13 @@ void EnemyBase::Update(void)
 		VECTOR prevAngles = angles_;
 		LookPlayer();
 
-		if (std::abs(prevAngles.y - angles_.y) >= 0.0025f) {
+		if (std::abs(prevAngles.y - angles_.y) >= 0.00375f) {
 		
 			animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 		}
 		else {
 			
-			animationController_->Play(static_cast<int>(ANIM_TYPE::T), true);
+			animationController_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
 		}
 
 		cnt_++;

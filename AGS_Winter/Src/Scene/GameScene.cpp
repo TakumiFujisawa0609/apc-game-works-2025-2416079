@@ -90,6 +90,8 @@ void GameScene::Collision(void)
 			if (info.HitNum > 0) {
 			
 				sound.Play(Sound::SE_TYPE::E_SE_SLASH_1);
+				Effect(info.Dim[info.HitNum - 1]);
+
 				hitFlgE_ = true;
 				enemyBase_->Damage(player_->GetPower());
 
@@ -234,7 +236,7 @@ void GameScene::GameCamera(void)
 		pitch_ = AngleUtility::LerpAngle(prevPitch, pitch_, 0.8f);
 		yaw_ = AngleUtility::LerpAngle(prevYaw, yaw_, 0.8f);
 
-		if (((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f)) || yaw_ < 0.0f) {
+		if (((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f)) || yaw_ < 0.2f) {
 
 			isLockon_ = false;
 		}
@@ -259,6 +261,21 @@ void GameScene::GameCamera(void)
 	//カメラの位置の設定
 	camera->SetAbsCameraPos(newPos);
 	camera->SetAbsCameraAngles({ pitch_, yaw_, 0.0f });
+}
+
+void GameScene::Effect(MV1_COLL_RESULT_POLY dim)
+{
+	//リソースを得る
+	int resource = EffectResManager::GetInstance().GetResourceId(EffectResManager::TYPE::ENEMY_HIT);
+	
+	//エフェクトの再生
+	int effect = PlayEffekseer3DEffect(resource);
+
+	//位置等々の設定
+	VECTOR pos = dim.Position[0];
+	SetPosPlayingEffekseer3DEffect(effect, pos.x, pos.y, pos.z);
+	SetScalePlayingEffekseer3DEffect(effect, 12.0f, 12.0f, 12.0f);
+	SetRotationPlayingEffekseer3DEffect(effect, 0.0f, 0.0f, 0.0f);
 }
 
 void GameScene::Draw(void)

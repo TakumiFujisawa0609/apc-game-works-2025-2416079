@@ -23,7 +23,7 @@ public:
 	// アニメーション種別
 	enum class ANIM_TYPE
 	{
-		T,
+		IDLE,
 		WALK,
 		ATTACK,
 		MAX,

@@ -54,4 +54,5 @@ private:
 
 	void Collision(void);
 	void GameCamera(void);
+	void Effect(MV1_COLL_RESULT_POLY dim);
 };

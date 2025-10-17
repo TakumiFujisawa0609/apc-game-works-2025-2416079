@@ -185,6 +185,7 @@ void Player::Damage(int damage)
 
 	if (hp_ <= 0) {
 
+		hp_ = 0;
 		overFlg_ = true;
 	}
 }
