@@ -28,6 +28,8 @@ void Player::Init()
 	moveDir_ = { 0.0f, 0.0f, 1.0f };
 	scales_ = { 1.0f, 1.0f, 1.0f };
 
+	knockBackDir_ = 0.0f;
+
 	power_ = 1;
 	isAttack_ = false;
 
@@ -86,6 +88,21 @@ void Player::Init()
 
 			animationController_->Add(i, 90.0f, (Application::PATH_ANIMATION + "Dodge.mv1").c_str());
 			break;
+
+		case 8:
+
+			animationController_->Add(i, 90.0f, (Application::PATH_ANIMATION + "Hit_Light.mv1").c_str());
+			break;	
+			
+		case 9:
+
+			animationController_->Add(i, 60.0f, (Application::PATH_ANIMATION + "Hit_Heavy.mv1").c_str());
+			break;	
+
+		case 10:
+
+			animationController_->Add(i, 200.0f, (Application::PATH_ANIMATION + "Hit_Up.mv1").c_str());
+			break;
 		}
 	}
 
@@ -121,6 +138,16 @@ void Player::Update(void)
 		
 		UpdateDodge();
 		break;
+
+	case STATE::DAMAGED_LIGHT:
+		
+		UpdateDamagedLight();
+		break;
+
+	case STATE::DAMAGED_HEAVY:
+		
+		UpdateDamagedHeavy();
+		break;
 	}
 	//モデルの設定
 	MV1SetPosition(modelId_, pos_);
@@ -148,12 +175,14 @@ void Player::Draw(void)
 
 		DrawSphere3D(MV1GetFramePosition(modelId_, 58), 10, 16, 0xffffff, 0xffffff, true);
 	}
-	float x = Application::SCREEN_SIZE_X - 25;
+	float x = Application::SCREEN_SIZE_X - 50.0f;
 	float dx = x / MAX_HP;
+	x += 25.0f;
 	dx *= hp_;
+	dx += 25.0f;
 
-	DrawBox(25, 20, x, 35, 0x222222, true);
-	DrawBox(25, 20, dx, 35, 0x00ff00, true);
+	DrawBoxAA(25.0f, 20.0f, x, 35.0f, 0x222222, true);
+	DrawBoxAA(25.0f, 20.0f, dx, 35.0f, 0x00ff00, true);
 
 	//デバック
 	/*int i = Controller::GetInstance().GetJPadInputState(Controller::JOYPAD_NO::PAD1).IsTrgDown[4];
@@ -179,9 +208,19 @@ void Player::Release(void)
 	MV1DeleteModel(modelId_);
 }
 
-void Player::Damage(int damage)
+void Player::Damage(int damage, float dir)
 {
 	hp_ -= damage;
+	knockBackDir_ = dir;
+
+	if (damage >= 2) {
+
+		ChangeDamagedHeavy();
+	}
+	else {
+
+		ChangeDamagedLight();
+	}
 
 	if (hp_ <= 0) {
 
@@ -205,6 +244,14 @@ bool Player::IsAttackMotion(void)
 
 		return false;
 	}
+}
+
+void Player::KnockBack()
+{
+	pos_.x += sinf(knockBackDir_) * 2.0f;
+	pos_.z += cosf(knockBackDir_) * 2.0f;
+
+	angles_.y = knockBackDir_ - DX_PI_F;
 }
 
 void Player::ChangeWait(void)
@@ -244,6 +291,20 @@ void Player::ChangeDodge(void)
 	dodgeCnt_ = 0;
 
 	state_ = STATE::DOGDE;
+}
+
+void Player::ChangeDamagedLight(void)
+{
+	animationController_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_LIGHT), false);
+
+	state_ = STATE::DAMAGED_LIGHT;
+}
+
+void Player::ChangeDamagedHeavy(void)
+{
+	animationController_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY), false);
+
+	state_ = STATE::DAMAGED_HEAVY;
 }
 
 void Player::UpdateWait(void)
@@ -490,6 +551,61 @@ void Player::UpdateDodge(void)
 
 		//待機モーションに移行
 		ChangeWait();
+	}
+}
+
+void Player::UpdateDamagedLight(void)
+{
+	if (animationController_->IsEnd()) {
+
+		ChangeWait();
+	}
+}
+
+void Player::UpdateDamagedHeavy(void)
+{
+	static int steps = 0;
+	static bool prevPause = false;
+
+	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY)) {
+		if (animationController_->GetTime() <= 110) {
+
+			KnockBack();
+		}
+		if (!prevPause){
+			if (animationController_->GetTime() >= 130) {
+				
+				prevPause = true;
+				animationController_->ChangePause(true);
+			}
+		}
+		if (animationController_->IsPause()) {
+
+			steps++;
+
+			Controller& ctrl = Controller::GetInstance();
+			//ゲームパッドの情報を取得
+			Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
+
+			if (padState.Anyone || steps >= 90) {
+
+				steps = 0;
+				animationController_->ChangePause(false);
+			}
+		}
+		if (animationController_-> GetTime() >= 160) {
+
+			prevPause = false;
+			animationController_->Play(static_cast<int>(ANIM_TYPE::STAND_UP), false);
+		}
+	}
+
+
+	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::STAND_UP)) {
+		if (animationController_->GetTime() >= 210) {
+
+			ChangeWait();
+		}
 	}
 }
 

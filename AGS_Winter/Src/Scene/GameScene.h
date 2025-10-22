@@ -26,9 +26,6 @@ public:
 	
 	void EnemyToPlayer(void);
 
-	Player* GetPlayer(void) { return player_; }
-	EnemyBase* GetEnemyBase(void) { return enemyBase_; }
-
 private:
 
 	// ステージ

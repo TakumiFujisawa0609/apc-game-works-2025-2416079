@@ -297,10 +297,11 @@ void Controller::SetJPadInState(JOYPAD_NO jpNo)
 	auto stateNew = GetJPadInputState(jpNo);
 	auto& stateNow = padInfos_[no];
 
+	stateNow.AnyoneBotton = stateNow.Anyone = false;
+
 	int max = static_cast<int>(JOYPAD_BTN::MAX);
 	for (int i = 0; i < max; i++)
 	{
-
 		stateNow.ButtonsOld[i] = stateNow.ButtonsNew[i];
 		stateNow.ButtonsNew[i] = stateNew.ButtonsNew[i];
 
@@ -311,10 +312,23 @@ void Controller::SetJPadInState(JOYPAD_NO jpNo)
 		stateNow.IsTrgDown[i] = stateNow.IsNew[i] && !stateNow.IsOld[i];
 		stateNow.IsTrgUp[i] = !stateNow.IsNew[i] && stateNow.IsOld[i];
 
+		if (!stateNow.AnyoneBotton) {
+			if (stateNow.IsTrgDown[i]) {
+			
+				stateNow.AnyoneBotton = true;
+				stateNow.Anyone = true;
+			}
+		}
+	}
+	stateNow.AKeyLX = stateNew.AKeyLX;
+	stateNow.AKeyLY = stateNew.AKeyLY;
+	stateNow.AKeyRX = stateNew.AKeyRX;
+	stateNow.AKeyRY = stateNew.AKeyRY;
 
-		stateNow.AKeyLX = stateNew.AKeyLX;
-		stateNow.AKeyLY = stateNew.AKeyLY;
-		stateNow.AKeyRX = stateNew.AKeyRX;
-		stateNow.AKeyRY = stateNew.AKeyRY;
+	if (!stateNow.Anyone) {
+		if (stateNow.AKeyLX != 0 || stateNow.AKeyLY != 0 || stateNow.AKeyRX != 0 || stateNow.AKeyRY != 0) {
+
+			stateNow.Anyone = true;
+		}
 	}
 }

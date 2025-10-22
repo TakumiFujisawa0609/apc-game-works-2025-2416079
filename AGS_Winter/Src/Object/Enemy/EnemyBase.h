@@ -25,13 +25,15 @@ public:
 	{
 		IDLE,
 		WALK,
-		ATTACK,
+		ATTACK_A,
+		ATTACK_B,
+		ATTACK_C,
 		MAX,
 	};
 
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 1000.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
-	static constexpr VECTOR ATTACK_POS_A = { 0.0f, 380.0f, 380.0f };
+	static constexpr VECTOR ATTACK_POS_A = { 0.0f, 300.0f, 380.0f };
 	static constexpr VECTOR ATTACK_POS_B = { 0.0f, 2.5f, 200.0f };
 	static constexpr float ATTACK_RADIUS = 35.0f;
 
@@ -65,12 +67,14 @@ public:
 	void SetAngle(VECTOR angles) { angles_ = angles; }
 	
 	//攻撃座標の取得
-	VECTOR GetAttackPos(void) { return attackPos_; }
 	VECTOR GetAttackStartPos(void) { return attackPos1_; }
 	VECTOR GetAttackEndPos(void) { return attackPos2_; }
 
 	bool IsAttackA(void) { return attackAFlg_; }
 	bool IsAttackB(void) { return attackBFlg_; }
+	bool IsAttackC(void) { return attackCFlg_; }
+
+	bool IsAttack(void);
 
 	// ダメージを与える
 	void Damage(int damage) { hp_ -= damage; }
@@ -103,7 +107,6 @@ protected:
 	// 移動速度
 	float speed_;
 	//攻撃判定の中心
-	VECTOR attackPos_;
 	VECTOR attackPos1_;
 	VECTOR attackPos2_;
 	VECTOR attackDir_;
@@ -121,6 +124,9 @@ protected:
 
 	bool attackAFlg_;
 	bool attackBFlg_;
+	bool attackCFlg_;
+
+	bool attackShowFlg_;
 
 	void LookPlayer(void);
 

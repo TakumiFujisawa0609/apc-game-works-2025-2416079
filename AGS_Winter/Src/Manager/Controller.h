@@ -66,6 +66,8 @@ public:
 		int AKeyLY;
 		int AKeyRX;
 		int AKeyRY;
+		bool AnyoneBotton;
+		bool Anyone;
 	};
 
 	// インスタンスを明示的に生成

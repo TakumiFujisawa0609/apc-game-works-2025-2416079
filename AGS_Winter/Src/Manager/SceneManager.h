@@ -52,6 +52,7 @@ public:
 	float GetDeltaTime(void) const;
 
 	Camera* GetCamera(void) const { return camera_; }
+	SceneBase* GetSceneBase(void) { return scene_; }
 
 private:
 

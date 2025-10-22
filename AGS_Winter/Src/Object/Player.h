@@ -17,6 +17,8 @@ public:
 		ATTACK,
 		COMBO,
 		DOGDE,
+		DAMAGED_LIGHT,
+		DAMAGED_HEAVY,
 		END,
 	};
 
@@ -31,6 +33,9 @@ public:
 		COMBO_2,
 		COMBO_3,
 		DODGE,
+		DAMAGED_LIGHT,
+		DAMAGED_HEAVY,
+		STAND_UP,
 		MAX,
 	};
 
@@ -65,7 +70,7 @@ public:
 	VECTOR GetAttackEndPos(void) { return attackPos2_; }
 
 	// ダメージを与える
-	void Damage(int damage);
+	void Damage(int damage, float dir);
 
 	int GetPower(void) { return power_; }
 	void SetPower(int pow) { power_ = pow; }
@@ -104,6 +109,8 @@ protected:
 	VECTOR attackPos1_;
 	VECTOR attackPos2_;
 
+	float knockBackDir_;
+
 	// HP
 	int hp_;
 	bool overFlg_;
@@ -114,12 +121,16 @@ protected:
 	int dodgeCnt_;
 	bool dodgeFlg_;
 
+	void KnockBack(void);
+
 	// 状態遷移
 	void ChangeWait(void);
 	void ChangeMove(void);
 	void ChangeAttack(void);
 	void ChangeCombo(void);
 	void ChangeDodge(void);
+	void ChangeDamagedLight(void);
+	void ChangeDamagedHeavy(void);
 
 	// 状態別更新
 	void UpdateWait(void);
@@ -127,6 +138,8 @@ protected:
 	void UpdateAttack(void);
 	void UpdateCombo(void);
 	void UpdateDodge(void);
+	void UpdateDamagedLight(void);
+	void UpdateDamagedHeavy(void);
 
 	// 状態別描画
 	void DrawStandby(void);

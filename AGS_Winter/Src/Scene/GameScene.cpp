@@ -108,14 +108,14 @@ void GameScene::Collision(void)
 	}
 	if (enemyBase_->IsAttackA()) {
 
-		info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemyBase_->GetAttackPos(), EnemyBase::ATTACK_RADIUS);
+		info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), EnemyBase::ATTACK_RADIUS);
 
 		if (info.HitNum > 0) {
 			if (!hitFlgP_) {
 				if (!player_->IsDodge()) {
 
 					hitFlgP_ = true;
-					player_->Damage(1);
+					player_->Damage(1, enemyBase_->GetAngle().y);
 				}
 				else {
 					if (player_->DodgeCount() <= 10) {
@@ -132,14 +132,14 @@ void GameScene::Collision(void)
 	}
 	if (enemyBase_->IsAttackB()) {
 
-		info = MV1CollCheck_Triangle(player_->GetModelId(), -1, enemyBase_->GetAttackPos(), enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackEndPos());
+		info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(),enemyBase_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS);
 
 		if (info.HitNum > 0) {
 			if (!hitFlgP_) {
 				if (!player_->IsDodge()) {
 
 					hitFlgP_ = true;
-					player_->Damage(2);
+					player_->Damage(1, enemyBase_->GetAngle().y);
 				}
 				else {
 					if (player_->DodgeCount() <= 10) {
@@ -154,7 +154,31 @@ void GameScene::Collision(void)
 			}
 		}
 	}
-	if (!enemyBase_->IsAttackA() && !enemyBase_->IsAttackB()) {
+	if (enemyBase_->IsAttackC()) {
+
+		info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(),enemyBase_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS * 2);
+
+		if (info.HitNum > 0) {
+			if (!hitFlgP_) {
+				if (!player_->IsDodge()) {
+
+					hitFlgP_ = true;
+					player_->Damage(2, enemyBase_->GetAngle().y);
+				}
+				else {
+					if (player_->DodgeCount() <= 10) {
+
+						player_->SetPower(3);
+					}
+					else if (player_->DodgeCount() <= 20) {
+
+						player_->SetPower(2);
+					}
+				}
+			}
+		}
+	}
+	if (!enemyBase_->IsAttack()) {
 
 		hitFlgP_ = false;
 	}

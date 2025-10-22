@@ -41,6 +41,9 @@ public:
 	float GetTotalTime(void) { return playAnim_.totalTime; }
 	float GetTime(void) { return playAnim_.step; }
 
+	void ChangePause(bool p) { isPause_ = p; }
+	bool IsPause(void) { return isPause_; }
+
 private:
 
 	// アニメーションするモデルのハンドルID
@@ -57,6 +60,7 @@ private:
 	float blendRate_;
 
 	bool isLoop_;
+	bool isPause_;
 
 	// アニメーション追加の共通処理
 	void Add(int type, float speed, Animation& animation);

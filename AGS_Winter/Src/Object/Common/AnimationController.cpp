@@ -73,7 +73,10 @@ void AnimationController::Play(int type, bool isLoop)
 
 void AnimationController::Update(void)
 {
-
+	if (isPause_) {
+		
+		return;
+	}
 	//while(blendRate_ <= 1.0f) {
 	//	if (blendRate_ >= 1.0f) {
 
