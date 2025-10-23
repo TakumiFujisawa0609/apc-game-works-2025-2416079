@@ -39,7 +39,10 @@ void AnimationController::Play(int type, bool isLoop)
 		return;
 	}
 	if (playType_ != -1) {
-
+		if (isDetach_ = -1) {
+		
+			MV1DetachAnim(modelId_, prevAnim_.attachNo);
+		}
 		MV1DetachAnim(modelId_, playAnim_.attachNo);
 	}
 
@@ -47,6 +50,13 @@ void AnimationController::Play(int type, bool isLoop)
 	prevAnim_ = playAnim_;
 	playType_ = type;
 	playAnim_ = animations_[type];
+
+	if (prevAnim_.speed != 0) {
+
+		prevAnim_.attachNo = MV1AttachAnim(modelId_, prevAnim_.animIndex, prevAnim_.model);
+		MV1SetAttachAnimBlendRate(modelId_, prevAnim_.attachNo, 1.0f);
+		MV1SetAttachAnimTime(modelId_, prevAnim_.attachNo, prevAnim_.step);
+	}
 
 	//èâä˙âª
 	playAnim_.step = 0.0f;
@@ -69,6 +79,7 @@ void AnimationController::Play(int type, bool isLoop)
 	}
 	isLoop_ = isLoop;
 	blendRate_ = 0.0f;
+	isDetach_ = -1;
 }
 
 void AnimationController::Update(void)
@@ -77,20 +88,22 @@ void AnimationController::Update(void)
 		
 		return;
 	}
-	//while(blendRate_ <= 1.0f) {
-	//	if (blendRate_ >= 1.0f) {
+	if (prevAnim_.speed != 0) {
+		while (blendRate_ <= 1.0f) {
+			if (blendRate_ >= 0.9f) {
 
-	//		MV1SetAttachAnimBlendRate(modelId_, playAnim_.animIndex);
-	//		MV1DetachAnim(modelId_, prevAnim_.attachNo);
+				MV1SetAttachAnimBlendRate(modelId_, playAnim_.attachNo, 1.0f);
+				isDetach_ = MV1DetachAnim(modelId_, prevAnim_.attachNo);
 
-	//		break;
-	//	}
-	//	MV1SetAttachAnimBlendRate(modelId_, prevAnim_.animIndex, 1.0f - blendRate_);
-	//	MV1SetAttachAnimBlendRate(modelId_, playAnim_.animIndex, blendRate_);
+				break;
+			}
+			MV1SetAttachAnimBlendRate(modelId_, prevAnim_.attachNo, 1.0f - blendRate_);
+			MV1SetAttachAnimBlendRate(modelId_, playAnim_.attachNo, blendRate_);
 
-	//	break;
-	//}
-	//blendRate_ += 0.01f;
+			break;
+		}
+		blendRate_ += 0.1f;
+	}
 
 	if (isLoop_){
 		if (playAnim_.step > playAnim_.totalTime){

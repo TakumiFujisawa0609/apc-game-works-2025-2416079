@@ -105,12 +105,14 @@ void Player::Init()
 			break;
 		}
 	}
-
-	ChangeWait();
+	state_ = STATE::WAIT;
+	ChangeState(state_);
 }
 
 void Player::Update(void)
 {
+	Player::STATE prevState = state_;
+
 	//状態別更新処理
 	switch (state_) {
 
@@ -149,6 +151,11 @@ void Player::Update(void)
 		UpdateDamagedHeavy();
 		break;
 	}
+	if (prevState != state_) {
+
+		ChangeState(state_);
+	}
+
 	//モデルの設定
 	MV1SetPosition(modelId_, pos_);
 	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
@@ -160,6 +167,44 @@ void Player::Update(void)
 
 void Player::ChangeState(STATE state)
 {
+	switch (state)
+	{
+	case Player::STATE::WAIT:
+
+		ChangeWait();
+		break;
+
+	case Player::STATE::MOVE:
+		
+		ChangeMove();
+		break;
+
+	case Player::STATE::ATTACK:
+		
+		ChangeAttack();
+		break;
+
+	case Player::STATE::COMBO:
+
+		ChangeCombo();
+		break;
+
+	case Player::STATE::DOGDE:
+		
+		ChangeDodge();
+		break;
+
+	case Player::STATE::DAMAGED_LIGHT:
+		
+		ChangeDamagedLight();
+		break;
+
+	case Player::STATE::DAMAGED_HEAVY:
+	
+		ChangeDamagedHeavy();
+		break;
+	}
+
 }
 
 void Player::Draw(void)
@@ -215,12 +260,13 @@ void Player::Damage(int damage, float dir)
 
 	if (damage >= 2) {
 
-		ChangeDamagedHeavy();
+		state_ = STATE::DAMAGED_HEAVY;
 	}
 	else {
 
-		ChangeDamagedLight();
+		state_ = STATE::DAMAGED_LIGHT;
 	}
+	ChangeState(state_);
 
 	if (hp_ <= 0) {
 
@@ -246,6 +292,18 @@ bool Player::IsAttackMotion(void)
 	}
 }
 
+bool Player::IsHit(void)
+{
+	if (state_ != STATE::DAMAGED_LIGHT && state_ != STATE::DAMAGED_HEAVY) {
+
+		return true;
+	}
+	else {
+
+		return false;
+	}
+}
+
 void Player::KnockBack()
 {
 	pos_.x += sinf(knockBackDir_) * 2.0f;
@@ -258,13 +316,10 @@ void Player::ChangeWait(void)
 {
 	//待機モーション
 	animationController_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
-
-	state_ = STATE::WAIT;
 }
 
 void Player::ChangeMove(void)
 {
-	state_ = STATE::MOVE;
 }
 
 void Player::ChangeAttack(void)
@@ -272,8 +327,6 @@ void Player::ChangeAttack(void)
 	//攻撃モーション
 	animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK), false);
 	isAttack_ = true;
-
-	state_ = STATE::ATTACK;
 }
 
 void Player::ChangeCombo(void)
@@ -281,30 +334,22 @@ void Player::ChangeCombo(void)
 	//攻撃モーション
 	animationController_->Play(static_cast<int>(ANIM_TYPE::COMBO_1), false);
 	isAttack_ = true;
-
-	state_ = STATE::COMBO;
 }
 
 void Player::ChangeDodge(void)
 {
 	animationController_->Play(static_cast<int>(ANIM_TYPE::DODGE), false);
 	dodgeCnt_ = 0;
-
-	state_ = STATE::DOGDE;
 }
 
 void Player::ChangeDamagedLight(void)
 {
 	animationController_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_LIGHT), false);
-
-	state_ = STATE::DAMAGED_LIGHT;
 }
 
 void Player::ChangeDamagedHeavy(void)
 {
 	animationController_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY), false);
-
-	state_ = STATE::DAMAGED_HEAVY;
 }
 
 void Player::UpdateWait(void)
@@ -313,22 +358,22 @@ void Player::UpdateWait(void)
 		if (CheckHitKey(KEY_INPUT_F) == 1) {
 		
 			//攻撃モーションに移行
-			ChangeAttack();
+			state_ = STATE::ATTACK;
 		}
 		if (CheckHitKey(KEY_INPUT_G) == 1) {
 		
 			//攻撃モーションに移行
-			ChangeCombo();
+			state_ = STATE::COMBO;
 		}
 		if (CheckHitKey(KEY_INPUT_W) == 1 || CheckHitKey(KEY_INPUT_A) == 1 || CheckHitKey(KEY_INPUT_S) == 1 || CheckHitKey(KEY_INPUT_D) == 1) {
 
 			//移動モーションに移行
-			ChangeMove();
+			state_ = STATE::MOVE;
 		}
 		if (CheckHitKey(KEY_INPUT_SPACE) == 1) {
 
 			//回避モーションに移行
-			ChangeDodge();
+			state_ = STATE::DOGDE;
 		}
 	}
 	else {
@@ -340,22 +385,22 @@ void Player::UpdateWait(void)
 		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP)]) {
 
 			//攻撃モーションに移行
-			ChangeAttack();
+			state_ = STATE::ATTACK;
 		}		
 		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
 			//攻撃モーションに移行
-			ChangeCombo();
+			state_ = STATE::COMBO;
 		}
 		if (padState.AKeyLX != 0 || padState.AKeyLY != 0) {
 
 			//移動モーションに移行
-			ChangeMove();
+			state_ = STATE::MOVE;
 		}
 		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
 
 			//回避モーションに移行
-			ChangeDodge();
+			state_ = STATE::DOGDE;
 		}
 	}
 }
@@ -428,24 +473,24 @@ void Player::UpdateMove(void)
 			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP)]) {
 
 				//攻撃モーションに移行
-				ChangeAttack();
+				state_ = STATE::ATTACK;
 			}
 			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
 				//攻撃モーションに移行
-				ChangeCombo();
+				state_ = STATE::COMBO;
 			}
 		}
 		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
 
 			//回避モーションに移行
-			ChangeDodge();
+			state_ = STATE::DOGDE;
 		}
 		angles_.y = atan2f(moveDir_.x, moveDir_.z);
 	}
 	else {
 
-		ChangeWait();
+		state_ = STATE::WAIT;
 	}
 }
 
@@ -482,7 +527,7 @@ void Player::UpdateAttack(void)
 		power_ = 1;
 		isAttack_ = false;
 		//待機モーションに移行
-		ChangeWait();
+		state_ = STATE::WAIT;
 	}
 }
 
@@ -524,7 +569,7 @@ void Player::UpdateCombo(void)
 
 		isAttack_ = false;
 		//待機モーションに移行
-		ChangeWait();
+		state_ = STATE::WAIT;
 	}
 }
 
@@ -550,15 +595,15 @@ void Player::UpdateDodge(void)
 	if (animationController_->IsEnd()) {
 
 		//待機モーションに移行
-		ChangeWait();
+		state_ = STATE::WAIT;
 	}
 }
 
 void Player::UpdateDamagedLight(void)
 {
-	if (animationController_->IsEnd()) {
+	if (animationController_->GetTime() >= 40) {
 
-		ChangeWait();
+		state_ = STATE::WAIT;
 	}
 }
 
@@ -604,23 +649,7 @@ void Player::UpdateDamagedHeavy(void)
 	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::STAND_UP)) {
 		if (animationController_->GetTime() >= 210) {
 
-			ChangeWait();
+			state_ = STATE::WAIT;
 		}
 	}
-}
-
-void Player::DrawStandby(void)
-{
-}
-
-void Player::DrawDeadReact(void)
-{
-}
-
-void Player::DrawHitReact(void)
-{
-}
-
-void Player::DrawEnd(void)
-{
 }

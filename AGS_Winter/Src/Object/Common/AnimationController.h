@@ -31,6 +31,7 @@ public:
 
 	// アニメーション再生
 	void Play(int type, bool isLoop);
+	void End(int type);
 	void Update(void);
 	void Release(void);
 
@@ -59,6 +60,7 @@ private:
 
 	float blendRate_;
 
+	int isDetach_;
 	bool isLoop_;
 	bool isPause_;
 

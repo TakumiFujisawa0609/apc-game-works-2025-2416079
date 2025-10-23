@@ -95,7 +95,7 @@ void EnemyBase::Update(void)
 
 					animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK_C), false);
 
-					attackPos1_ = attackPos2_ = {-10.0f, -10.0f, -10.0f};
+					attackPos1_ = attackPos2_ = {0.0f, -10000.0f, 0.0f};
 
 					attackCFlg_ = true;
 				}

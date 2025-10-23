@@ -78,6 +78,7 @@ public:
 	// Õ“Ë”»’è‚ª—LŒø‚Èó‘Ô
 	bool IsCollisionState(void);
 	bool IsAttackMotion(void);
+	bool IsHit(void);
 	bool IsAttack(void){return isAttack_;}
 	bool IsDodge(void) { return dodgeFlg_; }
 
@@ -140,10 +141,4 @@ protected:
 	void UpdateDodge(void);
 	void UpdateDamagedLight(void);
 	void UpdateDamagedHeavy(void);
-
-	// ó‘Ô•Ê•`‰æ
-	void DrawStandby(void);
-	void DrawDeadReact(void);
-	void DrawHitReact(void);
-	void DrawEnd(void);
 };
