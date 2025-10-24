@@ -56,99 +56,35 @@ void EnemyBase::Init()
 
 void EnemyBase::Update(void)
 {
+	STATE prevState = state_;
+
+	switch (state_)
+	{
+	case EnemyBase::STATE::WAIT:
+		
+		UpdateWait();
+		break;
+
+	case EnemyBase::STATE::MOVE:
+		
+		UpdateMove();
+		break;
+
+	case EnemyBase::STATE::ATTACK:
+		
+		UpdateAttack();
+		break;
+
+	case EnemyBase::STATE::ESCAPE:
+		
+		UpdateEscape();
+		break;
+	}
 	animationController_->Update();
 
-	if (!attackAFlg_ && !attackBFlg_ &&!attackCFlg_ && !isCoolDown_) {
+	if (prevState != state_) {
 
-		VECTOR prevAngles = angles_;
-		LookPlayer();
-
-		if (std::abs(prevAngles.y - angles_.y) >= 0.00375f) {
-		
-			animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
-		}
-		else {
-			
-			animationController_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
-		}
-
-		cnt_++;
-
-		if (cnt_ > 300) {
-
-			cnt_ = 0;
-			
-			if (VSize(VSub(player_->GetPos(), pos_)) >= 800.0f) {
-
-				animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK_A), false);
-
-				attackAFlg_ = true;
-			}
-			else {
-				if (GetRand(2) == 2) {
-
-					animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK_B), false);
-
-					attackBFlg_ = true;
-				}
-				else {
-
-					animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK_C), false);
-
-					attackPos1_ = attackPos2_ = {0.0f, -10000.0f, 0.0f};
-
-					attackCFlg_ = true;
-				}
-			}
-		}
-	}
-	if (attackAFlg_){
-		if (animationController_->GetTime() >= 33) {
-
-			attackPos1_ = VAdd(attackPos1_, VScale(attackDir_, attackSpeed_));
-
-			if (!attackShowFlg_) {
-
-				attackShowFlg_ = true;
-			}
-		}
-		else {
-
-			LookPlayer();
-
-			attackPos1_ = VAdd(pos_, VTransform(ATTACK_POS_A, AngleUtility::GetMatrixRotateXYZ(angles_)));
-			attackDir_ = VSub(VAdd(player_->GetPos(), { 0.0f, 80.0f, 0.0f }), attackPos1_);
-			attackDir_ = VNorm(attackDir_);
-		}
-		//attackPos1_ = VAdd(pos_, VTransform(ATTACK_POS_A, AngleUtility::GetMatrixRotateXYZ(angles_)));
-		//attackPos2_ = VAdd(attackPos1_, attackDir_);
-		if (attackPos1_.y < ATTACK_RADIUS) {
-
-			attackAFlg_ = false;
-			attackShowFlg_ = false;
-		}
-	}
-	if (attackBFlg_){
-
-		attackPos1_ = MV1GetFramePosition(modelId_, 57);
-		attackPos2_ = MV1GetFramePosition(modelId_, 59);
-
-		if (animationController_->IsEnd()) {
-
-			attackBFlg_ = false;
-		}
-	}
-	if (attackCFlg_){
-
-		if (animationController_->GetTime() >= 14) {
-
-			attackPos1_ = MV1GetFramePosition(modelId_, 6);
-			attackPos2_ = MV1GetFramePosition(modelId_, 16);
-		}
-		if (animationController_->IsEnd()) {
-
-			attackCFlg_ = false;
-		}
+		ChangeState(state_);
 	}
 
 	if (hp_ <= 0) {
@@ -160,6 +96,28 @@ void EnemyBase::Update(void)
 
 void EnemyBase::ChangeState(STATE state)
 {
+	switch (state)
+	{
+	case EnemyBase::STATE::WAIT:
+
+		ChangeWait();
+		break;
+
+	case EnemyBase::STATE::MOVE:
+
+		ChangeMove();
+		break;
+
+	case EnemyBase::STATE::ATTACK:
+		
+		ChangeAttack();
+		break;
+
+	case EnemyBase::STATE::ESCAPE:
+		
+		ChangeEscape();
+		break;
+	}
 }
 
 void EnemyBase::Draw(void)
@@ -206,4 +164,151 @@ void EnemyBase::LookPlayer(void)
 	angles_.y = atan2f(dir.x, dir.z);
 
 	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
+}
+
+void EnemyBase::ChangeWait(void)
+{
+}
+
+void EnemyBase::ChangeMove(void)
+{
+}
+
+void EnemyBase::ChangeAttack(void)
+{
+	if (VSize(VSub(player_->GetPos(), pos_)) >= 800.0f) {
+
+		animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK_A), false);
+
+		attackAFlg_ = true;
+	}
+	else {
+		if (GetRand(1) == 1) {
+
+			animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK_B), false);
+
+			attackBFlg_ = true;
+		}
+		else {
+
+			animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK_C), false);
+
+			attackPos1_ = attackPos2_ = { 0.0f, -10000.0f, 0.0f };
+
+			attackCFlg_ = true;
+		}
+	}
+}
+
+void EnemyBase::ChangeEscape(void)
+{
+}
+
+void EnemyBase::UpdateWait(void)
+{
+	VECTOR prevAngles = angles_;
+	LookPlayer();
+
+	if (std::abs(prevAngles.y - angles_.y) >= 0.00375f) {
+
+		animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
+	}
+	else {
+
+		animationController_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
+	}
+
+	cnt_++;
+
+	if (cnt_ > 300) {
+
+		cnt_ = 0;
+		state_ = EnemyBase::STATE::ATTACK;
+	}
+}
+
+void EnemyBase::UpdateMove(void)
+{
+}
+
+void EnemyBase::UpdateAttack(void)
+{
+	if (attackAFlg_) {
+		
+		UpdateAttackA();
+	}
+	else if (attackBFlg_) {
+		
+		UpdateAttackB();
+	}
+	else if (attackCFlg_) {
+		
+		UpdateAttackC();
+	}
+	else {
+		if (GetRand(3) == 10) {
+
+			state_ = STATE::MOVE;
+		}
+		else {
+
+			state_ = STATE::WAIT;
+		}
+	}
+}
+
+void EnemyBase::UpdateAttackA(void)
+{
+	if (animationController_->GetTime() >= 33) {
+
+		attackPos1_ = VAdd(attackPos1_, VScale(attackDir_, attackSpeed_));
+
+		if (!attackShowFlg_) {
+
+			attackShowFlg_ = true;
+		}
+	}
+	else {
+
+		LookPlayer();
+
+		attackPos1_ = VAdd(pos_, VTransform(ATTACK_POS_A, AngleUtility::GetMatrixRotateXYZ(angles_)));
+		attackDir_ = VSub(VAdd(player_->GetPos(), { 0.0f, 80.0f, 0.0f }), attackPos1_);
+		attackDir_ = VNorm(attackDir_);
+	}
+	//attackPos1_ = VAdd(pos_, VTransform(ATTACK_POS_A, AngleUtility::GetMatrixRotateXYZ(angles_)));
+	//attackPos2_ = VAdd(attackPos1_, attackDir_);
+	if (attackPos1_.y < ATTACK_RADIUS) {
+
+		attackAFlg_ = false;
+		attackShowFlg_ = false;
+	}
+}
+
+void EnemyBase::UpdateAttackB(void)
+{
+	attackPos1_ = MV1GetFramePosition(modelId_, 57);
+	attackPos2_ = MV1GetFramePosition(modelId_, 59);
+
+	if (animationController_->IsEnd()) {
+
+		attackBFlg_ = false;
+	}
+}
+
+void EnemyBase::UpdateAttackC(void)
+{
+	if (animationController_->GetTime() >= 14) {
+
+		attackPos1_ = MV1GetFramePosition(modelId_, 6);
+		attackPos2_ = MV1GetFramePosition(modelId_, 16);
+	}
+	if (animationController_->IsEnd()) {
+
+		attackCFlg_ = false;
+	}
+}
+
+void EnemyBase::UpdateEscape(void)
+{
 }

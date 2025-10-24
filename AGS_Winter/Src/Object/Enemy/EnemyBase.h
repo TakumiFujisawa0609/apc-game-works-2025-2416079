@@ -16,7 +16,7 @@ public:
 		WAIT,
 		MOVE,
 		ATTACK,
-		DEAD_REACT,
+		ESCAPE,
 		END,
 	};
 
@@ -25,6 +25,7 @@ public:
 	{
 		IDLE,
 		WALK,
+		RUN,
 		ATTACK_A,
 		ATTACK_B,
 		ATTACK_C,
@@ -130,21 +131,18 @@ protected:
 
 	void LookPlayer(void);
 
-	//// 状態遷移
-	//void ChangeWait(void);
-	//void ChangeMove(void);
-	//void ChangeAttack(void);
-	//void ChangeDodge(void);
+	// 状態遷移
+	void ChangeWait(void);
+	void ChangeMove(void);
+	void ChangeAttack(void);
+	void ChangeEscape(void);
 
-	//// 状態別更新
-	//void UpdateWait(void);
-	//void UpdateMove(void);
-	//void UpdateAttack(void);
-	//void UpdateDodge(void);
-
-	//// 状態別描画
-	//void DrawStandby(void);
-	//void DrawDeadReact(void);
-	//void DrawHitReact(void);
-	//void DrawEnd(void);
+	// 状態別更新
+	void UpdateWait(void);
+	void UpdateMove(void);
+	void UpdateAttack(void);
+	void UpdateAttackA(void);
+	void UpdateAttackB(void);
+	void UpdateAttackC(void);
+	void UpdateEscape(void);
 };
