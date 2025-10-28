@@ -49,7 +49,7 @@ void EnemyBase::Init()
 	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
 	MV1SetScale(modelId_, scales_);
 
-	LookPlayer();
+	DirectionPlayer();
 
 	MV1SetupCollInfo(modelId_);
 }
@@ -158,7 +158,7 @@ bool EnemyBase::IsAttack(void)
 	}
 }
 
-void EnemyBase::LookPlayer(void)
+void EnemyBase::DirectionPlayer(void)
 {
 	VECTOR dir = VSub(player_->GetPos(), pos_);
 	angles_.y = atan2f(dir.x, dir.z);
@@ -207,14 +207,14 @@ void EnemyBase::ChangeEscape(void)
 void EnemyBase::UpdateWait(void)
 {
 	VECTOR prevAngles = angles_;
-	LookPlayer();
+	DirectionPlayer();
 
 	if (std::abs(prevAngles.y - angles_.y) >= 0.00375f) {
 
 		animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 	}
 	else {
-
+		
 		animationController_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
 	}
 
@@ -270,7 +270,7 @@ void EnemyBase::UpdateAttackA(void)
 	}
 	else {
 
-		LookPlayer();
+		DirectionPlayer();
 
 		attackPos1_ = VAdd(pos_, VTransform(ATTACK_POS_A, AngleUtility::GetMatrixRotateXYZ(angles_)));
 		attackDir_ = VSub(VAdd(player_->GetPos(), { 0.0f, 80.0f, 0.0f }), attackPos1_);

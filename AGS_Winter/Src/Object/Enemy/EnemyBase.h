@@ -129,7 +129,7 @@ protected:
 
 	bool attackShowFlg_;
 
-	void LookPlayer(void);
+	void DirectionPlayer(void);
 
 	// ó‘Ô‘JˆÚ
 	void ChangeWait(void);
