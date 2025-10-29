@@ -31,6 +31,7 @@ void EnemyBase::Init()
 
 	pos_ = DEFAULT_POS;
 	angles_ = { 0.0f, 0.0f, 0.0f };
+	moveDir_ = Utility::VECTOR_ZERO;
 	scales_ = { 8.0f, 8.0f ,8.0f };
 
 	hp_ = 25;
@@ -56,8 +57,10 @@ void EnemyBase::Init()
 
 void EnemyBase::Update(void)
 {
+	//前のステータスを持っておく
 	STATE prevState = state_;
 
+	//ステータス別の更新
 	switch (state_)
 	{
 	case EnemyBase::STATE::WAIT:
@@ -80,22 +83,28 @@ void EnemyBase::Update(void)
 		UpdateEscape();
 		break;
 	}
+	//モデルの更新
 	animationController_->Update();
+	MV1SetPosition(modelId_, pos_);
 
+	//ステータスが変わっていれば変える
 	if (prevState != state_) {
 
 		ChangeState(state_);
 	}
 
+	//HPがゼロならクリア
 	if (hp_ <= 0) {
 
 		clearFlg_ = true;
 	}
+	//当たり判定を更新
 	MV1RefreshCollInfo(modelId_);
 }
 
 void EnemyBase::ChangeState(STATE state)
 {
+	//ステータス変更時の初期化
 	switch (state)
 	{
 	case EnemyBase::STATE::WAIT:
@@ -124,7 +133,7 @@ void EnemyBase::Draw(void)
 {
 	MV1DrawModel(modelId_);
 	DrawFormatString(Application::SCREEN_SIZE_X - 100, 20, 0x000000, "%.2f", (300.0f - cnt_) / 60.0f, SetFontSize(25));
-	//DrawFormatString(100, 20, 0x000000, "%.d", hp_, SetFontSize(25));
+	//DrawFormatString(100, 20, 0x000000, "%.2f", angles_.y, SetFontSize(25));
 
 	if (attackAFlg_ && attackShowFlg_) {
 	
@@ -172,6 +181,14 @@ void EnemyBase::ChangeWait(void)
 
 void EnemyBase::ChangeMove(void)
 {
+	angles_.y = AngleUtility::Deg2RadF(GetRand(360));
+
+	//進める方向の更新
+	moveDir_.x = sinf(angles_.y);
+	moveDir_.z = cosf(angles_.y);
+	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
+
+	animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 }
 
 void EnemyBase::ChangeAttack(void)
@@ -229,6 +246,20 @@ void EnemyBase::UpdateWait(void)
 
 void EnemyBase::UpdateMove(void)
 {
+	static int count = 0;
+
+	//移動
+	pos_.x += moveDir_.x * 2.0f;
+	pos_.z += moveDir_.z * 2.0f;
+	count++;
+
+	if (count >= 90){
+		if (GetRand(100) == 0) {
+			
+			count = 0;
+			state_ = STATE::WAIT;
+		}
+	}
 }
 
 void EnemyBase::UpdateAttack(void)
@@ -246,7 +277,7 @@ void EnemyBase::UpdateAttack(void)
 		UpdateAttackC();
 	}
 	else {
-		if (GetRand(3) == 10) {
+		if (GetRand(3) >= 0) {
 
 			state_ = STATE::MOVE;
 		}

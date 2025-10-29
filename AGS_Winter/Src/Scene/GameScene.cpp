@@ -251,7 +251,7 @@ void GameScene::GameCamera(void)
 	}
 	else {
 
-		VECTOR dir = VSub(VAdd(enemyBase_->GetPos(), { 0.0f, 50.0f, 0.0f }), headPos);
+		VECTOR dir = VSub(enemyBase_->GetPos(), headPos);
 
 		float prevPitch = pitch_;
 		float prevYaw = yaw_;
@@ -259,10 +259,15 @@ void GameScene::GameCamera(void)
 		pitch_ = -VNorm(dir).y;
 		yaw_ = atan2f(VNorm(dir).x, VNorm(dir).z);
 
+		if (pitch_ >= 0.5f) {
+
+			pitch_ = 0.5f;
+		}
+
 		pitch_ = AngleUtility::LerpAngle(prevPitch, pitch_, 0.8f);
 		yaw_ = AngleUtility::LerpAngle(prevYaw, yaw_, 0.8f);
 
-		if (((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f)) || yaw_ < 0.2f) {
+		if ((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f) || VSize(VSub(player_->GetPos(), enemyBase_->GetPos())) <= 300.0f) {
 
 			isLockon_ = false;
 		}
