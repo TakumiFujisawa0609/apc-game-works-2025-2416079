@@ -263,7 +263,6 @@ void GameScene::GameCamera(void)
 
 			pitch_ = 0.5f;
 		}
-
 		pitch_ = AngleUtility::LerpAngle(prevPitch, pitch_, 0.8f);
 		yaw_ = AngleUtility::LerpAngle(prevYaw, yaw_, 0.8f);
 

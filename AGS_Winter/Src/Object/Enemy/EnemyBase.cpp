@@ -28,6 +28,7 @@ void EnemyBase::Init()
 	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_C), 30, 2);
 	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::IDLE), 30, 3);
 	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::WALK), 30, 6);
+	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::RUN), 45, 4);
 
 	pos_ = DEFAULT_POS;
 	angles_ = { 0.0f, 0.0f, 0.0f };
@@ -181,14 +182,21 @@ void EnemyBase::ChangeWait(void)
 
 void EnemyBase::ChangeMove(void)
 {
-	angles_.y = AngleUtility::Deg2RadF(GetRand(360));
+	if (GetRand(6) < 3) {
+
+		DirectionPlayer();
+		animationController_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
+	}
+	else {
+
+		animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
+		angles_.y = AngleUtility::Deg2RadF(GetRand(359));
+	}
 
 	//i‚ß‚é•ûŒü‚ÌXV
 	moveDir_.x = sinf(angles_.y);
 	moveDir_.z = cosf(angles_.y);
 	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
-
-	animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 }
 
 void EnemyBase::ChangeAttack(void)
@@ -249,11 +257,19 @@ void EnemyBase::UpdateMove(void)
 	static int count = 0;
 
 	//ˆÚ“®
-	pos_.x += moveDir_.x * 2.0f;
-	pos_.z += moveDir_.z * 2.0f;
-	count++;
+	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::WALK)) {
+	
+		pos_.x += moveDir_.x * 2.0f;
+		pos_.z += moveDir_.z * 2.0f;
+		count++;
+	}
+	else {
 
-	if (count >= 90){
+		pos_.x += moveDir_.x * 8.0f;
+		pos_.z += moveDir_.z * 8.0f;
+		count += 5;
+	}
+	if (count >= 90 || VSize(VSub(player_->GetPos(), pos_)) <= 200.0f){
 		if (GetRand(100) == 0) {
 			
 			count = 0;
