@@ -43,6 +43,8 @@ public:
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
 	static constexpr VECTOR SWORD_POS = { 75.0f, 30.0f, -10.0f };
 	static constexpr int MAX_HP = 10;
+	static constexpr float MAX_STAMINA = 1000.0f;
+	static constexpr float DOGDE_STAMINA = 100.0f;
 
 	// コンストラクタ
 	Player(void);
@@ -115,6 +117,7 @@ protected:
 	// HP
 	int hp_;
 	bool overFlg_;
+	float stamina_;
 
 	bool isAttack_;
 	int power_;

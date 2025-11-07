@@ -34,6 +34,7 @@
     <ClInclude Include="Src\Object\Common\AnimationController.h" />
     <ClInclude Include="Src\Object\Enemy\EnemyBase.h" />
     <ClInclude Include="Src\Object\Grid.h" />
+    <ClInclude Include="Src\Object\Item.h" />
     <ClInclude Include="Src\Object\Player.h" />
     <ClInclude Include="Src\Object\Stage.h" />
     <ClInclude Include="Src\Scene\GameClear.h" />
@@ -63,6 +64,7 @@
     <ClCompile Include="Src\Object\Common\AnimationController.cpp" />
     <ClCompile Include="Src\Object\Enemy\EnemyBase.cpp" />
     <ClCompile Include="Src\Object\Grid.cpp" />
+    <ClCompile Include="Src\Object\Item.cpp" />
     <ClCompile Include="Src\Object\Player.cpp" />
     <ClCompile Include="Src\Object\Stage.cpp" />
     <ClCompile Include="Src\Scene\GameClear.cpp" />

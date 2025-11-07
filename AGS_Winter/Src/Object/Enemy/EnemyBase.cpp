@@ -184,13 +184,16 @@ void EnemyBase::ChangeMove(void)
 {
 	if (GetRand(6) < 3) {
 
-		DirectionPlayer();
 		animationController_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
 	}
 	else {
 
 		animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 		angles_.y = AngleUtility::Deg2RadF(GetRand(359));
+	}
+	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::RUN)) {
+
+		DirectionPlayer();
 	}
 
 	//i‚ß‚é•ûŒü‚ÌXV

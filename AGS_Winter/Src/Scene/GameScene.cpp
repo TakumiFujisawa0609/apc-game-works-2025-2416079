@@ -3,6 +3,7 @@
 #include "../Object/Stage.h"
 #include "../Object/Enemy/EnemyBase.h"
 #include "../Object/Player.h"
+#include "../Object/Item.h"
 #include "../Manager/Sound.h"
 #include "../Manager/EffectResManager.h"
 #include "../Manager/SceneManager.h"
@@ -33,6 +34,9 @@ void GameScene::Init(void)
 	player_ = new Player();
 	player_->Init();
 
+	item_ = new Item();
+	item_->Init();
+
 	enemyBase_ = new EnemyBase(player_);
 	enemyBase_->Init();
 
@@ -61,6 +65,8 @@ void GameScene::Update(void)
 	player_->Update();
 	enemyBase_->Update();
 	GameCamera();
+
+	item_->Update();
 
 	// ステージの更新
 	stage_->Update();
@@ -323,6 +329,7 @@ void GameScene::Draw(void)
 	stage_->Draw();
 	player_->Draw();
 	enemyBase_->Draw();
+	item_->Draw();
 
 	SetUseShadowMap(0, -1);
 
@@ -354,6 +361,9 @@ void GameScene::Release(void)
 
 	enemyBase_->Release();
 	delete enemyBase_;
+	
+	item_->Release();
+	delete item_;
 
 	DeleteGraph(imgGameover_);
 	DeleteGraph(imgGameclear_);

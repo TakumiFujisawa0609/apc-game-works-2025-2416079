@@ -28,6 +28,7 @@
     <ClInclude Include="Src\Manager\Sound.h" />
     <ClInclude Include="Src\Scene\GameClear.h" />
     <ClInclude Include="Src\Scene\GameOver.h" />
+    <ClInclude Include="Src\Object\Item.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\main.cpp" />
@@ -57,5 +58,6 @@
     <ClCompile Include="Src\Manager\Sound.cpp" />
     <ClCompile Include="Src\Scene\GameClear.cpp" />
     <ClCompile Include="Src\Scene\GameOver.cpp" />
+    <ClCompile Include="Src\Object\Item.cpp" />
   </ItemGroup>
 </Project>

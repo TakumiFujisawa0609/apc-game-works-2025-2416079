@@ -7,6 +7,7 @@ class SceneManager;
 class Stage;
 class EnemyBase;
 class Player;
+class Item;
 
 class GameScene : public SceneBase
 {
@@ -32,6 +33,7 @@ private:
 	Stage* stage_;
 	EnemyBase* enemyBase_;
 	Player* player_;
+	Item* item_;
 
 	// ‰æ‘œ
 	int imgGameover_;
