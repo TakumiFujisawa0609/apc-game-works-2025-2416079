@@ -20,6 +20,8 @@ public:
 		NONE,
 		TITLE,
 		GAME,
+		OVER,
+		CLEAR,
 	};
 	
 	// インスタンスの生成
@@ -50,6 +52,7 @@ public:
 	float GetDeltaTime(void) const;
 
 	Camera* GetCamera(void) const { return camera_; }
+	SceneBase* GetSceneBase(void) { return scene_; }
 
 private:
 
@@ -70,6 +73,8 @@ private:
 
 	// 各種シーン
 	SceneBase* scene_;
+
+	int backGround_;
 
 	// シーン遷移中判定
 	bool isSceneChanging_;

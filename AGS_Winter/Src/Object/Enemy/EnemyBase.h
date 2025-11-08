@@ -16,22 +16,27 @@ public:
 		WAIT,
 		MOVE,
 		ATTACK,
-		DEAD_REACT,
+		ESCAPE,
 		END,
 	};
 
 	// アニメーション種別
 	enum class ANIM_TYPE
 	{
-		T,
-		WAIT,
+		IDLE,
 		WALK,
+		RUN,
+		ATTACK_A,
+		ATTACK_B,
+		ATTACK_C,
 		MAX,
 	};
 
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 1000.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
-	static constexpr VECTOR ATTACK_POS = { 0.0f, 450.0f, 450.0f };
+	static constexpr VECTOR ATTACK_POS_A = { 0.0f, 300.0f, 380.0f };
+	static constexpr VECTOR ATTACK_POS_B = { 0.0f, 2.5f, 200.0f };
+	static constexpr float ATTACK_RADIUS = 35.0f;
 
 	// コンストラクタ
 	EnemyBase(Player* pl);
@@ -69,6 +74,9 @@ public:
 
 	bool IsAttackA(void) { return attackAFlg_; }
 	bool IsAttackB(void) { return attackBFlg_; }
+	bool IsAttackC(void) { return attackCFlg_; }
+
+	bool IsAttack(void);
 
 	// ダメージを与える
 	void Damage(int damage) { hp_ -= damage; }
@@ -76,7 +84,7 @@ public:
 	bool ClearFlg(void) { return clearFlg_; }
 	//// 衝突判定が有効な状態
 	//bool IsCollisionState(void);
-	//bool IsAttack(void);
+	//bool IsAttackA(void);
 
 protected:
 
@@ -113,26 +121,31 @@ protected:
 	bool clearFlg_;
 
 	float cnt_;
+
+	int attack_;
+	int coolDown_;
+	bool isCoolDown_;
+
 	bool attackAFlg_;
 	bool attackBFlg_;
+	bool attackCFlg_;
 
-	void LookPlayer(void);
+	bool attackShowFlg_;
 
-	//// 状態遷移
-	//void ChangeWait(void);
-	//void ChangeMove(void);
-	//void ChangeAttack(void);
-	//void ChangeDodge(void);
+	void DirectionPlayer(void);
 
-	//// 状態別更新
-	//void UpdateWait(void);
-	//void UpdateMove(void);
-	//void UpdateAttack(void);
-	//void UpdateDodge(void);
+	// 状態遷移
+	void ChangeWait(void);
+	void ChangeMove(void);
+	void ChangeAttack(void);
+	void ChangeEscape(void);
 
-	//// 状態別描画
-	//void DrawStandby(void);
-	//void DrawDeadReact(void);
-	//void DrawHitReact(void);
-	//void DrawEnd(void);
+	// 状態別更新
+	void UpdateWait(void);
+	void UpdateMove(void);
+	void UpdateAttack(void);
+	void UpdateAttackA(void);
+	void UpdateAttackB(void);
+	void UpdateAttackC(void);
+	void UpdateEscape(void);
 };

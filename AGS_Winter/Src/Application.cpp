@@ -13,6 +13,7 @@ const std::string Application::PATH_IMAGE = PATH_DATA + "Image/";
 const std::string Application::PATH_MODEL = PATH_DATA + "Model/";
 const std::string Application::PATH_ANIMATION = PATH_DATA + "Animation/";
 const std::string Application::PATH_EFFECT = PATH_DATA + "Effect/";
+const std::string Application::PATH_SOUND = PATH_DATA + "Sounds/";
 
 void Application::CreateInstance(void)
 {

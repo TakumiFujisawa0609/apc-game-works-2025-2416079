@@ -7,6 +7,7 @@ class SceneManager;
 class Stage;
 class EnemyBase;
 class Player;
+class Item;
 
 class GameScene : public SceneBase
 {
@@ -32,11 +33,14 @@ private:
 	Stage* stage_;
 	EnemyBase* enemyBase_;
 	Player* player_;
+	Item* item_;
 
 	// ‰æ‘œ
 	int imgGameover_;
 	int imgGameclear_;
 	int imgNextwave_;
+
+	int shadowMap_;
 
 	bool hitFlgP_;
 	bool hitFlgE_;
@@ -49,4 +53,5 @@ private:
 
 	void Collision(void);
 	void GameCamera(void);
+	void Effect(MV1_COLL_RESULT_POLY dim);
 };

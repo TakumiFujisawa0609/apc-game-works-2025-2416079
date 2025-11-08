@@ -5,10 +5,8 @@ InputManager* InputManager::instance_ = nullptr;
 
 void InputManager::CreateInstance(void)
 {
-	if (instance_ == nullptr)
-	{
-		instance_ = new InputManager();
-	}
+	instance_ = new InputManager();
+
 	instance_->Init();
 }
 

@@ -3,6 +3,8 @@
 #include "../Object/Stage.h"
 #include "../Object/Enemy/EnemyBase.h"
 #include "../Object/Player.h"
+#include "../Object/Item.h"
+#include "../Manager/Sound.h"
 #include "../Manager/EffectResManager.h"
 #include "../Manager/SceneManager.h"
 #include "../Manager/Camera.h"
@@ -32,6 +34,9 @@ void GameScene::Init(void)
 	player_ = new Player();
 	player_->Init();
 
+	item_ = new Item();
+	item_->Init();
+
 	enemyBase_ = new EnemyBase(player_);
 	enemyBase_->Init();
 
@@ -48,6 +53,11 @@ void GameScene::Init(void)
 
 	hitFlgE_ = false;
 	hitFlgP_ = false;
+
+	shadowMap_ = MakeShadowMap(8192, 8192);
+
+	SetShadowMapLightDirection(shadowMap_, { 0.2f, -0.8f, 0.0f });
+	SetShadowMapDrawArea(shadowMap_, { -5000.0f, 0.0f, -5000.0f }, { 5000.0f, 0.0f, 5000.0f });
 }
 
 void GameScene::Update(void)
@@ -56,14 +66,26 @@ void GameScene::Update(void)
 	enemyBase_->Update();
 	GameCamera();
 
+	item_->Update();
+
 	// ステージの更新
 	stage_->Update();
 
 	Collision();
+
+	if (enemyBase_->ClearFlg() == true) {
+
+		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
+	}
+	if (player_->OverFlg() == true) {
+
+		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::OVER);
+	}
 }
 
 void GameScene::Collision(void)
 {
+	Sound& sound = Sound::GetInstance();
 	MV1_COLL_RESULT_POLY_DIM info{};
 
 	if (player_->IsAttack()) {
@@ -73,6 +95,9 @@ void GameScene::Collision(void)
 		if (!hitFlgE_) {
 			if (info.HitNum > 0) {
 			
+				sound.Play(Sound::SE_TYPE::E_SE_SLASH_1);
+				Effect(info.Dim[info.HitNum - 1]);
+
 				hitFlgE_ = true;
 				enemyBase_->Damage(player_->GetPower());
 
@@ -81,28 +106,43 @@ void GameScene::Collision(void)
 					player_->SetPower(1);
 				}
 			}
-			if (enemyBase_->ClearFlg() == true) {
-
-				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
-			}
 		}
 	}
 	else {
 
 		hitFlgE_ = false;
 	}
+<<<<<<< HEAD
 	if (enemyBase_->IsAttackA() == true) {
 
 		info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemyBase_->GetAttackPos(), 20.0f);
+=======
+	if (player_->IsHit()) {
+		if (enemyBase_->IsAttackA()) {
 
-		if (info.HitNum > 0) {
-			if (player_->IsDodge() == false) {
+			info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), EnemyBase::ATTACK_RADIUS);
+>>>>>>> 3bb431e15517f3bd96ae4dd17f50ed4700cc504a
+
+			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
+					if (!player_->IsDodge()) {
 
-					hitFlgP_ = true;
-					player_->Damage(1);
+						hitFlgP_ = true;
+						player_->Damage(1, enemyBase_->GetAngle().y);
+					}
+					else {
+						if (player_->DodgeCount() <= 10) {
+
+							player_->SetPower(3);
+						}
+						else if (player_->DodgeCount() <= 20) {
+
+							player_->SetPower(2);
+						}
+					}
 				}
 			}
+<<<<<<< HEAD
 			else {
 				if (!hitFlgP_) {
 					if (player_->DodgeCount() <= 10) {
@@ -112,16 +152,59 @@ void GameScene::Collision(void)
 					else if (player_->DodgeCount() <= 20) {
 
 						player_->SetPower(2);
+=======
+		}
+		if (enemyBase_->IsAttackB()) {
+
+			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS);
+
+			if (info.HitNum > 0) {
+				if (!hitFlgP_) {
+					if (!player_->IsDodge()) {
+
+						hitFlgP_ = true;
+						player_->Damage(1, enemyBase_->GetAngle().y);
+					}
+					else {
+						if (player_->DodgeCount() <= 10) {
+
+							player_->SetPower(3);
+						}
+						else if (player_->DodgeCount() <= 20) {
+
+							player_->SetPower(2);
+						}
+>>>>>>> 3bb431e15517f3bd96ae4dd17f50ed4700cc504a
 					}
 				}
 			}
-			if (player_->OverFlg() == true) {
+		}
+		if (enemyBase_->IsAttackC()) {
 
-				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
+			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS * 2);
+
+			if (info.HitNum > 0) {
+				if (!hitFlgP_) {
+					if (!player_->IsDodge()) {
+
+						hitFlgP_ = true;
+						player_->Damage(2, enemyBase_->GetAngle().y);
+					}
+					else {
+						if (player_->DodgeCount() <= 10) {
+
+							player_->SetPower(3);
+						}
+						else if (player_->DodgeCount() <= 20) {
+
+							player_->SetPower(2);
+						}
+					}
+				}
 			}
 		}
 	}
-	else {
+	if (!enemyBase_->IsAttack()) {
 
 		hitFlgP_ = false;
 	}
@@ -192,7 +275,7 @@ void GameScene::GameCamera(void)
 	}
 	else {
 
-		VECTOR dir = VSub(VAdd(enemyBase_->GetPos(), { 0.0f, 50.0f, 0.0f }), headPos);
+		VECTOR dir = VSub(enemyBase_->GetPos(), headPos);
 
 		float prevPitch = pitch_;
 		float prevYaw = yaw_;
@@ -200,10 +283,14 @@ void GameScene::GameCamera(void)
 		pitch_ = -VNorm(dir).y;
 		yaw_ = atan2f(VNorm(dir).x, VNorm(dir).z);
 
+		if (pitch_ >= 0.5f) {
+
+			pitch_ = 0.5f;
+		}
 		pitch_ = AngleUtility::LerpAngle(prevPitch, pitch_, 0.8f);
 		yaw_ = AngleUtility::LerpAngle(prevYaw, yaw_, 0.8f);
 
-		if ((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f) || std::abs(prevYaw - yaw_) > 1.0f || std::abs(prevPitch - pitch_) > 1.0f) {
+		if ((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f) || VSize(VSub(player_->GetPos(), enemyBase_->GetPos())) <= 300.0f) {
 
 			isLockon_ = false;
 		}
@@ -230,12 +317,39 @@ void GameScene::GameCamera(void)
 	camera->SetAbsCameraAngles({ pitch_, yaw_, 0.0f });
 }
 
+void GameScene::Effect(MV1_COLL_RESULT_POLY dim)
+{
+	//リソースを得る
+	int resource = EffectResManager::GetInstance().GetResourceId(EffectResManager::TYPE::ENEMY_HIT);
+	
+	//エフェクトの再生
+	int effect = PlayEffekseer3DEffect(resource);
+
+	//位置等々の設定
+	VECTOR pos = dim.Position[0];
+	SetPosPlayingEffekseer3DEffect(effect, pos.x, pos.y, pos.z);
+	SetScalePlayingEffekseer3DEffect(effect, 12.0f, 12.0f, 12.0f);
+	SetRotationPlayingEffekseer3DEffect(effect, 0.0f, 0.0f, 0.0f);
+}
+
 void GameScene::Draw(void)
 {
+	ShadowMap_DrawSetup(shadowMap_);
+
+	MV1DrawModel(player_->GetModelId());
+	MV1DrawModel(enemyBase_->GetModelId());
+
+	ShadowMap_DrawEnd();
+
+	SetUseShadowMap(0, shadowMap_);
+
 	SceneBase::Draw();
 	stage_->Draw();
 	player_->Draw();
 	enemyBase_->Draw();
+	item_->Draw();
+
+	SetUseShadowMap(0, -1);
 
 	//if (hitFlgP_) {
 
@@ -255,6 +369,8 @@ void GameScene::Draw(void)
 
 void GameScene::Release(void)
 {
+	DeleteShadowMap(shadowMap_);
+
 	stage_->Release();
 	delete stage_;
 
@@ -263,6 +379,9 @@ void GameScene::Release(void)
 
 	enemyBase_->Release();
 	delete enemyBase_;
+	
+	item_->Release();
+	delete item_;
 
 	DeleteGraph(imgGameover_);
 	DeleteGraph(imgGameclear_);

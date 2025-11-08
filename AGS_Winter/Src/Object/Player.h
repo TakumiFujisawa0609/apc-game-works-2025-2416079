@@ -17,6 +17,8 @@ public:
 		ATTACK,
 		COMBO,
 		DOGDE,
+		DAMAGED_LIGHT,
+		DAMAGED_HEAVY,
 		END,
 	};
 
@@ -31,6 +33,9 @@ public:
 		COMBO_2,
 		COMBO_3,
 		DODGE,
+		DAMAGED_LIGHT,
+		DAMAGED_HEAVY,
+		STAND_UP,
 		MAX,
 	};
 
@@ -38,6 +43,8 @@ public:
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
 	static constexpr VECTOR SWORD_POS = { 75.0f, 30.0f, -10.0f };
 	static constexpr int MAX_HP = 10;
+	static constexpr float MAX_STAMINA = 1000.0f;
+	static constexpr float DOGDE_STAMINA = 100.0f;
 
 	// コンストラクタ
 	Player(void);
@@ -65,7 +72,7 @@ public:
 	VECTOR GetAttackEndPos(void) { return attackPos2_; }
 
 	// ダメージを与える
-	void Damage(int damage);
+	void Damage(int damage, float dir);
 
 	int GetPower(void) { return power_; }
 	void SetPower(int pow) { power_ = pow; }
@@ -73,8 +80,10 @@ public:
 	// 衝突判定が有効な状態
 	bool IsCollisionState(void);
 	bool IsAttackMotion(void);
-	bool IsAttack(void) { return isAttack_; }
-
+	
+	bool IsHit(void);
+	bool IsAttack(void){return isAttack_;}
+	
 	bool IsDodge(void) { return dodgeFlg_; }
 
 	int DodgeCount(void) { return dodgeCnt_; }
@@ -105,9 +114,12 @@ protected:
 	VECTOR attackPos1_;
 	VECTOR attackPos2_;
 
+	float knockBackDir_;
+
 	// HP
 	int hp_;
 	bool overFlg_;
+	float stamina_;
 
 	bool isAttack_;
 	int power_;
@@ -115,12 +127,16 @@ protected:
 	int dodgeCnt_;
 	bool dodgeFlg_;
 
+	void KnockBack(void);
+
 	// 状態遷移
 	void ChangeWait(void);
 	void ChangeMove(void);
 	void ChangeAttack(void);
 	void ChangeCombo(void);
 	void ChangeDodge(void);
+	void ChangeDamagedLight(void);
+	void ChangeDamagedHeavy(void);
 
 	// 状態別更新
 	void UpdateWait(void);
@@ -128,10 +144,6 @@ protected:
 	void UpdateAttack(void);
 	void UpdateCombo(void);
 	void UpdateDodge(void);
-
-	// 状態別描画
-	void DrawStandby(void);
-	void DrawDeadReact(void);
-	void DrawHitReact(void);
-	void DrawEnd(void);
+	void UpdateDamagedLight(void);
+	void UpdateDamagedHeavy(void);
 };

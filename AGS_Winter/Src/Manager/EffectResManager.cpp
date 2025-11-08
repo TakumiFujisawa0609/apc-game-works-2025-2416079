@@ -51,12 +51,6 @@ EffectResManager::EffectResManager(void)
 
 void EffectResManager::Load(void)
 {
-	// 爆発地面エフェクトのロード
-	resourceIds_.emplace(TYPE::BLAST_GROUND, LoadEffekseerEffect((Application::PATH_EFFECT + "Blast/Blast.efkefc").c_str()));
-	// 爆発ヒットエフェクトのロード
-	resourceIds_.emplace(TYPE::BLAST_HIT, LoadEffekseerEffect((Application::PATH_EFFECT + "BlastHit/BlastHit.efkefc").c_str()));
-	//ビームのエフェクトのロード
-	resourceIds_.emplace(TYPE::BEAM, LoadEffekseerEffect((Application::PATH_EFFECT + "Beam/Beam.efkefc").c_str()));
-	// 花火エフェクトのロード
-	resourceIds_.emplace(TYPE::FIREWORKS, LoadEffekseerEffect((Application::PATH_EFFECT + "FireWorks/FireWorks.efkefc").c_str()));
+	// ヒットエフェクトのロード
+	resourceIds_.emplace(TYPE::ENEMY_HIT, LoadEffekseerEffect((Application::PATH_EFFECT + "Blood.efkproj").c_str()));
 }

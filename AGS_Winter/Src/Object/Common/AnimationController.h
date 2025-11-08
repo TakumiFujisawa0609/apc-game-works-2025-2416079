@@ -31,6 +31,7 @@ public:
 
 	// アニメーション再生
 	void Play(int type, bool isLoop);
+	void End(int type);
 	void Update(void);
 	void Release(void);
 
@@ -40,6 +41,9 @@ public:
 
 	float GetTotalTime(void) { return playAnim_.totalTime; }
 	float GetTime(void) { return playAnim_.step; }
+
+	void ChangePause(bool p) { isPause_ = p; }
+	bool IsPause(void) { return isPause_; }
 
 private:
 
@@ -56,7 +60,9 @@ private:
 
 	float blendRate_;
 
+	int isDetach_;
 	bool isLoop_;
+	bool isPause_;
 
 	// アニメーション追加の共通処理
 	void Add(int type, float speed, Animation& animation);
