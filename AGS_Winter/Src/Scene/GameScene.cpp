@@ -91,9 +91,9 @@ void GameScene::Collision(void)
 
 		hitFlgE_ = false;
 	}
-	if (enemyBase_->IsAttack() == true) {
+	if (enemyBase_->IsAttackA() == true) {
 
-		info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackEndPos(), 20.0f);
+		info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemyBase_->GetAttackPos(), 20.0f);
 
 		if (info.HitNum > 0) {
 			if (player_->IsDodge() == false) {
@@ -104,13 +104,15 @@ void GameScene::Collision(void)
 				}
 			}
 			else {
-				if (player_->DodgeCount() <= 10) {
-				
-					player_->SetPower(3);
-				}
-				else if (player_->DodgeCount() <= 20) {
-					
-					player_->SetPower(2);
+				if (!hitFlgP_) {
+					if (player_->DodgeCount() <= 10) {
+
+						player_->SetPower(3);
+					}
+					else if (player_->DodgeCount() <= 20) {
+
+						player_->SetPower(2);
+					}
 				}
 			}
 			if (player_->OverFlg() == true) {

@@ -148,13 +148,12 @@ void Player::Draw(void)
 
 		DrawSphere3D(MV1GetFramePosition(modelId_, 58), 10, 16, 0xffffff, 0xffffff, true);
 	}
-	int x = Application::SCREEN_SIZE_X;
-	int dx = x / MAX_HP;
-	x -= 10;
+	float x = Application::SCREEN_SIZE_X - 20;
+	float dx = x / MAX_HP;
 	dx *= hp_;
 
-	DrawBox(10, 10, x, 25, 0x222222, true);
-	DrawBox(10, 10, dx, 25, 0x00ff00, true);
+	DrawBoxAA(20.0f, 20.0f, x, 35.0f, 0x222222, true);
+	DrawBoxAA(20.0f, 20.0f, dx, 35.0f, 0x00ff00, true);
 
 	//デバック
 	/*int i = Controller::GetInstance().GetJPadInputState(Controller::JOYPAD_NO::PAD1).IsTrgDown[4];

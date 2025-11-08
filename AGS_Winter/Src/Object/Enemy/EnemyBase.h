@@ -24,8 +24,8 @@ public:
 	enum class ANIM_TYPE
 	{
 		T,
+		WAIT,
 		WALK,
-		ATTACK,
 		MAX,
 	};
 
@@ -63,10 +63,12 @@ public:
 	void SetAngle(VECTOR angles) { angles_ = angles; }
 	
 	//攻撃座標の取得
+	VECTOR GetAttackPos(void) { return attackPos_; }
 	VECTOR GetAttackStartPos(void) { return attackPos1_; }
 	VECTOR GetAttackEndPos(void) { return attackPos2_; }
 
-	bool IsAttack(void) { return attackFlg_; }
+	bool IsAttackA(void) { return attackAFlg_; }
+	bool IsAttackB(void) { return attackBFlg_; }
 
 	// ダメージを与える
 	void Damage(int damage) { hp_ -= damage; }
@@ -99,9 +101,11 @@ protected:
 	// 移動速度
 	float speed_;
 	//攻撃判定の中心
+	VECTOR attackPos_;
 	VECTOR attackPos1_;
 	VECTOR attackPos2_;
 	VECTOR attackDir_;
+	float attackSpeed_;
 
 	// HP
 	int hp_;
@@ -109,7 +113,8 @@ protected:
 	bool clearFlg_;
 
 	float cnt_;
-	bool attackFlg_;
+	bool attackAFlg_;
+	bool attackBFlg_;
 
 	void LookPlayer(void);
 
