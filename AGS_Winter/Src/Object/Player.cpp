@@ -34,6 +34,8 @@ void Player::Init()
 	isAttack_ = false;
 
 	hp_ = MAX_HP;
+	isHeal_ = false;
+	healCount_ = 0;
 	stamina_ = MAX_STAMINA;
 	overFlg_ = false;
 
@@ -169,6 +171,28 @@ void Player::Update(void)
 	if (stamina_ < 0.0f) {
 
 		stamina_ = 0.0f;
+	}
+	if (isHeal_) {
+		if (hp_ < MAX_HP) {
+			
+			hp_++;
+			healCount_++;
+		}
+		if (healCount_ >= HEAL_COUNT) {
+		
+			isHeal_ = false;
+			healCount_ = 0;
+		}
+	}
+	if (isHealMax_) {
+		if (hp_ < MAX_HP) {
+
+			hp_++;
+		}
+		else {
+
+			isHealMax_ = false;
+		}
 	}
 
 	//ƒ‚ƒfƒ‹‚ÌÝ’è

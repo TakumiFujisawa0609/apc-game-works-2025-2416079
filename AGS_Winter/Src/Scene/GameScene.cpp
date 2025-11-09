@@ -66,7 +66,31 @@ void GameScene::Update(void)
 	enemyBase_->Update();
 	GameCamera();
 
+	if (player_->HealUsed()) {
+
+		item_->SetUsing(true);
+	}
+	else {
+
+		item_->SetUsing(false);
+	}
+
 	item_->Update();
+
+	if (item_->IsUse()) {
+		switch (item_->GetType())
+		{
+			case Item::TYPE::HP:
+			
+			player_->Heal();
+			break;
+			
+			case Item::TYPE::HP_MAX:
+			
+			player_->HealMax();
+			break;
+		}
+	}
 
 	// ステージの更新
 	stage_->Update();
@@ -112,23 +136,17 @@ void GameScene::Collision(void)
 
 		hitFlgE_ = false;
 	}
-<<<<<<< HEAD
-	if (enemyBase_->IsAttackA() == true) {
-
-		info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemyBase_->GetAttackPos(), 20.0f);
-=======
 	if (player_->IsHit()) {
 		if (enemyBase_->IsAttackA()) {
 
 			info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), EnemyBase::ATTACK_RADIUS);
->>>>>>> 3bb431e15517f3bd96ae4dd17f50ed4700cc504a
 
 			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
 					if (!player_->IsDodge()) {
 
 						hitFlgP_ = true;
-						player_->Damage(1, enemyBase_->GetAngle().y);
+						player_->Damage(10, enemyBase_->GetAngle().y);
 					}
 					else {
 						if (player_->DodgeCount() <= 10) {
@@ -142,17 +160,6 @@ void GameScene::Collision(void)
 					}
 				}
 			}
-<<<<<<< HEAD
-			else {
-				if (!hitFlgP_) {
-					if (player_->DodgeCount() <= 10) {
-
-						player_->SetPower(3);
-					}
-					else if (player_->DodgeCount() <= 20) {
-
-						player_->SetPower(2);
-=======
 		}
 		if (enemyBase_->IsAttackB()) {
 
@@ -163,7 +170,7 @@ void GameScene::Collision(void)
 					if (!player_->IsDodge()) {
 
 						hitFlgP_ = true;
-						player_->Damage(1, enemyBase_->GetAngle().y);
+						player_->Damage(10, enemyBase_->GetAngle().y);
 					}
 					else {
 						if (player_->DodgeCount() <= 10) {
@@ -174,7 +181,6 @@ void GameScene::Collision(void)
 
 							player_->SetPower(2);
 						}
->>>>>>> 3bb431e15517f3bd96ae4dd17f50ed4700cc504a
 					}
 				}
 			}
@@ -188,7 +194,7 @@ void GameScene::Collision(void)
 					if (!player_->IsDodge()) {
 
 						hitFlgP_ = true;
-						player_->Damage(2, enemyBase_->GetAngle().y);
+						player_->Damage(20, enemyBase_->GetAngle().y);
 					}
 					else {
 						if (player_->DodgeCount() <= 10) {
