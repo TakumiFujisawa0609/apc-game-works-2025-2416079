@@ -34,6 +34,8 @@ void Player::Init()
 	isAttack_ = false;
 
 	hp_ = MAX_HP;
+	isHeal_ = false;
+	healCount_ = 0;
 	stamina_ = MAX_STAMINA;
 	overFlg_ = false;
 
@@ -170,6 +172,28 @@ void Player::Update(void)
 
 		stamina_ = 0.0f;
 	}
+	if (isHeal_) {
+		if (hp_ < MAX_HP) {
+			
+			hp_++;
+			healCount_++;
+		}
+		if (healCount_ >= HEAL_COUNT) {
+		
+			isHeal_ = false;
+			healCount_ = 0;
+		}
+	}
+	if (isHealMax_) {
+		if (hp_ < MAX_HP) {
+
+			hp_++;
+		}
+		else {
+
+			isHealMax_ = false;
+		}
+	}
 
 	//ƒ‚ƒfƒ‹‚ÌÝ’è
 	MV1SetPosition(modelId_, pos_);
@@ -235,10 +259,12 @@ void Player::Draw(void)
 
 		DrawSphere3D(MV1GetFramePosition(modelId_, 58), 10, 16, 0xffffff, 0xffffff, true);
 	}
+
 	float x = Application::SCREEN_SIZE_X - 50.0f;
 	float dx = x / MAX_HP;
 	float d2x = x / MAX_STAMINA;
 	x += 27.5f;
+	
 	dx *= hp_;
 	dx += 25.0f;
 	d2x *= stamina_;

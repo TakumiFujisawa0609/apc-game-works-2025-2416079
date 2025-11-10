@@ -42,7 +42,8 @@ public:
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, -500.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
 	static constexpr VECTOR SWORD_POS = { 75.0f, 30.0f, -10.0f };
-	static constexpr int MAX_HP = 10;
+	static constexpr int MAX_HP = 100;
+	static constexpr int HEAL_COUNT = 15;
 	static constexpr float MAX_STAMINA = 1000.0f;
 	static constexpr float DOGDE_STAMINA = 100.0f;
 
@@ -73,6 +74,10 @@ public:
 
 	// ダメージを与える
 	void Damage(int damage, float dir);
+	void Heal(void) { isHeal_ = true; }
+	void HealMax(void) { isHealMax_ = true; }
+
+	bool HealUsed(void) { return isHeal_ || isHealMax_; }
 
 	int GetPower(void) { return power_; }
 	void SetPower(int pow) { power_ = pow; }
@@ -80,8 +85,10 @@ public:
 	// 衝突判定が有効な状態
 	bool IsCollisionState(void);
 	bool IsAttackMotion(void);
+	
 	bool IsHit(void);
 	bool IsAttack(void){return isAttack_;}
+	
 	bool IsDodge(void) { return dodgeFlg_; }
 
 	int DodgeCount(void) { return dodgeCnt_; }
@@ -116,6 +123,9 @@ protected:
 
 	// HP
 	int hp_;
+	bool isHeal_;
+	bool isHealMax_;
+	int healCount_;
 	bool overFlg_;
 	float stamina_;
 

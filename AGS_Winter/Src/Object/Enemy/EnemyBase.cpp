@@ -43,6 +43,7 @@ void EnemyBase::Init()
 	isCoolDown_ = false;
 
 	cnt_ = 0;
+	attackSpeed_ = 0.025f;
 	attackSpeed_ = 22.0f;
 	attackAFlg_ = attackBFlg_ = false;
 	attackPos2_ = attackPos1_ = Utility::VECTOR_ZERO;
@@ -84,6 +85,7 @@ void EnemyBase::Update(void)
 		UpdateEscape();
 		break;
 	}
+
 	//ƒ‚ƒfƒ‹‚ÌXV
 	animationController_->Update();
 	MV1SetPosition(modelId_, pos_);

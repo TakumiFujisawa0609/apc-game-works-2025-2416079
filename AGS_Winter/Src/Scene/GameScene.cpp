@@ -66,7 +66,31 @@ void GameScene::Update(void)
 	enemyBase_->Update();
 	GameCamera();
 
+	if (player_->HealUsed()) {
+
+		item_->SetUsing(true);
+	}
+	else {
+
+		item_->SetUsing(false);
+	}
+
 	item_->Update();
+
+	if (item_->IsUse()) {
+		switch (item_->GetType())
+		{
+			case Item::TYPE::HP:
+			
+			player_->Heal();
+			break;
+			
+			case Item::TYPE::HP_MAX:
+			
+			player_->HealMax();
+			break;
+		}
+	}
 
 	// ステージの更新
 	stage_->Update();
@@ -122,7 +146,7 @@ void GameScene::Collision(void)
 					if (!player_->IsDodge()) {
 
 						hitFlgP_ = true;
-						player_->Damage(1, enemyBase_->GetAngle().y);
+						player_->Damage(10, enemyBase_->GetAngle().y);
 					}
 					else {
 						if (player_->DodgeCount() <= 10) {
@@ -146,7 +170,7 @@ void GameScene::Collision(void)
 					if (!player_->IsDodge()) {
 
 						hitFlgP_ = true;
-						player_->Damage(1, enemyBase_->GetAngle().y);
+						player_->Damage(10, enemyBase_->GetAngle().y);
 					}
 					else {
 						if (player_->DodgeCount() <= 10) {
@@ -170,7 +194,7 @@ void GameScene::Collision(void)
 					if (!player_->IsDodge()) {
 
 						hitFlgP_ = true;
-						player_->Damage(2, enemyBase_->GetAngle().y);
+						player_->Damage(20, enemyBase_->GetAngle().y);
 					}
 					else {
 						if (player_->DodgeCount() <= 10) {

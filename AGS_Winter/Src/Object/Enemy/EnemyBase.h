@@ -68,6 +68,7 @@ public:
 	void SetAngle(VECTOR angles) { angles_ = angles; }
 	
 	//UŒ‚À•W‚Ìæ“¾
+	VECTOR GetAttackPos(void) { return attackPos_; }
 	VECTOR GetAttackStartPos(void) { return attackPos1_; }
 	VECTOR GetAttackEndPos(void) { return attackPos2_; }
 
@@ -108,6 +109,7 @@ protected:
 	// ˆÚ“®‘¬“x
 	float speed_;
 	//UŒ‚”»’è‚Ì’†S
+	VECTOR attackPos_;
 	VECTOR attackPos1_;
 	VECTOR attackPos2_;
 	VECTOR attackDir_;
@@ -119,6 +121,7 @@ protected:
 	bool clearFlg_;
 
 	float cnt_;
+
 	int attack_;
 	int coolDown_;
 	bool isCoolDown_;
