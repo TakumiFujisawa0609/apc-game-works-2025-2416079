@@ -39,13 +39,14 @@ public:
 		MAX,
 	};
 
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, -500.0f };
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, 30.0f, -500.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
 	static constexpr VECTOR SWORD_POS = { 75.0f, 30.0f, -10.0f };
 	static constexpr int MAX_HP = 100;
 	static constexpr int HEAL_COUNT = 15;
 	static constexpr float MAX_STAMINA = 1000.0f;
 	static constexpr float DOGDE_STAMINA = 100.0f;
+	static constexpr int STAMINA_MAX_TIME = 180 * 60;
 
 	// コンストラクタ
 	Player(void);
@@ -68,6 +69,9 @@ public:
 
 	// 座標取得
 	VECTOR GetPos(void) { return pos_; }
+	VECTOR GetPrevPos(void) { return prevPos_; }
+	void SetPos(VECTOR pos) { pos_ = pos;}
+
 	//攻撃座標の取得
 	VECTOR GetAttackStartPos(void) { return attackPos1_; }
 	VECTOR GetAttackEndPos(void) { return attackPos2_; }
@@ -76,6 +80,7 @@ public:
 	void Damage(int damage, float dir);
 	void Heal(void) { isHeal_ = true; }
 	void HealMax(void) { isHealMax_ = true; }
+	void StaminaMax(void) { isStaminaMax_ = true; staminaMaxCnt_ = 0; }
 
 	bool HealUsed(void) { return isHeal_ || isHealMax_; }
 
@@ -107,6 +112,7 @@ protected:
 
 	// 座標
 	VECTOR pos_;
+	VECTOR prevPos_;
 	// 角度
 	VECTOR angles_;
 	// 大きさ
@@ -125,6 +131,8 @@ protected:
 	int hp_;
 	bool isHeal_;
 	bool isHealMax_;
+	bool isStaminaMax_;
+	int staminaMaxCnt_;
 	int healCount_;
 	bool overFlg_;
 	float stamina_;

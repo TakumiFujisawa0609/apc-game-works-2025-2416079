@@ -23,7 +23,7 @@ void Player::Init()
 	modelId_ = MV1LoadModel((Application::PATH_MODEL + "Player.mv1").c_str());
 
 	//変数の初期化
-	pos_ = DEFAULT_POS;
+	pos_ = prevPos_ = DEFAULT_POS;
 	angles_ = Utility::VECTOR_ZERO;
 	moveDir_ = { 0.0f, 0.0f, 1.0f };
 	scales_ = { 1.0f, 1.0f, 1.0f };
@@ -115,6 +115,7 @@ void Player::Init()
 void Player::Update(void)
 {
 	Player::STATE prevState = state_;
+	prevPos_ = pos_;
 
 	//状態別更新処理
 	switch (state_) {
@@ -178,7 +179,7 @@ void Player::Update(void)
 			hp_++;
 			healCount_++;
 		}
-		if (healCount_ >= HEAL_COUNT) {
+		if (healCount_ >= HEAL_COUNT || hp_ >= MAX_HP) {
 		
 			isHeal_ = false;
 			healCount_ = 0;
@@ -192,6 +193,17 @@ void Player::Update(void)
 		else {
 
 			isHealMax_ = false;
+		}
+	}
+	if (isStaminaMax_) {
+		if (staminaMaxCnt_ > STAMINA_MAX_TIME) {
+			
+			staminaMaxCnt_ = 0;
+			isStaminaMax_ = false;
+		}
+		else {
+
+			staminaMaxCnt_++;
 		}
 	}
 
@@ -272,8 +284,14 @@ void Player::Draw(void)
 
 	DrawBoxAA(22.5f, 17.5f, x, 57.5f, 0x222222, true);
 	DrawBoxAA(25.0f, 20.0f, dx, 35.0f, 0x00ff00, true);
-	DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, 0xffff00, true);
+	if (isStaminaMax_) {
 
+		DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, GetColor(255, 255, std::abs(staminaMaxCnt_ % 101 - 50) * 5.1), true);
+	}
+	else {
+
+		DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, 0xffff00, true);
+	}
 	//デバック
 	/*int i = Controller::GetInstance().GetJPadInputState(Controller::JOYPAD_NO::PAD1).IsTrgDown[4];
 	DrawFormatString(5, 5, 0xffffff, "%d", i);*/
@@ -303,7 +321,7 @@ void Player::Damage(int damage, float dir)
 	hp_ -= damage;
 	knockBackDir_ = dir;
 
-	if (damage >= 2) {
+	if (damage >= 15) {
 
 		state_ = STATE::DAMAGED_HEAVY;
 	}
@@ -385,7 +403,10 @@ void Player::ChangeDodge(void)
 {
 	animationController_->Play(static_cast<int>(ANIM_TYPE::DODGE), false);
 	dodgeCnt_ = 0;
-	stamina_-= DOGDE_STAMINA;
+	if (!isStaminaMax_) {
+	
+		stamina_ -= DOGDE_STAMINA;
+	}
 }
 
 void Player::ChangeDamagedLight(void)
@@ -513,7 +534,10 @@ void Player::UpdateMove(void)
 				//移動させる
 				pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 1.75f));
 
-				stamina_--;
+				if (!isStaminaMax_) {
+				
+					stamina_--;
+				}
 			}
 			else {
 

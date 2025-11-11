@@ -59,7 +59,7 @@ public:
 
 	// 座標取得
 	VECTOR GetPos(void) { return pos_; }
-	// 座標設定
+	VECTOR GetPrevPos(void) { return prevPos_; }
 	void SetPos(VECTOR pos) { pos_ = pos; }
 	
 	// 角度取得
@@ -68,13 +68,15 @@ public:
 	void SetAngle(VECTOR angles) { angles_ = angles; }
 	
 	//攻撃座標の取得
-	VECTOR GetAttackPos(void) { return attackPos_; }
 	VECTOR GetAttackStartPos(void) { return attackPos1_; }
 	VECTOR GetAttackEndPos(void) { return attackPos2_; }
+	VECTOR GetAttackPrevPos(void) { return attackPrevPos_; }
 
 	bool IsAttackA(void) { return attackAFlg_; }
 	bool IsAttackB(void) { return attackBFlg_; }
 	bool IsAttackC(void) { return attackCFlg_; }
+
+	void DeleteAttackA(void) { attackAFlg_ = attackShowFlg_ = false; }
 
 	bool IsAttack(void);
 
@@ -100,6 +102,7 @@ protected:
 
 	// 座標
 	VECTOR pos_;
+	VECTOR prevPos_;
 	// 角度
 	VECTOR angles_;
 	// 大きさ
@@ -110,6 +113,7 @@ protected:
 	float speed_;
 	//攻撃判定の中心
 	VECTOR attackPos_;
+	VECTOR attackPrevPos_;
 	VECTOR attackPos1_;
 	VECTOR attackPos2_;
 	VECTOR attackDir_;
@@ -120,6 +124,7 @@ protected:
 
 	bool clearFlg_;
 
+	int attackDiff_;
 	float cnt_;
 
 	int attack_;

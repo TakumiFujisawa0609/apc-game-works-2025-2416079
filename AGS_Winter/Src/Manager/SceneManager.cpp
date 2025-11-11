@@ -112,7 +112,7 @@ void SceneManager::Draw(void)
 	scene_->Draw();
 
 	// グリッドの描画
-	grid_->Draw();
+	//grid_->Draw();
 
 	// カメラのデバック描画
 	//camera_->Draw();

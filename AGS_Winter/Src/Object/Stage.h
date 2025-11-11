@@ -20,9 +20,4 @@ private:
 
 	// ‚R‚cƒ‚ƒfƒ‹‚Ìƒnƒ“ƒhƒ‹ID
 	int modelId_;
-	
-	// ‚R‚cƒ‚ƒfƒ‹‚Ìƒnƒ“ƒhƒ‹ID
-	int backModelId_;
-
-	int backImg_;
 };

@@ -1,14 +1,8 @@
-<<<<<<< HEAD
 #include<DxLib.h>
 #include "Item.h"
 #include"../Application.h"
 #include "../Manager/Controller.h"
-=======
-#include <DxLib.h>
-#include "Item.h"
-#include "../Application.h"
 #include "../Utility/AsoUtility.h"
->>>>>>> dc1217fbb6e215f6d79dfc738caff453d3bc6f4c
 
 
 Item::Item(void)
@@ -21,31 +15,6 @@ Item::~Item(void)
 
 void Item::Init(void)
 {
-<<<<<<< HEAD
-	for (int i = 0; i < static_cast<int>(TYPE::MAX); i++) {
-
-		switch (i)		{
-		case 0:
-
-			itemImg_[0] = LoadGraph((Application::PATH_IMAGE + "HP.png").c_str());
-			itemNum_[0] = 10;
-			break;
-
-		case 1:
-
-			itemImg_[1] = LoadGraph((Application::PATH_IMAGE + "HP_Max.png").c_str());
-			itemNum_[1] = 2;
-			break;
-
-		case 2:
-
-			itemImg_[2] = LoadGraph((Application::PATH_IMAGE + "Stamina.png").c_str());
-			itemNum_[2] = 5;
-			break;
-		}
-	}
-	itemNo_ = 0;
-=======
 	for (int i = 0; i < static_cast<int>(TYPE::MAX); i++){
 				
 		itemImg_[i] = LoadGraph((Application::PATH_IMAGE + "item_" + std::to_string(i) + ".png").c_str());
@@ -68,37 +37,64 @@ void Item::Init(void)
 			break;
 		}
 	}
-	type_ = TYPE::HP_MAX;
+	type_ = TYPE::HP;
 	use_ = true;
->>>>>>> dc1217fbb6e215f6d79dfc738caff453d3bc6f4c
 }
 
 void Item::Update(void)
 {
-<<<<<<< HEAD
 	Controller& ctrl = Controller::GetInstance();
 	//ゲームパッドの情報を取得
 	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
 	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT_DPAD)]) {
 
-		itemNo_++;
+		int itemNo = static_cast<int>(type_);
+		int prevNo = itemNo;
+		itemNo++;
 
-		if (itemNo_ >= static_cast<int>(TYPE::MAX)) {
+		if (itemNo >= static_cast<int>(TYPE::MAX)) {
 
-			itemNo_ = 0;
+			itemNo = 0;
 		}
+		while (itemNum_[itemNo] <= 0) {
+
+			itemNo++;
+			if (itemNo >= static_cast<int>(TYPE::MAX)) {
+
+				itemNo = 0;
+			}
+			if (itemNo == prevNo) {
+
+				break;
+			}
+		}
+		type_ = static_cast<TYPE>(itemNo);
 	}
 	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::LEFT_DPAD)]) {
+		
+		int itemNo = static_cast<int>(type_);
+		int prevNo = itemNo;
+		itemNo--;
 
-		itemNo_--;
-	
-		if (itemNo_ <1 0) {
+		if (itemNo < 0) {
 
-			itemNo_ = static_cast<int>(TYPE::MAX) - 1;
-=======
-	prevKey_ = nowKey_;
-	nowKey_ = CheckHitKey(KEY_INPUT_SPACE);
+			itemNo = static_cast<int>(TYPE::MAX) - 1;
+		}
+		while (itemNum_[itemNo] <= 0) {
+
+			itemNo--;
+			if (itemNo < 0) {
+
+				itemNo = static_cast<int>(TYPE::MAX) - 1;
+			}
+			if (itemNo == prevNo) {
+
+				break;
+			}
+		}
+		type_ = static_cast<TYPE>(itemNo);
+	}
 
 	use_ = false;
 
@@ -106,41 +102,75 @@ void Item::Update(void)
 
 		return;
 	}
-	if (nowKey_ == 1 && prevKey_ == 0) {
+	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::LEFT)]) {
 		if (itemNum_[static_cast<int>(type_)] > 0) {
 
 			use_ = true;
 			itemNum_[static_cast<int>(type_)]--;
->>>>>>> dc1217fbb6e215f6d79dfc738caff453d3bc6f4c
+			
+			if (itemNum_[static_cast<int>(type_)] <= 0) {
+
+				int itemNo = static_cast<int>(type_);
+				int prevNo = itemNo;
+				itemNo++;
+
+				if (itemNo >= static_cast<int>(TYPE::MAX)) {
+
+					itemNo = 0;
+				}
+				while (itemNum_[itemNo] <= 0) {
+
+					itemNo++;
+					if (itemNo >= static_cast<int>(TYPE::MAX)) {
+
+						itemNo = 0;
+					}
+					if (itemNo == prevNo) {
+
+						itemNo = -1;
+						break;
+					}
+				}
+				type_ = static_cast<TYPE>(itemNo);
+			}
 		}
 	}
 }
 
 void Item::Draw(void)
 {
-<<<<<<< HEAD
-	int dx = Application::SCREEN_SIZE_X - 100;
-	int dy = Application::SCREEN_SIZE_Y - 100;
+	float dxF = Application::SCREEN_SIZE_X - 100.0f;
+	float dyF = Application::SCREEN_SIZE_Y - 100.0f;
+	int dx = static_cast<int>(dxF);
+	int dy = static_cast<int>(dyF);
+	int itemNo = static_cast<int>(type_);
 
-	DrawBoxAA(dx - 40.0f, dy - 40.0f, dx + 40.0f, dy + 40.0f, 0x222222, true);
-	DrawRotaGraph(dx, dy, 1.0, 0.0, itemImg_[itemNo_], true);
-=======
-	float dx = Application::SCREEN_SIZE_X - 100.0f;
-	float dy = Application::SCREEN_SIZE_Y - 100.0f;
+	DrawBox(dx - 40, dy - 40, dx + 40, dy + 40, 0x222255, true);
+	if (itemNo != -1) {
+	
+		DrawRotaGraph(dxF, dyF, 1.0f, 0.0f, itemImg_[itemNo], true);
+	}
+	DrawLine(dx - 40, dy - 38, dx + 40, dy - 38, 0xeeee33, 4);
+	DrawLine(dx - 38, dy - 36, dx - 38, dy + 40, 0xeeee33, 4);
+	DrawLine(dx + 38, dy - 36, dx + 38, dy + 40, 0xeeee33, 4);
+	DrawLine(dx - 36, dy + 38, dx + 36, dy + 38, 0xeeee33, 4);
+	DrawCircleAA(dxF + 40.0f, dyF + 40.0f, 15.0f, 32, 0x222255);
+	SetFontSize(20);
+	if (itemNo != -1) {
 
-	DrawFormatString(dx - 40.0f, dy + 40.0f, 0x000000, "%d", itemNum_[static_cast<int>(type_)]);
-	DrawBoxAA(dx - 50.0f, dy - 50.0f, dx + 50.0f, dy + 50.0f, 0x222222, true);
-	DrawRotaGraph(dx, dy, 1.0f, 0.0f, itemImg_[static_cast<int>(type_)], true);
->>>>>>> dc1217fbb6e215f6d79dfc738caff453d3bc6f4c
+		int width = GetDrawFormatStringWidth("%d", itemNum_[itemNo]);
+		DrawFormatString(dx + 40 - width / 2, dy + 30, 0xffffff, "%d", itemNum_[itemNo]);
+	}
+	else {
+
+		int width = GetDrawFormatStringWidth("0");
+		DrawFormatString(dx + 40 - width / 2, dy + 30, 0xffffff, "0");
+	}
 }
 
 void Item::Release(void)
 {
-<<<<<<< HEAD
-	for (int i = static_cast<int>(TYPE::MAX) - 1; i >= 0; i--) {
-=======
 	for (int i = static_cast<int>(TYPE::MAX) -1; i >= 0; i--){
->>>>>>> dc1217fbb6e215f6d79dfc738caff453d3bc6f4c
 
 		DeleteGraph(itemImg_[i]);
 	}

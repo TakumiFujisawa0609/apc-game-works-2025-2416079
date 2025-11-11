@@ -30,7 +30,7 @@ void EnemyBase::Init()
 	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::WALK), 30, 6);
 	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::RUN), 45, 4);
 
-	pos_ = DEFAULT_POS;
+	pos_ = prevPos_ = DEFAULT_POS;
 	angles_ = { 0.0f, 0.0f, 0.0f };
 	moveDir_ = Utility::VECTOR_ZERO;
 	scales_ = { 8.0f, 8.0f ,8.0f };
@@ -41,8 +41,10 @@ void EnemyBase::Init()
 	attack_ = 0;
 	coolDown_ = 0;
 	isCoolDown_ = false;
-
+	
+	attackDiff_ = GetRand(120) + 120;
 	cnt_ = 0;
+	
 	attackSpeed_ = 0.025f;
 	attackSpeed_ = 22.0f;
 	attackAFlg_ = attackBFlg_ = false;
@@ -61,6 +63,7 @@ void EnemyBase::Update(void)
 {
 	//前のステータスを持っておく
 	STATE prevState = state_;
+	prevPos_ = pos_;
 
 	//ステータス別の更新
 	switch (state_)
@@ -135,7 +138,7 @@ void EnemyBase::ChangeState(STATE state)
 void EnemyBase::Draw(void)
 {
 	MV1DrawModel(modelId_);
-	DrawFormatString(Application::SCREEN_SIZE_X - 100, 20, 0x000000, "%.2f", (300.0f - cnt_) / 60.0f, SetFontSize(25));
+	//DrawFormatString(Application::SCREEN_SIZE_X - 100, 20, 0x000000, "%.2f", (300.0f - cnt_) / 60.0f, SetFontSize(25));
 	//DrawFormatString(100, 20, 0x000000, "%.2f", angles_.y, SetFontSize(25));
 
 	if (attackAFlg_ && attackShowFlg_) {
@@ -143,14 +146,14 @@ void EnemyBase::Draw(void)
 		DrawSphere3D(attackPos1_, ATTACK_RADIUS, 16, 0xffaa55, 0xffaa55, true);
 		//DrawCapsule3D(attackPos1_, attackPos2_, 10.0f, 16, 0x00ffff, 0x00ffff, true);
 	}
-	if (attackBFlg_) {
+	//if (attackBFlg_) {
 
-		DrawCapsule3D(attackPos1_, attackPos2_, ATTACK_RADIUS, 16, 0xff0000, 0xff0000, false);
-	}
-	if (attackCFlg_) {
+	//	DrawCapsule3D(attackPos1_, attackPos2_, ATTACK_RADIUS, 16, 0xff0000, 0xff0000, false);
+	//}
+	//if (attackCFlg_) {
 
-		DrawCapsule3D(attackPos1_, attackPos2_, ATTACK_RADIUS * 2, 16, 0xff0000, 0xff0000, false);
-	}
+	//	DrawCapsule3D(attackPos1_, attackPos2_, ATTACK_RADIUS * 2, 16, 0xff0000, 0xff0000, false);
+	//}
 }
 
 void EnemyBase::Release(void)
@@ -180,6 +183,7 @@ void EnemyBase::DirectionPlayer(void)
 
 void EnemyBase::ChangeWait(void)
 {
+	attackDiff_ = GetRand(120) + 180;
 }
 
 void EnemyBase::ChangeMove(void)
@@ -250,7 +254,7 @@ void EnemyBase::UpdateWait(void)
 
 	cnt_++;
 
-	if (cnt_ > 300) {
+	if (cnt_ >= attackDiff_) {
 
 		cnt_ = 0;
 		state_ = EnemyBase::STATE::ATTACK;
@@ -280,6 +284,13 @@ void EnemyBase::UpdateMove(void)
 			count = 0;
 			state_ = STATE::WAIT;
 		}
+	}
+	cnt_++;
+
+	if (cnt_ >= attackDiff_) {
+
+		cnt_ = 0;
+		state_ = EnemyBase::STATE::ATTACK;
 	}
 }
 
@@ -311,6 +322,8 @@ void EnemyBase::UpdateAttack(void)
 
 void EnemyBase::UpdateAttackA(void)
 {
+	attackPrevPos_ = attackPos1_;
+
 	if (animationController_->GetTime() >= 33) {
 
 		attackPos1_ = VAdd(attackPos1_, VScale(attackDir_, attackSpeed_));
@@ -330,11 +343,6 @@ void EnemyBase::UpdateAttackA(void)
 	}
 	//attackPos1_ = VAdd(pos_, VTransform(ATTACK_POS_A, AngleUtility::GetMatrixRotateXYZ(angles_)));
 	//attackPos2_ = VAdd(attackPos1_, attackDir_);
-	if (attackPos1_.y < ATTACK_RADIUS) {
-
-		attackAFlg_ = false;
-		attackShowFlg_ = false;
-	}
 }
 
 void EnemyBase::UpdateAttackB(void)

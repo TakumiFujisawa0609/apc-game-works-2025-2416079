@@ -89,6 +89,11 @@ void GameScene::Update(void)
 			
 			player_->HealMax();
 			break;
+
+			case Item::TYPE::STAMINA:
+
+			player_->StaminaMax();
+			break;
 		}
 	}
 
@@ -146,7 +151,7 @@ void GameScene::Collision(void)
 					if (!player_->IsDodge()) {
 
 						hitFlgP_ = true;
-						player_->Damage(10, enemyBase_->GetAngle().y);
+						player_->Damage(13, enemyBase_->GetAngle().y);
 					}
 					else {
 						if (player_->DodgeCount() <= 10) {
@@ -213,6 +218,78 @@ void GameScene::Collision(void)
 	if (!enemyBase_->IsAttack()) {
 
 		hitFlgP_ = false;
+	}
+	//ステージと
+	CollisionData data = { player_->GetPos(), player_->GetPrevPos(), COLLISION_TYPE::PLAYER };
+	CollisionData datA = { enemyBase_->GetPos(), enemyBase_->GetPrevPos(), COLLISION_TYPE::ENEMY };
+	if (enemyBase_->IsAttackA()) {
+		CollisionData daTA = { enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackPrevPos(), COLLISION_TYPE::ENEMY_ATTACK };
+		CollisionStage(daTA);
+	}
+	CollisionStage(data);
+	CollisionStage(datA);
+}
+
+void GameScene::CollisionStage(CollisionData data)
+{
+	//上下
+	VECTOR topPos = data.pos;
+	topPos.y += COLLISION_STAGE_DIFF * 2.0f;
+
+	VECTOR downPos = data.pos;
+	downPos.y -= COLLISION_STAGE_DIFF * 2.0f;
+
+	MV1_COLL_RESULT_POLY result = MV1CollCheck_Line(stage_->GetModelId(), -1, topPos, downPos);
+	
+	if (result.HitFlag == 1) {
+		switch (data.type) {
+		case COLLISION_TYPE::PLAYER:
+
+			player_->SetPos(result.HitPosition);
+			break;
+
+		case COLLISION_TYPE::ENEMY:
+
+			enemyBase_->SetPos(result.HitPosition);
+			break;
+		}
+	}
+	//左右
+	if (!VectorUtility::Equals(data.pos, data.prev)) {
+
+		switch (data.type) {
+		case COLLISION_TYPE::PLAYER:
+
+			MV1_COLL_RESULT_POLY_DIM res = MV1CollCheck_Sphere(stage_->GetModelId(), -1,
+				VAdd(data.pos, { 0.0f, COLLISION_STAGE_DIFF * 2.0f, 0.0f }), COLLISION_STAGE_DIFF);
+
+			if (res.HitNum > 0) {
+
+				player_->SetPos(data.prev);
+			}
+			break;
+
+		case COLLISION_TYPE::ENEMY:
+
+			res = MV1CollCheck_Sphere(stage_->GetModelId(), -1,
+				VAdd(data.pos, { 0.0f, COLLISION_STAGE_DIFF * 3.5f, 0.0f }), COLLISION_STAGE_DIFF);
+
+			if (res.HitNum > 0) {
+
+				enemyBase_->SetPos(data.prev);
+			}
+			break;
+
+		case COLLISION_TYPE::ENEMY_ATTACK:
+
+			res = MV1CollCheck_Sphere(stage_->GetModelId(), -1, data.pos , EnemyBase::ATTACK_RADIUS);
+
+			if (res.HitNum > 0) {
+
+				enemyBase_->DeleteAttackA();
+			}
+			break;
+		}
 	}
 }
 
