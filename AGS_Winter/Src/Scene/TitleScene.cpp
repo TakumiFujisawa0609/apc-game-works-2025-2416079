@@ -2,7 +2,9 @@
 #include "../Application.h"
 #include "../Utility/AsoUtility.h"
 #include "../Manager/SceneManager.h"
-#include "../Manager/Controller.h"
+#include "../Manager/Audio/AudioManager.h"
+#include "../Manager/Audio/SoundTable.h"
+#include "../Manager/Input/Controller.h"
 #include "TitleScene.h"
 
 
@@ -19,6 +21,8 @@ void TitleScene::Init(void)
 {
 	//imgTitle_ = LoadGraph((Application::PATH_IMAGE + "Title.png").c_str());
 	//imgBg_ = LoadGraph((Application::PATH_IMAGE + "Background.png").c_str());
+	AudioManager::GetInstance()->LoadSceneSound(LoadScene::TITLE);
+	AudioManager::GetInstance()->PlayBGM(SoundID::BGM_TITLE);
 }
 
 void TitleScene::Update(void)
@@ -46,6 +50,7 @@ void TitleScene::Draw(void)
 
 void TitleScene::Release(void)
 {
+	AudioManager::GetInstance()->DeleteSceneSound(LoadScene::TITLE);
 	//DeleteGraph(imgTitle_);
 	//DeleteGraph(imgBg_);
 }

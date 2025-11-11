@@ -23,12 +23,12 @@ void EnemyBase::Init()
 
 	animationController_ = new AnimationController(modelId_);
 
-	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_A), 30, 0);
-	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_B), 30, 1);
-	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_C), 30, 2);
+	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_A), 45, 0);
+	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_B), 45, 1);
+	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_C), 45, 2);
 	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::IDLE), 30, 3);
-	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::WALK), 30, 6);
-	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::RUN), 45, 4);
+	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::WALK), 45, 6);
+	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::RUN), 60, 4);
 
 	pos_ = prevPos_ = DEFAULT_POS;
 	angles_ = { 0.0f, 0.0f, 0.0f };

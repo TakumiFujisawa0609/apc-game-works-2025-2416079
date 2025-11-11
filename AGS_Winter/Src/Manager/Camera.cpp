@@ -38,6 +38,7 @@ void Camera::SetBeforeDraw(void)
 
 void Camera::Draw(void)
 {
+	//デバック表示
 	DrawFormatString(10, 10, GetColor(255, 255, 255), "Camera Position: (%.2f, %.2f, %.2f)", pos_.x, pos_.y, pos_.z);
 	
 	VECTOR angleA = VScale(angles_, 180.0f);

@@ -1,7 +1,7 @@
 #include<DxLib.h>
 #include "Item.h"
 #include"../Application.h"
-#include "../Manager/Controller.h"
+#include "../Manager/Input/Controller.h"
 #include "../Utility/AsoUtility.h"
 
 

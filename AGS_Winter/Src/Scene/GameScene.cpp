@@ -4,11 +4,12 @@
 #include "../Object/Enemy/EnemyBase.h"
 #include "../Object/Player.h"
 #include "../Object/Item.h"
-#include "../Manager/Sound.h"
+#include "../Manager/Audio/AudioManager.h"
+#include "../Manager/Audio/SoundTable.h"
 #include "../Manager/EffectResManager.h"
 #include "../Manager/SceneManager.h"
 #include "../Manager/Camera.h"
-#include "../Manager/Controller.h"
+#include "../Manager/Input/Controller.h"
 #include "../Application.h"
 #include "../Utility/Utility.h"
 #include "../Utility/AsoUtility.h"
@@ -31,14 +32,21 @@ void GameScene::Init(void)
 	stage_ = new Stage();
 	stage_->Init();
 
+	//プレイヤーの初期化
 	player_ = new Player();
 	player_->Init();
 
+	//アイテムの初期化
 	item_ = new Item();
 	item_->Init();
 
+	//エネミーの初期化
 	enemyBase_ = new EnemyBase(player_);
 	enemyBase_->Init();
+
+	// サウンドの読み込み
+	AudioManager::GetInstance()->LoadSceneSound(LoadScene::GAME);
+	AudioManager::GetInstance()->PlayBGM(SoundID::BGM_BATTLE);
 
 	pitch_ = 0.3f;
 	yaw_ = 0.0f;
@@ -114,7 +122,6 @@ void GameScene::Update(void)
 
 void GameScene::Collision(void)
 {
-	Sound& sound = Sound::GetInstance();
 	MV1_COLL_RESULT_POLY_DIM info{};
 
 	if (player_->IsAttack()) {
@@ -123,8 +130,8 @@ void GameScene::Collision(void)
 
 		if (!hitFlgE_) {
 			if (info.HitNum > 0) {
-			
-				sound.Play(Sound::SE_TYPE::E_SE_SLASH_1);
+
+				AudioManager::GetInstance()->PlaySE(SoundID::SE_ATTACK);
 				Effect(info.Dim[info.HitNum - 1]);
 
 				hitFlgE_ = true;
@@ -144,6 +151,7 @@ void GameScene::Collision(void)
 	if (player_->IsHit()) {
 		if (enemyBase_->IsAttackA()) {
 
+			AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 			info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), EnemyBase::ATTACK_RADIUS);
 
 			if (info.HitNum > 0) {
@@ -168,6 +176,7 @@ void GameScene::Collision(void)
 		}
 		if (enemyBase_->IsAttackB()) {
 
+			AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS);
 
 			if (info.HitNum > 0) {
@@ -192,6 +201,7 @@ void GameScene::Collision(void)
 		}
 		if (enemyBase_->IsAttackC()) {
 
+			AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS * 2);
 
 			if (info.HitNum > 0) {
@@ -452,6 +462,7 @@ void GameScene::Draw(void)
 
 void GameScene::Release(void)
 {
+	AudioManager::GetInstance()->DeleteSceneSound(LoadScene::GAME);
 	DeleteShadowMap(shadowMap_);
 
 	stage_->Release();

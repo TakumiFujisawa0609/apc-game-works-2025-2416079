@@ -1,9 +1,10 @@
 #include <EffekseerForDXLib.h>
-#include "Manager/InputManager.h"
+#include "Manager/Input/InputManager.h"
 #include "Manager/EffectResManager.h"
 #include "Manager/SceneManager.h"
-#include "Manager/Controller.h"
+#include "Manager/Input/Controller.h"
 #include "Manager/FpsControll.h"
+#include "Manager/Audio/AudioManager.h"
 #include "Application.h"
 
 Application* Application::instance_ = nullptr;
@@ -68,6 +69,10 @@ void Application::Init(void)
 	// エフェクト管理初期化
 	EffectResManager::CreateInstance();
 
+	//オーディオ管理初期化
+	AudioManager::CreateInstance();
+	AudioManager::GetInstance()->Init();
+
 	// シーン管理初期化
 	SceneManager::CreateInstance();
 
@@ -101,6 +106,7 @@ void Application::Run(void)
 
 void Application::Destroy(void)
 {
+	AudioManager::GetInstance()->DeleteAll();
 
 	// シーン管理解放
 	SceneManager::GetInstance().Destroy();

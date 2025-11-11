@@ -4,9 +4,11 @@
 #include "../Utility/VectorUtility.h"
 #include "../Utility/AngleUtility.h"
 #include "Common/AnimationController.h"
+#include "../Manager/Audio/AudioManager.h"
+#include "../Manager/Audio/SoundTable.h"
 #include "../Manager/SceneManager.h"
 #include "../Manager/Camera.h"
-#include "../Manager/Controller.h"
+#include "../Manager/Input/Controller.h"
 
 
 Player::Player(void)
@@ -377,6 +379,14 @@ void Player::KnockBack()
 
 void Player::ChangeWait(void)
 {
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
+
+		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
+	}
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
+
+		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
+	}
 	//待機モーション
 	animationController_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
 }
@@ -387,6 +397,14 @@ void Player::ChangeMove(void)
 
 void Player::ChangeAttack(void)
 {
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
+
+		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
+	}
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
+
+		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
+	}
 	//攻撃モーション
 	animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK), false);
 	isAttack_ = true;
@@ -394,6 +412,14 @@ void Player::ChangeAttack(void)
 
 void Player::ChangeCombo(void)
 {
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
+
+		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
+	}
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
+
+		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
+	}
 	//攻撃モーション
 	animationController_->Play(static_cast<int>(ANIM_TYPE::COMBO_1), false);
 	isAttack_ = true;
@@ -401,6 +427,14 @@ void Player::ChangeCombo(void)
 
 void Player::ChangeDodge(void)
 {
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
+
+		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
+	}
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
+
+		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
+	}
 	animationController_->Play(static_cast<int>(ANIM_TYPE::DODGE), false);
 	dodgeCnt_ = 0;
 	if (!isStaminaMax_) {
@@ -411,11 +445,27 @@ void Player::ChangeDodge(void)
 
 void Player::ChangeDamagedLight(void)
 {
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
+
+		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
+	}
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
+
+		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
+	}
 	animationController_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_LIGHT), false);
 }
 
 void Player::ChangeDamagedHeavy(void)
 {
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
+
+		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
+	}
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
+
+		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
+	}
 	animationController_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY), false);
 }
 
@@ -527,9 +577,18 @@ void Player::UpdateMove(void)
 
 		if (padState.IsNew[static_cast<int>(Controller::JOYPAD_BTN::R)]) {
 			if (stamina_ > 0.0f) {
-			
+
 				//移動モーション
 				animationController_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
+				
+				if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
+
+					AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
+				}
+				if (!AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
+
+					AudioManager::GetInstance()->PlaySE(SoundID::SE_RUN);
+				}
 
 				//移動させる
 				pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 1.75f));
@@ -543,7 +602,15 @@ void Player::UpdateMove(void)
 
 				//移動モーション
 				animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
+				
+				if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
+					AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
+				}
+				if (!AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
+				
+					AudioManager::GetInstance()->PlaySE(SoundID::SE_WALK);
+				}
 				//移動させる
 				pos_ = VAdd(pos_, VScale(moveDir_, speed_));
 			}
@@ -552,7 +619,15 @@ void Player::UpdateMove(void)
 
 			//移動モーション
 			animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
+			
+			if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
+				AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
+			}
+			if (!AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
+			
+				AudioManager::GetInstance()->PlaySE(SoundID::SE_WALK);
+			}
 			//移動させる
 			pos_ = VAdd(pos_, VScale(moveDir_, speed_));
 		}
@@ -576,7 +651,14 @@ void Player::UpdateMove(void)
 		angles_.y = atan2f(moveDir_.x, moveDir_.z);
 	}
 	else {
+		if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
+			AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
+		}
+		if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
+
+			AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
+		}
 		state_ = STATE::WAIT;
 	}
 }

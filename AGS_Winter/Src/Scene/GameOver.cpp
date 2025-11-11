@@ -2,7 +2,7 @@
 #include "../Application.h"
 #include "../Utility/AsoUtility.h"
 #include "../Manager/SceneManager.h"
-#include "../Manager/Controller.h"
+#include "../Manager/Input/Controller.h"
 #include "GameOver.h"
 
 

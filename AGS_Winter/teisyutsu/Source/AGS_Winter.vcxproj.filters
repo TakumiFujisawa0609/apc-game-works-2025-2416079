@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="Src\main.h" />
+    <ClInclude Include="Src\Application.h" />
+    <ClInclude Include="Src\Utility\AsoUtility.h" />
+    <ClInclude Include="Src\Scene\TitleScene.h" />
+    <ClInclude Include="Src\Scene\SceneBase.h" />
+    <ClInclude Include="Src\Scene\GameScene.h" />
+    <ClInclude Include="Src\Object\Stage.h" />
+    <ClInclude Include="Src\Object\Grid.h" />
+    <ClInclude Include="Src\Common\Fader.h" />
+    <ClInclude Include="Src\Common\Quaternion.h" />
+    <ClInclude Include="Src\Common\Vector2.h" />
+    <ClInclude Include="Src\Manager\Camera.h" />
+    <ClInclude Include="Src\Manager\EffectResManager.h" />
+    <ClInclude Include="Src\Manager\SceneManager.h" />
+    <ClInclude Include="Src\Object\Common\AnimationController.h" />
+    <ClInclude Include="Src\Manager\FpsControll.h" />
+    <ClInclude Include="Src\Object\Player.h" />
+    <ClInclude Include="Src\Object\Enemy\EnemyBase.h" />
+    <ClInclude Include="Src\Utility\AngleUtility.h" />
+    <ClInclude Include="Src\Utility\CollisionUtility.h" />
+    <ClInclude Include="Src\Utility\Utility.h" />
+    <ClInclude Include="Src\Utility\VectorUtility.h" />
+    <ClInclude Include="Src\Scene\GameClear.h" />
+    <ClInclude Include="Src\Scene\GameOver.h" />
+    <ClInclude Include="Src\Object\Item.h" />
+    <ClInclude Include="Src\Manager\Audio\AudioManager.h" />
+    <ClInclude Include="Src\Manager\Audio\SoundTable.h" />
+    <ClInclude Include="Src\Manager\Input\Controller.h" />
+    <ClInclude Include="Src\Manager\Input\InputManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\main.cpp" />
+    <ClCompile Include="Src\Application.cpp" />
+    <ClCompile Include="Src\Utility\AsoUtility.cpp" />
+    <ClCompile Include="Src\Scene\TitleScene.cpp" />
+    <ClCompile Include="Src\Scene\SceneBase.cpp" />
+    <ClCompile Include="Src\Scene\GameScene.cpp" />
+    <ClCompile Include="Src\Object\Stage.cpp" />
+    <ClCompile Include="Src\Object\Grid.cpp" />
+    <ClCompile Include="Src\Common\Fader.cpp" />
+    <ClCompile Include="Src\Common\Quaternion.cpp" />
+    <ClCompile Include="Src\Common\Vector2.cpp" />
+    <ClCompile Include="Src\Manager\Camera.cpp" />
+    <ClCompile Include="Src\Manager\EffectResManager.cpp" />
+    <ClCompile Include="Src\Manager\SceneManager.cpp" />
+    <ClCompile Include="Src\Object\Common\AnimationController.cpp" />
+    <ClCompile Include="Src\Manager\FpsControll.cpp" />
+    <ClCompile Include="Src\Object\Player.cpp" />
+    <ClCompile Include="Src\Object\Enemy\EnemyBase.cpp" />
+    <ClCompile Include="Src\Utility\AngleUtility.cpp" />
+    <ClCompile Include="Src\Utility\CollisionUtility.cpp" />
+    <ClCompile Include="Src\Utility\Utility.cpp" />
+    <ClCompile Include="Src\Utility\VectorUtility.cpp" />
+    <ClCompile Include="Src\Scene\GameClear.cpp" />
+    <ClCompile Include="Src\Scene\GameOver.cpp" />
+    <ClCompile Include="Src\Object\Item.cpp" />
+    <ClCompile Include="Src\Manager\Audio\AudioManager.cpp" />
+    <ClCompile Include="Src\Manager\Audio\SoundTable.cpp" />
+    <ClCompile Include="Src\Manager\Input\Controller.cpp" />
+    <ClCompile Include="Src\Manager\Input\InputManager.cpp" />
+  </ItemGroup>
+</Project>

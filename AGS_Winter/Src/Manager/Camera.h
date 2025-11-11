@@ -32,11 +32,18 @@ public:
 	// 解放
 	void Release(void);
 
+	//カメラの位置の移動
 	void SetCameraPos(VECTOR pos) { pos_ = VAdd(pos_, pos); }
 	void SetAbsCameraPos(VECTOR pos) { pos_ = pos; }
+	
+	//カメラの注視点の設定
 	void SetLookAt(VECTOR target);
+	
+	//カメラの角度の移動
 	void SetCameraAngles(VECTOR angle) { angles_ = VAdd(angles_, angle); }
 	void SetAbsCameraAngles(VECTOR angle) { angles_ = angle; }
+	
+	// カメラの位置と角度の取得
 	VECTOR GetCameraPos(void) { return pos_; }
 	VECTOR GetCameraAngles(void) { return angles_; }
 
