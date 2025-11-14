@@ -17,8 +17,8 @@
     <ClInclude Include="Src\Manager\SceneManager.h" />
     <ClInclude Include="Src\Object\Common\AnimationController.h" />
     <ClInclude Include="Src\Manager\FpsControll.h" />
-    <ClInclude Include="Src\Object\Player.h" />
-    <ClInclude Include="Src\Object\Enemy\EnemyBase.h" />
+    <ClInclude Include="Src\Object\Actor\Player.h" />
+    <ClInclude Include="Src\Object\Actor\EnemyBase.h" />
     <ClInclude Include="Src\Utility\AngleUtility.h" />
     <ClInclude Include="Src\Utility\CollisionUtility.h" />
     <ClInclude Include="Src\Utility\Utility.h" />
@@ -48,8 +48,8 @@
     <ClCompile Include="Src\Manager\SceneManager.cpp" />
     <ClCompile Include="Src\Object\Common\AnimationController.cpp" />
     <ClCompile Include="Src\Manager\FpsControll.cpp" />
-    <ClCompile Include="Src\Object\Player.cpp" />
-    <ClCompile Include="Src\Object\Enemy\EnemyBase.cpp" />
+    <ClCompile Include="Src\Object\Actor\Player.cpp" />
+    <ClCompile Include="Src\Object\Actor\EnemyBase.cpp" />
     <ClCompile Include="Src\Utility\AngleUtility.cpp" />
     <ClCompile Include="Src\Utility\CollisionUtility.cpp" />
     <ClCompile Include="Src\Utility\Utility.cpp" />
@@ -61,5 +61,8 @@
     <ClCompile Include="Src\Manager\Audio\SoundTable.cpp" />
     <ClCompile Include="Src\Manager\Input\Controller.cpp" />
     <ClCompile Include="Src\Manager\Input\InputManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Src\Manager\PixelShader.hlsl" />
   </ItemGroup>
 </Project>

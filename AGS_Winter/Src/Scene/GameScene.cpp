@@ -1,8 +1,8 @@
 #include <EffekseerForDXLib.h>
 #include <cmath>
 #include "../Object/Stage.h"
-#include "../Object/Enemy/EnemyBase.h"
-#include "../Object/Player.h"
+#include "../Object/Actor/EnemyBase.h"
+#include "../Object/Actor/Player.h"
 #include "../Object/Item.h"
 #include "../Manager/Audio/AudioManager.h"
 #include "../Manager/Audio/SoundTable.h"
@@ -65,7 +65,7 @@ void GameScene::Init(void)
 	shadowMap_ = MakeShadowMap(8192, 8192);
 
 	SetShadowMapLightDirection(shadowMap_, { 0.2f, -0.8f, 0.0f });
-	SetShadowMapDrawArea(shadowMap_, { -5000.0f, 0.0f, -5000.0f }, { 5000.0f, 0.0f, 5000.0f });
+	SetShadowMapDrawArea(shadowMap_, { -2500.0f, 0.0f, -2500.0f }, { 2500.0f, 0.0f, 2500.0f });
 }
 
 void GameScene::Update(void)
@@ -151,7 +151,6 @@ void GameScene::Collision(void)
 	if (player_->IsHit()) {
 		if (enemyBase_->IsAttackA()) {
 
-			AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 			info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), EnemyBase::ATTACK_RADIUS);
 
 			if (info.HitNum > 0) {
@@ -160,6 +159,7 @@ void GameScene::Collision(void)
 
 						hitFlgP_ = true;
 						player_->Damage(13, enemyBase_->GetAngle().y);
+						AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 					}
 					else {
 						if (player_->DodgeCount() <= 10) {
@@ -176,7 +176,6 @@ void GameScene::Collision(void)
 		}
 		if (enemyBase_->IsAttackB()) {
 
-			AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS);
 
 			if (info.HitNum > 0) {
@@ -185,6 +184,7 @@ void GameScene::Collision(void)
 
 						hitFlgP_ = true;
 						player_->Damage(10, enemyBase_->GetAngle().y);
+						AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 					}
 					else {
 						if (player_->DodgeCount() <= 10) {
@@ -201,7 +201,6 @@ void GameScene::Collision(void)
 		}
 		if (enemyBase_->IsAttackC()) {
 
-			AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS * 2);
 
 			if (info.HitNum > 0) {
@@ -210,6 +209,7 @@ void GameScene::Collision(void)
 
 						hitFlgP_ = true;
 						player_->Damage(20, enemyBase_->GetAngle().y);
+						AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 					}
 					else {
 						if (player_->DodgeCount() <= 10) {
@@ -427,22 +427,30 @@ void GameScene::Effect(MV1_COLL_RESULT_POLY dim)
 
 void GameScene::Draw(void)
 {
+	//ƒVƒƒƒhƒEƒ}ƒbƒv‚É•`‰æ
 	ShadowMap_DrawSetup(shadowMap_);
 
-	MV1DrawModel(player_->GetModelId());
-	MV1DrawModel(enemyBase_->GetModelId());
+	//MV1DrawModel(player_->GetModelId());
+	//MV1DrawModel(enemyBase_->GetModelId());
+
+	player_->DrawModel();
+	enemyBase_->DrawModel();
 
 	ShadowMap_DrawEnd();
 
+	//‰e‚ÉŠÖŒW‚Ì‚ ‚é‚à‚Ì‚Ì•`‰æ
 	SetUseShadowMap(0, shadowMap_);
 
-	SceneBase::Draw();
 	stage_->Draw();
-	player_->Draw();
+	player_->DrawModel();
+	enemyBase_->DrawModel();
 	enemyBase_->Draw();
-	item_->Draw();
 
 	SetUseShadowMap(0, -1);
+
+	//‰e‚ÉŠÖŒW‚È‚¢‚à‚Ì‚Ì•`‰æ(Œã)
+	player_->Draw();
+	item_->Draw();
 
 	//if (hitFlgP_) {
 
