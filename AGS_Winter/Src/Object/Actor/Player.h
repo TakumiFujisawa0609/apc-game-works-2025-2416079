@@ -62,21 +62,21 @@ public:
 	// 描画処理
 	void Draw(void);
 	//モデルの描画
-	void DrawModel(void);
+	void DrawModel(void) const;
 	// 解放処理
 	void Release(void);
 
 	//モデルの取得
-	int GetModelId(void) { return modelId_; }
+	int GetModelId(void) const { return modelId_; }
 
 	// 座標取得
-	VECTOR GetPos(void) { return pos_; }
-	VECTOR GetPrevPos(void) { return prevPos_; }
+	VECTOR GetPos(void) const { return pos_; }
+	VECTOR GetPrevPos(void) const { return prevPos_; }
 	void SetPos(VECTOR pos) { pos_ = pos;}
 
 	//攻撃座標の取得
-	VECTOR GetAttackStartPos(void) { return attackPos1_; }
-	VECTOR GetAttackEndPos(void) { return attackPos2_; }
+	VECTOR GetAttackStartPos(void) const { return attackPos1_; }
+	VECTOR GetAttackEndPos(void) const { return attackPos2_; }
 
 	// ダメージを与える
 	void Damage(int damage, float dir);
@@ -84,14 +84,14 @@ public:
 	void HealMax(void) { isHealMax_ = true; }
 	void StaminaMax(void) { isStaminaMax_ = true; staminaMaxCnt_ = 0; }
 
-	bool HealUsed(void) { return isHeal_ || isHealMax_; }
+	bool HealUsed(void) const { return isHeal_ || isHealMax_; }
 
-	int GetPower(void) { return power_; }
+	int GetPower(void) const { return power_; }
 	void SetPower(int pow) { power_ = pow; }
 
 	// 衝突判定が有効な状態
 	bool IsCollisionState(void);
-	bool IsAttackMotion(void);
+	bool IsAttackMotion(void) const;
 	
 	bool IsHit(void);
 	bool IsAttack(void){return isAttack_;}
@@ -150,7 +150,7 @@ protected:
 	int dodgeCnt_;
 	bool dodgeFlg_;
 
-	VECTOR effectDir[9];
+	VECTOR effectDir_[9];
 
 	void KnockBack(void);
 

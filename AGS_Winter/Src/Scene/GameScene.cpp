@@ -18,7 +18,8 @@
 #include "GameScene.h"
 
 
-GameScene::GameScene(void)
+GameScene::GameScene(void):enemyBase_(), hitFlgE_(), hitFlgP_(), isFirst_(), isLockon_(), item_(), pitch_(), yaw_(),
+	shadowMap_(), stage_(), player_()
 {
 }
 
@@ -54,10 +55,6 @@ void GameScene::Init(void)
 	isLockon_ = false;
 		
 	GameCamera();
-
-	imgGameover_ = LoadGraph((Application::PATH_IMAGE + "Gameover.png").c_str());
-	imgGameclear_ = LoadGraph((Application::PATH_IMAGE + "Gameclear.png").c_str());
-	imgNextwave_ = LoadGraph((Application::PATH_IMAGE + "NextWave.png").c_str());
 
 	hitFlgE_ = false;
 	hitFlgP_ = false;
@@ -314,7 +311,7 @@ void GameScene::GameCamera(void)
 	if (!isFirst_) {
 
 		// カメラの位置を計算
-		VECTOR newPos;
+		VECTOR newPos{};
 		newPos.x = headPos.x - CAMERA_TO_PLAYER * cosf(pitch_) * sinf(yaw_);
 		newPos.y = headPos.y + CAMERA_TO_PLAYER * sinf(pitch_);
 		newPos.z = headPos.z - CAMERA_TO_PLAYER * cosf(pitch_) * cosf(yaw_);
@@ -400,7 +397,7 @@ void GameScene::GameCamera(void)
 	}
 
 	// カメラの位置を計算
-	VECTOR newPos;
+	VECTOR newPos{};
 	newPos.x = headPos.x - CAMERA_TO_PLAYER * cosf(pitch_) * sinf(yaw_);
 	newPos.y = headPos.y + CAMERA_TO_PLAYER * sinf(pitch_);
 	newPos.z = headPos.z - CAMERA_TO_PLAYER * cosf(pitch_) * cosf(yaw_);
@@ -484,10 +481,6 @@ void GameScene::Release(void)
 	
 	item_->Release();
 	delete item_;
-
-	DeleteGraph(imgGameover_);
-	DeleteGraph(imgGameclear_);
-	DeleteGraph(imgNextwave_);
 }
 
 void GameScene::EnemyToPlayer(void)

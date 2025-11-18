@@ -51,11 +51,6 @@ private:
 	Player* player_;
 	Item* item_;
 
-	// ‰æ‘œ
-	int imgGameover_;
-	int imgGameclear_;
-	int imgNextwave_;
-
 	int shadowMap_;
 
 	bool hitFlgP_;

@@ -107,6 +107,7 @@ protected:
 	VECTOR prevPos_;
 	// Šp“x
 	VECTOR angles_;
+	VECTOR targetAngles_;
 	// ‘å‚«‚³
 	VECTOR scales_;
 	// ˆÚ“®•ûŒü
@@ -114,7 +115,6 @@ protected:
 	// ˆÚ“®‘¬“x
 	float speed_;
 	//UŒ‚”»’è‚Ì’†S
-	VECTOR attackPos_;
 	VECTOR attackPrevPos_;
 	VECTOR attackPos1_;
 	VECTOR attackPos2_;
@@ -129,7 +129,6 @@ protected:
 	int attackDiff_;
 	float cnt_;
 
-	int attack_;
 	int coolDown_;
 	bool isCoolDown_;
 

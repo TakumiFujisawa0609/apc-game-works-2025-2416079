@@ -8,7 +8,9 @@
 #include "EnemyBase.h"
 
 
-EnemyBase::EnemyBase(Player* pl)
+EnemyBase::EnemyBase(Player* pl):angles_(), animationController_(nullptr), attackAFlg_(), attackBFlg_(), attackCFlg_(),
+	attackDiff_(), attackDir_(), attackPos1_(), attackPos2_(), attackPrevPos_(), attackShowFlg_(), attackSpeed_(), clearFlg_(),
+	cnt_(), coolDown_(), hp_(), isCoolDown_(), modelId_(), moveDir_(), pos_(), prevPos_(), scales_(), speed_(), state_()
 {
 	player_ = pl;
 }
@@ -31,14 +33,12 @@ void EnemyBase::Init()
 	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::RUN), 60, 4);
 
 	pos_ = prevPos_ = DEFAULT_POS;
-	angles_ = { 0.0f, 0.0f, 0.0f };
 	moveDir_ = Utility::VECTOR_ZERO;
 	scales_ = { 8.0f, 8.0f ,8.0f };
 
 	hp_ = 40;
 	clearFlg_ = false;
 
-	attack_ = 0;
 	coolDown_ = 0;
 	isCoolDown_ = false;
 	
@@ -50,11 +50,11 @@ void EnemyBase::Init()
 	attackAFlg_ = attackBFlg_ = false;
 	attackPos2_ = attackPos1_ = Utility::VECTOR_ZERO;
 
+	DirectionPlayer();
+	angles_ = targetAngles_;
 	MV1SetPosition(modelId_, pos_);
 	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
 	MV1SetScale(modelId_, scales_);
-
-	DirectionPlayer();
 
 	MV1SetupCollInfo(modelId_);
 }
@@ -87,6 +87,12 @@ void EnemyBase::Update(void)
 		
 		UpdateEscape();
 		break;
+	}
+
+	if (targetAngles_.y != angles_.y) {
+
+		angles_.y = AngleUtility::LerpAngle(angles_.y, targetAngles_.y, 0.5f);
+		MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
 	}
 
 	//モデルの更新
@@ -183,9 +189,7 @@ bool EnemyBase::IsAttack(void)
 void EnemyBase::DirectionPlayer(void)
 {
 	VECTOR dir = VSub(player_->GetPos(), pos_);
-	angles_.y = atan2f(dir.x, dir.z);
-
-	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
+	targetAngles_.y = atan2f(dir.x, dir.z);
 }
 
 void EnemyBase::ChangeWait(void)
@@ -202,7 +206,7 @@ void EnemyBase::ChangeMove(void)
 	else {
 
 		animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
-		angles_.y = AngleUtility::Deg2RadF(GetRand(359));
+		targetAngles_.y = AngleUtility::Deg2RadF((float)GetRand(359));
 	}
 	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::RUN)) {
 
@@ -210,9 +214,8 @@ void EnemyBase::ChangeMove(void)
 	}
 
 	//進める方向の更新
-	moveDir_.x = sinf(angles_.y);
-	moveDir_.z = cosf(angles_.y);
-	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
+	moveDir_.x = sinf(targetAngles_.y);
+	moveDir_.z = cosf(targetAngles_.y);
 }
 
 void EnemyBase::ChangeAttack(void)
@@ -247,10 +250,9 @@ void EnemyBase::ChangeEscape(void)
 
 void EnemyBase::UpdateWait(void)
 {
-	VECTOR prevAngles = angles_;
 	DirectionPlayer();
 
-	if (std::abs(prevAngles.y - angles_.y) >= 0.00375f) {
+	if (targetAngles_.y != angles_.y) {
 
 		animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 	}

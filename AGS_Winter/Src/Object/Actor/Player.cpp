@@ -11,7 +11,10 @@
 #include "../../Manager/Input/Controller.h"
 
 
-Player::Player(void)
+Player::Player(void):angles_(), animationController_(nullptr), attackPos1_(), attackPos2_(),autoHealCnt_(), 
+	autoHealHp_(), dodgeCnt_(), dodgeFlg_(), healCount_(), hp_(), isAttack_(), isHealMax_(), isHeal_(),
+	isStaminaMax_(), knockBackDir_(), modelId_(), moveDir_(), overFlg_(), pos_(), power_(), prevPos_(),
+	scales_(), speed_(), staminaMaxCnt_(), stamina_(), state_(), effectDir_()
 {
 }
 
@@ -93,7 +96,7 @@ void Player::Init()
 
 		case 7:
 
-			animationController_->Add(i, 90.0f, (Application::PATH_ANIMATION + "Dodge.mv1").c_str());
+			animationController_->Add(i, 100.0f, (Application::PATH_ANIMATION + "Dodge.mv1").c_str());
 			break;
 
 		case 8:
@@ -215,6 +218,17 @@ void Player::Update(void)
 			staminaMaxCnt_++;
 		}
 	}
+	if (autoHealHp_ >= 0) {
+		
+		autoHealCnt_++;
+
+		if (autoHealCnt_ >= 60) {
+			
+			autoHealCnt_ = 0;
+			autoHealHp_--;
+			hp_++;
+		}
+	}
 
 	//ÉÇÉfÉãÇÃê›íË
 	MV1SetPosition(modelId_, pos_);
@@ -271,7 +285,7 @@ void Player::Draw(void)
 {
 	if (state_ == STATE::DOGDE) {
 		for (int i = 0; i < 9; i++) {
-			DrawCone3D(VAdd(VAdd(pos_, {0.0f, 80.0f, 0.0f}), VScale(effectDir[i], 100.0f)), VAdd(pos_, { 0.0f, 80.0f, 0.0f }), 10.2f, 32, 0xffff00, 0xffffff, true);
+			DrawCone3D(VAdd(VAdd(pos_, {0.0f, 80.0f, 0.0f}), VScale(effectDir_[i], 100.0f)), VAdd(pos_, { 0.0f, 80.0f, 0.0f }), 10.2f, 32, 0xffff00, 0xffffff, true);
 		}
 	}
 
@@ -287,18 +301,21 @@ void Player::Draw(void)
 	float x = Application::SCREEN_SIZE_X - 50.0f;
 	float dx = x / MAX_HP;
 	float d2x = x / MAX_STAMINA;
+	float d3x = dx;
 	x += 27.5f;
 	
 	dx *= hp_;
 	dx += 25.0f;
 	d2x *= stamina_;
 	d2x += 25.0f;
+	d3x *= autoHealHp_;
 
 	DrawBoxAA(22.5f, 17.5f, x, 57.5f, 0x222222, true);
+	DrawBoxAA(25.0f, 20.0f, dx + d3x, 35.0f, 0xff0000, true);
 	DrawBoxAA(25.0f, 20.0f, dx, 35.0f, 0x00ff00, true);
 	if (isStaminaMax_) {
 
-		DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, GetColor(255, 255, std::abs(staminaMaxCnt_ % 101 - 50) * 5.1), true);
+		DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, GetColor(255, 255, (int)(std::abs(staminaMaxCnt_ % 101 - 50) * 5.1f)), true);
 	}
 	else {
 		if (stamina_ <= DOGDE_STAMINA) {
@@ -332,7 +349,7 @@ void Player::Release(void)
 	MV1DeleteModel(modelId_);
 }
 
-void Player::DrawModel(void)
+void Player::DrawModel(void) const
 {
 	MV1DrawModel(modelId_);
 }
@@ -340,6 +357,7 @@ void Player::DrawModel(void)
 void Player::Damage(int damage, float dir)
 {
 	hp_ -= damage;
+	autoHealHp_ = damage / 3;
 	knockBackDir_ = dir;
 
 	if (damage >= 15) {
@@ -364,7 +382,7 @@ bool Player::IsCollisionState(void)
 	return false;
 }
 
-bool Player::IsAttackMotion(void)
+bool Player::IsAttackMotion(void) const
 {
 	if (state_ == STATE::ATTACK || state_ == STATE::COMBO) {
 
@@ -447,9 +465,9 @@ void Player::ChangeCombo(void)
 void Player::ChangeDodge(void)
 {
 	for (int i = 0; i < 9; i++) {
-			effectDir[i].x = sinf(AngleUtility::Deg2RadF(GetRand(360)));
-			effectDir[i].y = sinf(AngleUtility::Deg2RadF(GetRand(360)));
-			effectDir[i].z = sinf(AngleUtility::Deg2RadF(GetRand(360)));
+			effectDir_[i].x = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
+			effectDir_[i].y = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
+			effectDir_[i].z = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
 	}
 
 	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
