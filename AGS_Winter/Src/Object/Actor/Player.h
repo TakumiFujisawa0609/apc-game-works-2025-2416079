@@ -47,6 +47,8 @@ public:
 	static constexpr float MAX_STAMINA = 1000.0f;
 	static constexpr float DOGDE_STAMINA = 100.0f;
 	static constexpr int STAMINA_MAX_TIME = 180 * 60;
+	static constexpr int BASIC_DAMAGE = 10;
+	static constexpr int MAX_POWER = 9;
 
 	// コンストラクタ
 	Player(void);
@@ -86,21 +88,25 @@ public:
 
 	bool HealUsed(void) const { return isHeal_ || isHealMax_; }
 
-	int GetPower(void) const { return power_; }
-	void SetPower(int pow) { power_ = pow; }
+	int GetPower(void) const { return damage_; }
+	void SetPower(int pow) { power_ += pow; }
 
 	// 衝突判定が有効な状態
 	bool IsCollisionState(void);
 	bool IsAttackMotion(void) const;
 	
-	bool IsHit(void);
-	bool IsAttack(void){return isAttack_;}
+	bool IsHit(void) const;
+	bool IsAttack(void) const {return isAttack_;}
 	
-	bool IsDodge(void) { return dodgeFlg_; }
+	bool IsDodge(void) const { return dodgeFlg_; }
+	int DodgeCount(void) const { return dodgeCnt_; }
 
-	int DodgeCount(void) { return dodgeCnt_; }
+	void GreatDodge(void) { greatDodge_ = true; }
+	void GoodDodge(void) { goodDodge_ = true; }
 
-	bool OverFlg(void) { return overFlg_; }
+	bool SuccessDodge(void) { return greatDodge_ || goodDodge_; }
+
+	bool OverFlg(void) const { return overFlg_; }
 
 protected:
 
@@ -142,17 +148,37 @@ protected:
 	int staminaMaxCnt_;
 	float stamina_;
 	
+	int hpBar_;
+	float barSX_, barEX_;
+	float barHpSY_, barHpEY_;
+	float barStaSY_, barStaEY_;
+	float barSize_;
+
 	bool overFlg_;
 
 	bool isAttack_;
 	int power_;
+	bool powerUp_;
+	int powerUpCnt_;
+	int damage_;
+
+	int powerGauge_;
+	float guageSX_, guageSY_;
+	std::vector<float> guageEX_;
+	std::vector<float> guageSize_;
 
 	int dodgeCnt_;
 	bool dodgeFlg_;
+	bool greatDodge_;
+	bool goodDodge_;
 
 	VECTOR effectDir_[9];
 
+	void Status(void);
 	void KnockBack(void);
+
+	void FindHpAndPower(void);
+	void DrawHpAndPower(void);
 
 	// 状態遷移
 	void ChangeWait(void);

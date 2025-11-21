@@ -106,7 +106,9 @@ void SceneManager::Draw(void)
 
 	UpdateEffekseer3D();
 
+	SetUseLighting(false);
 	MV1DrawModel(backGround_);
+	SetUseLighting(true);
 
 	// ŠeƒV[ƒ“‚Ì•`‰æˆ—
 	scene_->Draw();
@@ -177,7 +179,7 @@ void SceneManager::ChangeScene(SCENE_ID nextId)
 	isSceneChanging_ = true;
 }
 
-SceneManager::SCENE_ID SceneManager::GetSceneID(void)
+SceneManager::SCENE_ID SceneManager::GetSceneID(void) const
 {
 	return sceneId_;
 }

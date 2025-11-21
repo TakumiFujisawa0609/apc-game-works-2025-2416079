@@ -10,7 +10,7 @@
 
 EnemyBase::EnemyBase(Player* pl):angles_(), animationController_(nullptr), attackAFlg_(), attackBFlg_(), attackCFlg_(),
 	attackDiff_(), attackDir_(), attackPos1_(), attackPos2_(), attackPrevPos_(), attackShowFlg_(), attackSpeed_(), clearFlg_(),
-	cnt_(), coolDown_(), hp_(), isCoolDown_(), modelId_(), moveDir_(), pos_(), prevPos_(), scales_(), speed_(), state_()
+	cnt_(), coolDown_(), hp_(), isCoolDown_(), modelId_(), moveDir_(), pos_(), prevPos_(), scales_(), speed_(), state_(), targetAngles_()
 {
 	player_ = pl;
 }
@@ -34,7 +34,7 @@ void EnemyBase::Init()
 
 	pos_ = prevPos_ = DEFAULT_POS;
 	moveDir_ = Utility::VECTOR_ZERO;
-	scales_ = { 8.0f, 8.0f ,8.0f };
+	scales_ = { 6.0f, 6.0f ,6.0f };
 
 	hp_ = 40;
 	clearFlg_ = false;
@@ -45,8 +45,7 @@ void EnemyBase::Init()
 	attackDiff_ = GetRand(120) + 120;
 	cnt_ = 0;
 	
-	attackSpeed_ = 0.025f;
-	attackSpeed_ = 22.0f;
+	attackSpeed_ = 28.0f;
 	attackAFlg_ = attackBFlg_ = false;
 	attackPos2_ = attackPos1_ = Utility::VECTOR_ZERO;
 
@@ -87,12 +86,6 @@ void EnemyBase::Update(void)
 		
 		UpdateEscape();
 		break;
-	}
-
-	if (targetAngles_.y != angles_.y) {
-
-		angles_.y = AngleUtility::LerpAngle(angles_.y, targetAngles_.y, 0.5f);
-		MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
 	}
 
 	//モデルの更新
@@ -141,7 +134,7 @@ void EnemyBase::ChangeState(STATE state)
 	}
 }
 
-void EnemyBase::Draw(void)
+void EnemyBase::Draw(void) const
 {
 	//DrawFormatString(Application::SCREEN_SIZE_X - 100, 20, 0x000000, "%.2f", (300.0f - cnt_) / 60.0f, SetFontSize(25));
 	//DrawFormatString(100, 20, 0x000000, "%.2f", angles_.y, SetFontSize(25));
@@ -169,12 +162,12 @@ void EnemyBase::Release(void)
 	MV1DeleteModel(modelId_);
 }
 
-void EnemyBase::DrawModel(void)
+void EnemyBase::DrawModel(void) const
 {
 	MV1DrawModel(modelId_);
 }
 
-bool EnemyBase::IsAttack(void)
+bool EnemyBase::IsAttack(void) const
 {
 	if (attackAFlg_ || attackBFlg_ || attackCFlg_) {
 
@@ -192,6 +185,28 @@ void EnemyBase::DirectionPlayer(void)
 	targetAngles_.y = atan2f(dir.x, dir.z);
 }
 
+bool EnemyBase::Turn(void)
+{
+	//ターゲットの角度までゆっくり動く
+	angles_.y = AngleUtility::LerpAngle(angles_.y, targetAngles_.y, 0.1f);
+	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
+
+	if (fabsf(angles_.y - targetAngles_.y) <= 0.0001f || fabsf(angles_.y - targetAngles_.y) >= DX_PI_F * 2 - 0.0002f) {
+
+		//近似値まで来たので終了
+		return true;
+	}
+	else{
+		if (state_ != STATE::ATTACK) {
+		
+			//攻撃中以外軸合わせは歩きモーション使う
+			animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
+		}
+
+		return false;
+	}
+}
+
 void EnemyBase::ChangeWait(void)
 {
 	attackDiff_ = GetRand(120) + 120;
@@ -199,19 +214,8 @@ void EnemyBase::ChangeWait(void)
 
 void EnemyBase::ChangeMove(void)
 {
-	if (GetRand(6) < 3) {
-
-		animationController_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
-	}
-	else {
-
-		animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
-		targetAngles_.y = AngleUtility::Deg2RadF((float)GetRand(359));
-	}
-	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::RUN)) {
-
-		DirectionPlayer();
-	}
+	DirectionPlayer();
+	Turn();
 
 	//進める方向の更新
 	moveDir_.x = sinf(targetAngles_.y);
@@ -251,13 +255,9 @@ void EnemyBase::ChangeEscape(void)
 void EnemyBase::UpdateWait(void)
 {
 	DirectionPlayer();
+	
+	if (Turn()) {
 
-	if (targetAngles_.y != angles_.y) {
-
-		animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
-	}
-	else {
-		
 		animationController_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
 	}
 
@@ -268,38 +268,30 @@ void EnemyBase::UpdateWait(void)
 		cnt_ = 0;
 		state_ = EnemyBase::STATE::ATTACK;
 	}
+	else if(GetRand(attackDiff_ - cnt_) >= 180){
+
+		cnt_ = 0;
+		state_ = STATE::MOVE;
+	}
 }
 
 void EnemyBase::UpdateMove(void)
 {
-	static int count = 0;
+	if (!Turn()) {
 
-	//移動
-	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::WALK)) {
-	
-		pos_.x += moveDir_.x * 2.0f;
-		pos_.z += moveDir_.z * 2.0f;
-		count++;
+		return;
 	}
-	else {
 
-		pos_.x += moveDir_.x * 8.0f;
-		pos_.z += moveDir_.z * 8.0f;
-		count += 5;
-	}
-	if (count >= 90 || VSize(VSub(player_->GetPos(), pos_)) <= 200.0f){
-		if (GetRand(100) == 0) {
+	float prevDist = fabsf(VSize(VSub(player_->GetPos(), pos_)));
+
+	animationController_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
+
+	pos_.x += moveDir_.x * 8.5f;
+	pos_.z += moveDir_.z * 8.5f;
+
+	if (prevDist <= fabsf(VSize(VSub(player_->GetPos(), pos_))) || fabsf(VSize(VSub(player_->GetPos(), pos_))) <= 350.0f){
 			
-			count = 0;
-			state_ = STATE::WAIT;
-		}
-	}
-	cnt_++;
-
-	if (cnt_ >= attackDiff_) {
-
-		cnt_ = 0;
-		state_ = EnemyBase::STATE::ATTACK;
+		state_ = STATE::ATTACK;
 	}
 }
 
@@ -318,14 +310,8 @@ void EnemyBase::UpdateAttack(void)
 		UpdateAttackC();
 	}
 	else {
-		if (GetRand(3) >= 0) {
 
-			state_ = STATE::MOVE;
-		}
-		else {
-
-			state_ = STATE::WAIT;
-		}
+		state_ = STATE::WAIT;
 	}
 }
 
@@ -345,6 +331,7 @@ void EnemyBase::UpdateAttackA(void)
 	else {
 
 		DirectionPlayer();
+		Turn();
 
 		attackPos1_ = VAdd(pos_, VTransform(ATTACK_POS_A, AngleUtility::GetMatrixRotateXYZ(angles_)));
 		attackDir_ = VSub(VAdd(player_->GetPos(), { 0.0f, 80.0f, 0.0f }), attackPos1_);

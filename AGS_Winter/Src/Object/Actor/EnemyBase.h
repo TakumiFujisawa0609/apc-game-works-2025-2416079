@@ -34,8 +34,7 @@ public:
 
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 1000.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
-	static constexpr VECTOR ATTACK_POS_A = { 0.0f, 300.0f, 380.0f };
-	static constexpr VECTOR ATTACK_POS_B = { 0.0f, 2.5f, 200.0f };
+	static constexpr VECTOR ATTACK_POS_A = { 0.0f, 250.0f, 325.0f };
 	static constexpr float ATTACK_RADIUS = 35.0f;
 
 	// コンストラクタ
@@ -50,42 +49,43 @@ public:
 	// 状態遷移
 	void ChangeState(STATE state);
 	// 描画処理
-	void Draw(void);
+	void Draw(void) const;
 	//モデルの描画
-	void DrawModel(void);
+	void DrawModel(void) const;
 	// 解放処理
 	void Release(void);
 
 	//モデルの取得
-	int GetModelId(void) { return modelId_; }
+	int GetModelId(void) const { return modelId_; }
 
 	// 座標取得
-	VECTOR GetPos(void) { return pos_; }
-	VECTOR GetPrevPos(void) { return prevPos_; }
+	VECTOR GetPos(void) const { return pos_; }
+	VECTOR GetPrevPos(void) const { return prevPos_; }
 	void SetPos(VECTOR pos) { pos_ = pos; }
 	
 	// 角度取得
-	VECTOR GetAngle(void) { return angles_; }
+	VECTOR GetAngle(void) const { return angles_; }
 	// 角度設定
 	void SetAngle(VECTOR angles) { angles_ = angles; }
 	
 	//攻撃座標の取得
-	VECTOR GetAttackStartPos(void) { return attackPos1_; }
-	VECTOR GetAttackEndPos(void) { return attackPos2_; }
-	VECTOR GetAttackPrevPos(void) { return attackPrevPos_; }
+	VECTOR GetAttackStartPos(void) const { return attackPos1_; }
+	VECTOR GetAttackEndPos(void) const { return attackPos2_; }
+	VECTOR GetAttackPrevPos(void) const { return attackPrevPos_; }
 
-	bool IsAttackA(void) { return attackAFlg_; }
-	bool IsAttackB(void) { return attackBFlg_; }
-	bool IsAttackC(void) { return attackCFlg_; }
+	bool IsAttackA(void) const { return attackAFlg_; }
+	bool IsAttackB(void) const { return attackBFlg_; }
+	bool IsAttackC(void) const { return attackCFlg_; }
+	bool IsMove(void) const { return state_ == STATE::MOVE; }
 
 	void DeleteAttackA(void) { attackAFlg_ = attackShowFlg_ = false; }
 
-	bool IsAttack(void);
+	bool IsAttack(void) const;
 
 	// ダメージを与える
 	void Damage(int damage) { hp_ -= damage; }
 
-	bool ClearFlg(void) { return clearFlg_; }
+	bool ClearFlg(void) const { return clearFlg_; }
 	//// 衝突判定が有効な状態
 	//bool IsCollisionState(void);
 	//bool IsAttackA(void);
@@ -139,6 +139,7 @@ protected:
 	bool attackShowFlg_;
 
 	void DirectionPlayer(void);
+	bool Turn(void);
 
 	// 状態遷移
 	void ChangeWait(void);

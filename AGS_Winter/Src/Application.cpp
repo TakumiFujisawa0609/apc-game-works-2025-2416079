@@ -38,6 +38,10 @@ void Application::Init(void)
 
 	// ウィンドウサイズ
 	SetGraphMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 32);
+	int sizeX, sizeY;
+	GetDefaultState(&sizeX, &sizeY, NULL);		// デフォルトの画面サイズを取得
+	SetWindowSizeExtendRate(1.0);
+	SetWindowSize(sizeX, sizeY);	// ウィンドウのサイズを設定
 	ChangeWindowMode(true);
 
 	// DxLibの初期化

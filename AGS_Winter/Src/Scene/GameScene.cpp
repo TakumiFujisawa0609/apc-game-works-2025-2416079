@@ -152,20 +152,22 @@ void GameScene::Collision(void)
 
 			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
-					if (!player_->IsDodge()) {
+					if (!player_->IsDodge() && !player_->SuccessDodge()) {
 
 						hitFlgP_ = true;
 						player_->Damage(13, enemyBase_->GetAngle().y);
 						AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 					}
 					else {
-						if (player_->DodgeCount() <= 10) {
+						if (player_->DodgeCount() <= 3) {
 
+							player_->GreatDodge();
 							player_->SetPower(3);
 						}
-						else if (player_->DodgeCount() <= 20) {
+						else {
 
-							player_->SetPower(2);
+							player_->GoodDodge();
+							player_->SetPower(1);
 						}
 					}
 				}
@@ -177,7 +179,7 @@ void GameScene::Collision(void)
 
 			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
-					if (!player_->IsDodge()) {
+					if (!player_->IsDodge() && !player_->SuccessDodge()) {
 
 						hitFlgP_ = true;
 						player_->Damage(10, enemyBase_->GetAngle().y);
@@ -186,11 +188,13 @@ void GameScene::Collision(void)
 					else {
 						if (player_->DodgeCount() <= 10) {
 
+							player_->GreatDodge();
 							player_->SetPower(3);
 						}
 						else if (player_->DodgeCount() <= 20) {
 
-							player_->SetPower(2);
+							player_->GoodDodge();
+							player_->SetPower(1);
 						}
 					}
 				}
@@ -202,7 +206,7 @@ void GameScene::Collision(void)
 
 			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
-					if (!player_->IsDodge()) {
+					if (!player_->IsDodge() && !player_->SuccessDodge()) {
 
 						hitFlgP_ = true;
 						player_->Damage(20, enemyBase_->GetAngle().y);
@@ -211,11 +215,13 @@ void GameScene::Collision(void)
 					else {
 						if (player_->DodgeCount() <= 10) {
 
+							player_->GreatDodge();
 							player_->SetPower(3);
 						}
 						else if (player_->DodgeCount() <= 20) {
 
-							player_->SetPower(2);
+							player_->GoodDodge();
+							player_->SetPower(1);
 						}
 					}
 				}
@@ -226,6 +232,9 @@ void GameScene::Collision(void)
 
 		hitFlgP_ = false;
 	}
+	//当たり判定の後処理
+	MV1CollResultPolyDimTerminate(info);
+	
 	//ステージと
 	CollisionData data = { player_->GetPos(), player_->GetPrevPos(), COLLISION_TYPE::PLAYER };
 	CollisionData datA = { enemyBase_->GetPos(), enemyBase_->GetPrevPos(), COLLISION_TYPE::ENEMY };
@@ -247,7 +256,8 @@ void GameScene::CollisionStage(CollisionData data)
 	downPos.y -= COLLISION_STAGE_DIFF * 2.0f;
 
 	MV1_COLL_RESULT_POLY result = MV1CollCheck_Line(stage_->GetModelId(), -1, topPos, downPos);
-	
+	MV1_COLL_RESULT_POLY_DIM res = {};
+
 	if (result.HitFlag == 1) {
 		switch (data.type) {
 		case COLLISION_TYPE::PLAYER:
@@ -263,11 +273,10 @@ void GameScene::CollisionStage(CollisionData data)
 	}
 	//左右
 	if (!VectorUtility::Equals(data.pos, data.prev)) {
-
 		switch (data.type) {
 		case COLLISION_TYPE::PLAYER:
 
-			MV1_COLL_RESULT_POLY_DIM res = MV1CollCheck_Sphere(stage_->GetModelId(), -1,
+			res = MV1CollCheck_Sphere(stage_->GetModelId(), -1,
 				VAdd(data.pos, { 0.0f, COLLISION_STAGE_DIFF * 2.0f, 0.0f }), COLLISION_STAGE_DIFF);
 
 			if (res.HitNum > 0) {
@@ -297,14 +306,16 @@ void GameScene::CollisionStage(CollisionData data)
 			}
 			break;
 		}
+		
 	}
+	MV1CollResultPolyDimTerminate(res);
 }
 
 void GameScene::GameCamera(void)
 {
 	//カメラのインスタンスとプレイヤーの頭の位置を取る
 	Camera* camera = SceneManager::GetInstance().GetCamera();
-	VECTOR headPos = VAdd(player_->GetPos(), { 0.0f, 150.0f, 0.0f });
+	VECTOR headPos = VAdd(player_->GetPos(), { 0.0f, 200.0f, 0.0f });
 
 	// 上下左右回転
 
@@ -365,7 +376,8 @@ void GameScene::GameCamera(void)
 	}
 	else {
 
-		VECTOR dir = VSub(enemyBase_->GetPos(), headPos);
+		VECTOR enemyPos = VAdd(enemyBase_->GetPos(), { 0.0f, 200.f, 0.0f });
+		VECTOR dir = VSub(enemyPos, headPos);
 
 		float prevPitch = pitch_;
 		float prevYaw = yaw_;
@@ -418,7 +430,7 @@ void GameScene::Effect(MV1_COLL_RESULT_POLY dim)
 	//位置等々の設定
 	VECTOR pos = dim.Position[0];
 	SetPosPlayingEffekseer3DEffect(effect, pos.x, pos.y, pos.z);
-	SetScalePlayingEffekseer3DEffect(effect, 12.0f, 12.0f, 12.0f);
+	SetScalePlayingEffekseer3DEffect(effect, 15.0f, 15.0f, 15.0f);
 	SetRotationPlayingEffekseer3DEffect(effect, 0.0f, 0.0f, 0.0f);
 }
 

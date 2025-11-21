@@ -13,7 +13,7 @@ class GameScene : public SceneBase
 {
 public:
 	//カメラとプレイヤーの距離
-	static constexpr float CAMERA_TO_PLAYER = 800.0f;
+	static constexpr float CAMERA_TO_PLAYER = 400.0f;
 
 	static constexpr float COLLISION_STAGE_DIFF = 25.0f;
 

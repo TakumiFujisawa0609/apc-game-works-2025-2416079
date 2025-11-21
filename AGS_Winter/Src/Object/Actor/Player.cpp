@@ -11,10 +11,11 @@
 #include "../../Manager/Input/Controller.h"
 
 
-Player::Player(void):angles_(), animationController_(nullptr), attackPos1_(), attackPos2_(),autoHealCnt_(), 
-	autoHealHp_(), dodgeCnt_(), dodgeFlg_(), healCount_(), hp_(), isAttack_(), isHealMax_(), isHeal_(),
-	isStaminaMax_(), knockBackDir_(), modelId_(), moveDir_(), overFlg_(), pos_(), power_(), prevPos_(),
-	scales_(), speed_(), staminaMaxCnt_(), stamina_(), state_(), effectDir_()
+Player::Player(void):angles_(), animationController_(nullptr), attackPos1_(), attackPos2_(),autoHealCnt_(), autoHealHp_(), dodgeCnt_(), dodgeFlg_(),
+	healCount_(), hp_(), isAttack_(), isHealMax_(), isHeal_(), isStaminaMax_(), knockBackDir_(), modelId_(), moveDir_(), overFlg_(), pos_(),
+	power_(), prevPos_(), scales_(), speed_(), staminaMaxCnt_(), stamina_(), state_(), effectDir_(), barEX_(), barHpEY_(), barHpSY_(), barSize_(),
+	barSX_(), barStaEY_(), barStaSY_(), damage_(), goodDodge_(), greatDodge_(), guageEX_(),guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(),
+	powerUp_(), powerUpCnt_()
 {
 }
 
@@ -26,6 +27,10 @@ void Player::Init()
 {
 	//モデルのロード
 	modelId_ = MV1LoadModel((Application::PATH_MODEL + "Player.mv1").c_str());
+	powerGauge_ = LoadSoftImage((Application::PATH_IMAGE + "Power.png").c_str());
+	hpBar_ = LoadSoftImage((Application::PATH_IMAGE + "HpBar.png").c_str());
+
+	FindHpAndPower();
 
 	//変数の初期化
 	pos_ = prevPos_ = DEFAULT_POS;
@@ -35,7 +40,7 @@ void Player::Init()
 
 	knockBackDir_ = 0.0f;
 
-	power_ = 2;
+	power_ = MAX_POWER;
 	isAttack_ = false;
 
 	hp_ = MAX_HP;
@@ -167,68 +172,7 @@ void Player::Update(void)
 		ChangeState(state_);
 	}
 
-	//当たり判定の中心
-	attackPos1_ = MV1GetFramePosition(modelId_, 58);
-	attackPos2_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(modelId_, 37));
-
-	Controller& ctrl = Controller::GetInstance();
-	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
-
-	if (state_ != STATE::DOGDE && !padState.IsNew[static_cast<int>(Controller::JOYPAD_BTN::R)]) {
-		if (stamina_ < MAX_STAMINA) {
-		
-			stamina_++;
-		}
-	}
-	if (stamina_ < 0.0f) {
-
-		stamina_ = 0.0f;
-	}
-	if (isHeal_) {
-		if (hp_ < MAX_HP) {
-			
-			hp_++;
-			healCount_++;
-		}
-		if (healCount_ >= HEAL_COUNT || hp_ >= MAX_HP) {
-		
-			isHeal_ = false;
-			healCount_ = 0;
-		}
-	}
-	if (isHealMax_) {
-		if (hp_ < MAX_HP) {
-
-			hp_++;
-		}
-		else {
-
-			isHealMax_ = false;
-		}
-	}
-	if (isStaminaMax_) {
-		if (staminaMaxCnt_ > STAMINA_MAX_TIME) {
-			
-			staminaMaxCnt_ = 0;
-			isStaminaMax_ = false;
-		}
-		else {
-
-			staminaMaxCnt_++;
-		}
-	}
-	if (autoHealHp_ >= 0) {
-		
-		autoHealCnt_++;
-
-		if (autoHealCnt_ >= 60) {
-			
-			autoHealCnt_ = 0;
-			autoHealHp_--;
-			hp_++;
-		}
-	}
+	Status();
 
 	//モデルの設定
 	MV1SetPosition(modelId_, pos_);
@@ -283,49 +227,37 @@ void Player::ChangeState(STATE state)
 
 void Player::Draw(void)
 {
-	if (state_ == STATE::DOGDE) {
+	if (greatDodge_) {
 		for (int i = 0; i < 9; i++) {
 			DrawCone3D(VAdd(VAdd(pos_, {0.0f, 80.0f, 0.0f}), VScale(effectDir_[i], 100.0f)), VAdd(pos_, { 0.0f, 80.0f, 0.0f }), 10.2f, 32, 0xffff00, 0xffffff, true);
 		}
 	}
-
-	if (power_ >= 3) {
-
-		DrawCapsule3D(GetAttackStartPos(), GetAttackEndPos(), 10.0f, 16, 0xff0000, 0xaaaaaa, true);
-	}
-	else if (power_ >= 2) {
-
-		DrawCapsule3D(GetAttackStartPos(), GetAttackEndPos(), 10.0f, 5, 0xffffff, 0xaaaaaa, true);
-	}
-
-	float x = Application::SCREEN_SIZE_X - 50.0f;
-	float dx = x / MAX_HP;
-	float d2x = x / MAX_STAMINA;
-	float d3x = dx;
-	x += 27.5f;
-	
-	dx *= hp_;
-	dx += 25.0f;
-	d2x *= stamina_;
-	d2x += 25.0f;
-	d3x *= autoHealHp_;
-
-	DrawBoxAA(22.5f, 17.5f, x, 57.5f, 0x222222, true);
-	DrawBoxAA(25.0f, 20.0f, dx + d3x, 35.0f, 0xff0000, true);
-	DrawBoxAA(25.0f, 20.0f, dx, 35.0f, 0x00ff00, true);
-	if (isStaminaMax_) {
-
-		DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, GetColor(255, 255, (int)(std::abs(staminaMaxCnt_ % 101 - 50) * 5.1f)), true);
-	}
-	else {
-		if (stamina_ <= DOGDE_STAMINA) {
-			DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, 0xff0000, true);
-		}
-		else {
-			DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, 0xffff00, true);
+	else if (goodDodge_) {
+		for (int i = 0; i < 9; i++) {
+			DrawCone3D(VAdd(VAdd(pos_, { 0.0f, 80.0f, 0.0f }), VScale(effectDir_[i], 100.0f)), VAdd(pos_, { 0.0f, 80.0f, 0.0f }), 10.2f, 32, 0xffffff, 0xffffff, true);
 		}
 	}
+	DrawHpAndPower();
+
 	//デバック
+
+	//DrawFormatString(0, 0, 0x000000, "%f", SceneManager::GetInstance().GetDeltaTime());
+
+	//DrawBoxAA(22.5f, 17.5f, x, 57.5f, 0x222222, true);
+	//DrawBoxAA(25.0f, 20.0f, dx + d3x, 35.0f, 0xff0000, true);
+	//DrawBoxAA(25.0f, 20.0f, dx, 35.0f, 0x00ff00, true);
+	//if (isStaminaMax_) {
+
+	//	DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, GetColor(255, 255, (int)(std::abs(staminaMaxCnt_ % 101 - 50) * 5.1f)), true);
+	//}
+	//else {
+	//	if (stamina_ <= DOGDE_STAMINA) {
+	//		DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, 0xff0000, true);
+	//	}
+	//	else {
+	//		DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, 0xffff00, true);
+	//	}
+	//}
 	/*int i = Controller::GetInstance().GetJPadInputState(Controller::JOYPAD_NO::PAD1).IsTrgDown[4];
 	DrawFormatString(5, 5, 0xffffff, "%d", i);*/
 	//DrawCapsule3D(attackPos1_, attackPos2_, 10.0f, 16, 0x00ffff, 0x00ffff, false);
@@ -347,6 +279,8 @@ void Player::Release(void)
 
 	//モデルの削除
 	MV1DeleteModel(modelId_);
+	DeleteSoftImage(hpBar_);
+	DeleteSoftImage(powerGauge_);
 }
 
 void Player::DrawModel(void) const
@@ -359,6 +293,7 @@ void Player::Damage(int damage, float dir)
 	hp_ -= damage;
 	autoHealHp_ = damage / 3;
 	knockBackDir_ = dir;
+	greatDodge_ = goodDodge_ = false;
 
 	if (damage >= 15) {
 
@@ -394,7 +329,7 @@ bool Player::IsAttackMotion(void) const
 	}
 }
 
-bool Player::IsHit(void)
+bool Player::IsHit(void) const
 {
 	if (state_ != STATE::DAMAGED_LIGHT && state_ != STATE::DAMAGED_HEAVY) {
 
@@ -406,12 +341,250 @@ bool Player::IsHit(void)
 	}
 }
 
+void Player::Status(void)
+{
+	//当たり判定の中心
+	attackPos1_ = MV1GetFramePosition(modelId_, 58);
+	attackPos2_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(modelId_, 37));
+
+	Controller& ctrl = Controller::GetInstance();
+	//ゲームパッドの情報を取得
+	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
+
+	if (state_ != STATE::DOGDE && !padState.IsNew[static_cast<int>(Controller::JOYPAD_BTN::R)]) {
+		if (stamina_ < MAX_STAMINA) {
+
+			stamina_++;
+		}
+	}
+	if (stamina_ < 0.0f) {
+
+		stamina_ = 0.0f;
+	}
+	if (isHeal_) {
+		if (hp_ < MAX_HP) {
+
+			hp_++;
+			healCount_++;
+		}
+		if (healCount_ >= HEAL_COUNT || hp_ >= MAX_HP) {
+
+			isHeal_ = false;
+			healCount_ = 0;
+		}
+	}
+	if (isHealMax_) {
+		if (hp_ < MAX_HP) {
+
+			hp_++;
+		}
+		else {
+
+			isHealMax_ = false;
+		}
+	}
+	if (isStaminaMax_) {
+		if (staminaMaxCnt_ > STAMINA_MAX_TIME) {
+
+			staminaMaxCnt_ = 0;
+			isStaminaMax_ = false;
+		}
+		else {
+
+			staminaMaxCnt_++;
+		}
+	}
+	if (autoHealHp_ > 0) {
+
+		autoHealCnt_++;
+
+		if (autoHealCnt_ >= 60) {
+
+			autoHealCnt_ = 0;
+			autoHealHp_--;
+			hp_++;
+		}
+	}
+	if (powerUp_) {
+
+		powerUpCnt_++;
+
+		if (powerUpCnt_ >= Application::FPS * 5) {
+		
+			powerUpCnt_ = 0;
+			power_--;
+		}
+		if (power_ <= 0) {
+
+			power_ = 0;
+			powerUp_ = false;
+		}
+	}
+	if (power_ >= MAX_POWER) {
+
+		power_ = MAX_POWER;
+
+		if (!powerUp_) {
+			powerUp_ = true;
+		}
+	}
+}
+
 void Player::KnockBack()
 {
 	pos_.x += sinf(knockBackDir_) * 2.0f;
 	pos_.z += cosf(knockBackDir_) * 2.0f;
 
 	angles_.y = knockBackDir_ - DX_PI_F;
+}
+
+void Player::FindHpAndPower(void)
+{
+	int dx, dy;
+	int r, g, b, a;
+	GetSoftImageSize(hpBar_, &dx, &dy);
+	bool first = false;
+
+	for (float x = 0; x <= static_cast<float>(dx); x++) {
+		for (float y = 0; y < static_cast<float>(dy / 2); y++) {
+
+			GetPixelSoftImage(hpBar_, static_cast<int>(x), static_cast<int>(y), &r, &g, &b, &a);
+
+			if (r ==0 && g == 0 && b == 255 && a > 0) {
+				if (!first) {
+
+					first = true;
+					barSX_ = x;
+					barHpSY_ = y;
+				}
+				if (barEX_ < x) {
+
+					barEX_ = x;
+				}
+				if (barHpEY_ < y) {
+
+					barHpEY_ = y;
+				}
+			}
+		}
+	}
+	first = false;
+
+	for (float x = 0; x <= static_cast<float>(dx); x++) {
+		for (float y = static_cast<float>(dy / 2); y <= static_cast<float>(dy); y++) {
+
+			GetPixelSoftImage(hpBar_, static_cast<int>(x), static_cast<int>(y), &r, &g, &b, &a);
+
+			if (r == 0 && g == 0 && b == 255 && a > 0) {
+				if (!first) {
+
+					first = true;
+					barStaSY_ = y;
+				}
+				if (barStaEY_ < y) {
+
+					barStaEY_ = y;
+				}
+			}
+		}
+	}
+	barSize_ = barEX_ - barSX_;
+	first = false;
+
+	GetSoftImageSize(powerGauge_, &dx, &dy);
+
+	float gx = 0;;
+
+	for (float y = 0; y < static_cast<float>(dy); y++) {
+		for (float x = 0; x <= static_cast<float>(dx); x++) {
+
+			GetPixelSoftImage(powerGauge_, static_cast<int>(x), static_cast<int>(y), &r, &g, &b, &a);
+
+			if (r == 0 && g == 0 && b == 255 && a > 0) {
+				if (!first) {
+
+					first = true;
+					guageSX_ = x;
+					guageSY_ = y;
+				}
+				gx = x;
+			}
+		}
+		if (gx > 0) {
+			guageEX_.push_back(gx + 1);
+			gx = 0;
+		}
+	}
+
+}
+
+void Player::DrawHpAndPower(void)
+{
+	float barRate = static_cast<float>(barSize_ / MAX_HP);
+	float barNorm = barRate * hp_;
+	float barRed = barRate * autoHealHp_;
+
+	for (int y = static_cast<int>(barHpSY_); y <= static_cast<int>(barHpEY_); y++) {
+	
+		DrawLineSoftImage(hpBar_, static_cast<int>(barSX_), y, static_cast<int>(barEX_) + 1, y, 0, 0, 0, 255);
+	}
+	for (int y = static_cast<int>(barStaSY_); y <= static_cast<int>(barStaEY_); y++) {
+	
+		DrawLineSoftImage(hpBar_, static_cast<int>(barSX_), y, static_cast<int>(barEX_) + 1, y, 0, 0, 0, 255);
+	}
+	DrawSoftImage(190, 0, hpBar_);
+
+	DrawBoxAA(190 + barSX_, barHpSY_, 190 + barSX_ + barNorm + barRed, barHpEY_, 0xff0000, true);
+	DrawBoxAA(190 + barSX_, barHpSY_, 190 + barSX_ + barNorm, barHpEY_, 0x00ff00, true);
+
+	barRate = barSize_ / static_cast<int>(MAX_STAMINA);
+	barNorm = barRate * stamina_;
+
+	if (isStaminaMax_) {
+
+		DrawBoxAA(190 + barSX_, barStaSY_, 190 + barSX_ + barNorm, barStaEY_, GetColor(255, 255, (int)(std::abs(staminaMaxCnt_ % 101 - 50) * 5.1f)), true);
+	}
+	else {
+		if (stamina_ <= DOGDE_STAMINA) {
+
+			DrawBoxAA(240 + barSX_, barStaSY_, 190 + barSX_ + barNorm, barStaEY_, 0xff0000, true);
+		}
+		else {
+			DrawBoxAA(190 + barSX_, barStaSY_, 190 + barSX_ + barNorm, barStaEY_, 0xffff00, true);
+		}
+	}
+
+	float powerRate = (guageEX_.front() - guageSX_) / MAX_POWER;
+	float power = guageSX_ + powerRate * power_;
+
+	for (float y = 0; y < guageEX_.size(); y++) {
+
+		float dy = y + guageSY_;
+		DrawLineSoftImage(powerGauge_, guageSX_, dy, guageEX_.at(y), dy, 100, 100, 100, 255);
+
+		if (!powerUp_) {
+			if (power <= guageEX_.at(y)) {
+
+				DrawLineSoftImage(powerGauge_, guageSX_, dy, power, dy, 255, 0, 0, 255);
+			}
+			else {
+
+				DrawLineSoftImage(powerGauge_, guageSX_, dy, guageEX_.at(y), dy, 255, 0, 0, 255);
+			}
+		}
+		else {
+			int color = abs(powerUpCnt_ % 30 - 15) * 17;
+			if (power <= guageEX_.at(y)) {
+
+				DrawLineSoftImage(powerGauge_, guageSX_, dy, power, dy, 255, color, color, 255);
+			}
+			else {
+
+				DrawLineSoftImage(powerGauge_, guageSX_, dy, guageEX_.at(y), dy, 255, color, color, 255);
+			}
+		}
+	}
+	DrawSoftImage(240, 100, powerGauge_);
 }
 
 void Player::ChangeWait(void)
@@ -465,6 +638,7 @@ void Player::ChangeCombo(void)
 void Player::ChangeDodge(void)
 {
 	for (int i = 0; i < 9; i++) {
+
 			effectDir_[i].x = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
 			effectDir_[i].y = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
 			effectDir_[i].z = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
@@ -480,6 +654,7 @@ void Player::ChangeDodge(void)
 	}
 	animationController_->Play(static_cast<int>(ANIM_TYPE::DODGE), false);
 	dodgeCnt_ = 0;
+	dodgeFlg_ = true;
 	if (!isStaminaMax_) {
 	
 		stamina_ -= DOGDE_STAMINA;
@@ -780,16 +955,12 @@ void Player::UpdateCombo(void)
 
 void Player::UpdateDodge(void)
 {
-	if (animationController_->GetTime() <= 70.0f) {
+	//移動させる
+	pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 1.1f)); 
 	
-		//移動させる
-		pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 1.1f));
+	if (animationController_->GetTime() <= 10.0f) {
+
 		dodgeCnt_++;
-		
-		if (!dodgeFlg_) {
-		
-			dodgeFlg_ = true;
-		}
 	}
 	else if (dodgeFlg_){
 
@@ -801,6 +972,8 @@ void Player::UpdateDodge(void)
 
 		//待機モーションに移行
 		state_ = STATE::WAIT;
+
+		greatDodge_ = goodDodge_ = false;
 	}
 }
 

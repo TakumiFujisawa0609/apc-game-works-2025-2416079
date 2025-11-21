@@ -12,8 +12,8 @@ public:
 	static constexpr int FPS = 60;
 
 	// スクリーンサイズ
-	static constexpr int SCREEN_SIZE_X = 1536;
-	static constexpr int SCREEN_SIZE_Y = 960;
+	static constexpr int SCREEN_SIZE_X = 1920;
+	static constexpr int SCREEN_SIZE_Y = 1060;
 
 	static constexpr float ONE_CIRCLE = 2.0f * DX_PI_F;
 

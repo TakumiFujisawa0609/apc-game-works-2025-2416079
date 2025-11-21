@@ -46,7 +46,7 @@ public:
 	void ChangeScene(SCENE_ID nextId);
 
 	// シーンIDの取得
-	SCENE_ID GetSceneID(void);
+	SCENE_ID GetSceneID(void) const;
 
 	// デルタタイムの取得
 	float GetDeltaTime(void) const;
