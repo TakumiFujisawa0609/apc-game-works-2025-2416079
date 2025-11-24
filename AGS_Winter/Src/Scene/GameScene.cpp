@@ -135,11 +135,6 @@ void GameScene::Collision(void)
 
 				hitFlgE_ = true;
 				enemyBase_->Damage(player_->GetPower());
-
-				if (player_->GetPower() > 1) {
-
-					player_->SetPower(1);
-				}
 			}
 		}
 	}
@@ -161,15 +156,15 @@ void GameScene::Collision(void)
 						AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 					}
 					else {
-						if (player_->DodgeCount() <= 3) {
+						if (!player_->SuccessDodge()) {
+							if (player_->DodgeCount() <= 3) {
 
-							player_->GreatDodge();
-							player_->SetPower(3);
-						}
-						else {
+								player_->GreatDodge();
+							}
+							else {
 
-							player_->GoodDodge();
-							player_->SetPower(1);
+								player_->GoodDodge();
+							}
 						}
 					}
 				}
@@ -188,15 +183,15 @@ void GameScene::Collision(void)
 						AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 					}
 					else {
-						if (player_->DodgeCount() <= 10) {
+						if (!player_->SuccessDodge()) {
+							if (player_->DodgeCount() <= 3) {
 
-							player_->GreatDodge();
-							player_->SetPower(3);
-						}
-						else if (player_->DodgeCount() <= 20) {
+								player_->GreatDodge();
+							}
+							else {
 
-							player_->GoodDodge();
-							player_->SetPower(1);
+								player_->GoodDodge();
+							}
 						}
 					}
 				}
@@ -215,15 +210,15 @@ void GameScene::Collision(void)
 						AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 					}
 					else {
-						if (player_->DodgeCount() <= 10) {
+						if (!player_->SuccessDodge()) {
+							if (player_->DodgeCount() <= 3) {
 
-							player_->GreatDodge();
-							player_->SetPower(3);
-						}
-						else if (player_->DodgeCount() <= 20) {
+								player_->GreatDodge();
+							}
+							else {
 
-							player_->GoodDodge();
-							player_->SetPower(1);
+								player_->GoodDodge();
+							}
 						}
 					}
 				}

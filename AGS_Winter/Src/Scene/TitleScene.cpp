@@ -19,7 +19,7 @@ TitleScene::~TitleScene(void)
 
 void TitleScene::Init(void)
 {
-	//imgTitle_ = LoadGraph((Application::PATH_IMAGE + "Title.png").c_str());
+	imgTitle_ = LoadGraph((Application::PATH_IMAGE + "Title.png").c_str());
 	//imgBg_ = LoadGraph((Application::PATH_IMAGE + "Background.png").c_str());
 	AudioManager::GetInstance()->LoadSceneSound(LoadScene::TITLE);
 	AudioManager::GetInstance()->PlayBGM(SoundID::BGM_TITLE);
@@ -45,12 +45,12 @@ void TitleScene::Draw(void)
 	DrawFormatString(100, 150, 0x000000, "Press A", SetFontSize(30));
 
 	//DrawRotaGraph(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 1.0f, 0.0, imgBg_, true);
-	//DrawRotaGraph( Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2 - 100, 1.0f, 0.0, imgTitle_, true);
+	DrawRotaGraph( Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 1.0f, 0.0, imgTitle_, true);
 }
 
 void TitleScene::Release(void)
 {
 	AudioManager::GetInstance()->DeleteSceneSound(LoadScene::TITLE);
-	//DeleteGraph(imgTitle_);
+	DeleteGraph(imgTitle_);
 	//DeleteGraph(imgBg_);
 }

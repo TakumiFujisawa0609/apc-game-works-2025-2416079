@@ -36,7 +36,7 @@ void EnemyBase::Init()
 	moveDir_ = Utility::VECTOR_ZERO;
 	scales_ = { 6.0f, 6.0f ,6.0f };
 
-	hp_ = 40;
+	hp_ = 600;
 	clearFlg_ = false;
 
 	coolDown_ = 0;

@@ -48,7 +48,7 @@ public:
 	static constexpr float DOGDE_STAMINA = 100.0f;
 	static constexpr int STAMINA_MAX_TIME = 180 * 60;
 	static constexpr int BASIC_DAMAGE = 10;
-	static constexpr int MAX_POWER = 9;
+	static constexpr int MAX_POWER = 10;
 
 	// コンストラクタ
 	Player(void);
@@ -90,7 +90,6 @@ public:
 	bool Healable(void) const;
 
 	int GetPower(void) const { return damage_; }
-	void SetPower(int pow) { power_ += pow; }
 
 	// 衝突判定が有効な状態
 	bool IsCollisionState(void);
@@ -103,9 +102,9 @@ public:
 	int DodgeCount(void) const { return dodgeCnt_; }
 
 	void GreatDodge(void);
-	void GoodDodge(void) { goodDodge_ = true; }
+	void GoodDodge(void) { goodDodge_ = true; power_++; }
 
-	bool SuccessDodge(void) { return greatDodge_ || goodDodge_; }
+	bool SuccessDodge(void);
 
 	bool OverFlg(void) const { return overFlg_; }
 
