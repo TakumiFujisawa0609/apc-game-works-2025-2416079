@@ -312,6 +312,11 @@ void Player::Damage(int damage, float dir)
 	}
 }
 
+bool Player::Healable(void) const
+{
+	return animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::IDLE) || animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::WALK) || animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::RUN);
+}
+
 bool Player::IsCollisionState(void)
 {
 	return false;
@@ -339,6 +344,12 @@ bool Player::IsHit(void) const
 
 		return false;
 	}
+}
+
+void Player::GreatDodge(void)
+{
+	greatDodge_ = true;
+	AudioManager::GetInstance()->PlaySE(SoundID::SE_DODGE);
 }
 
 void Player::Status(void)

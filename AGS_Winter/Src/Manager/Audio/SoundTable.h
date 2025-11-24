@@ -12,6 +12,8 @@ enum class SoundID
 	SE_ATTACK,
 	SE_HEAVY_DAMAGE,
 	SE_LIGHT_DAMAGE,
+	SE_DODGE,
+	SE_HEAL,
 };
 
 // ì«Ç›çûÇﬁÉVÅ[Éì

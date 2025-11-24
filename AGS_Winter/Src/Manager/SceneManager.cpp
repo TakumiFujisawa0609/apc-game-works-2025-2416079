@@ -8,6 +8,8 @@
 #include "../Scene/GameOver.h"
 #include "../Scene/GameClear.h"
 #include "../Application.h"
+#include "../Manager/Input/Controller.h"
+#include "Pause.h"
 #include "SceneManager.h"
 
 SceneManager* SceneManager::instance_ = nullptr;
@@ -42,6 +44,8 @@ void SceneManager::Init(void)
 	// フェード機能の初期化
 	fader_ = new Fader();
 	fader_->Init();
+
+	pause_ = new Pause();;
 
 	backGround_ = MV1LoadModel((Application::PATH_MODEL + "Sky.mv1").c_str());
 
@@ -85,10 +89,25 @@ void SceneManager::Update(void)
 		Fade();
 	}
 	else{
-		// 各シーンの更新処理
-		scene_->Update();
-	}
+		if (!pause_->IsPause()) {
+			if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]) {
+				if (sceneId_ != SCENE_ID::TITLE) {
 
+					pause_->Init(sceneId_);
+				}
+				else {
+
+					Application::GetInstance().FinishGame();
+				}
+			}
+			// 各シーンの更新処理
+			scene_->Update();
+		}
+		else {
+
+			pause_->Update();
+		}
+	}
 }
 
 void SceneManager::Draw(void)
@@ -118,6 +137,11 @@ void SceneManager::Draw(void)
 
 	// カメラのデバック描画
 	//camera_->Draw();
+
+	if (pause_->IsPause()) {
+
+		pause_->Draw();
+	}
 
 	DrawEffekseer3D();
 
@@ -157,6 +181,9 @@ void SceneManager::Destroy(void)
 	// シーンの解放
 	scene_->Release();
 	delete scene_;
+
+	pause_->Release();
+	delete pause_;
 
 	// フェード機能の解放
 	delete fader_;

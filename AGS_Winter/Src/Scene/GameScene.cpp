@@ -71,7 +71,7 @@ void GameScene::Update(void)
 	enemyBase_->Update();
 	GameCamera();
 
-	if (player_->HealUsed()) {
+	if (player_->HealUsed() || !player_->Healable()) {
 
 		item_->SetUsing(true);
 	}
@@ -88,11 +88,13 @@ void GameScene::Update(void)
 			case Item::TYPE::HP:
 			
 			player_->Heal();
+			AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAL);
 			break;
 			
 			case Item::TYPE::HP_MAX:
 			
 			player_->HealMax();
+			AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAL);
 			break;
 
 			case Item::TYPE::STAMINA:

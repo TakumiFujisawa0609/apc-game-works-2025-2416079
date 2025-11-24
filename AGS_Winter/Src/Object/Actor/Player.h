@@ -87,6 +87,7 @@ public:
 	void StaminaMax(void) { isStaminaMax_ = true; staminaMaxCnt_ = 0; }
 
 	bool HealUsed(void) const { return isHeal_ || isHealMax_; }
+	bool Healable(void) const;
 
 	int GetPower(void) const { return damage_; }
 	void SetPower(int pow) { power_ += pow; }
@@ -101,7 +102,7 @@ public:
 	bool IsDodge(void) const { return dodgeFlg_; }
 	int DodgeCount(void) const { return dodgeCnt_; }
 
-	void GreatDodge(void) { greatDodge_ = true; }
+	void GreatDodge(void);
 	void GoodDodge(void) { goodDodge_ = true; }
 
 	bool SuccessDodge(void) { return greatDodge_ || goodDodge_; }

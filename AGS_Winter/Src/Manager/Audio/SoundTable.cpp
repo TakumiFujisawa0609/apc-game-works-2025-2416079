@@ -30,5 +30,7 @@ namespace SoundTable_Game
 		{ SoundID::SE_ATTACK, (Application::PATH_SOUND + "Slash_1.mp3").c_str() },
 		{ SoundID::SE_HEAVY_DAMAGE,	(Application::PATH_SOUND + "HeavyDamage.mp3").c_str() },
 		{ SoundID::SE_LIGHT_DAMAGE, (Application::PATH_SOUND + "LightDamage.mp3").c_str() },
+		{ SoundID::SE_DODGE, (Application::PATH_SOUND + "GreatDodge.mp3").c_str() },
+		{ SoundID::SE_HEAL, (Application::PATH_SOUND + "Heal.mp3").c_str() },
 	};
 }
