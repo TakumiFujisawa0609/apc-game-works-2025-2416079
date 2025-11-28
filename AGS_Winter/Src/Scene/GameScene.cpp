@@ -71,7 +71,7 @@ void GameScene::Update(void)
 	enemyBase_->Update();
 	GameCamera();
 
-	if (player_->HealUsed()) {
+	if (player_->HealUsed() || !player_->Healable()) {
 
 		item_->SetUsing(true);
 	}
@@ -88,11 +88,13 @@ void GameScene::Update(void)
 			case Item::TYPE::HP:
 			
 			player_->Heal();
+			AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAL);
 			break;
 			
 			case Item::TYPE::HP_MAX:
 			
 			player_->HealMax();
+			AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAL);
 			break;
 
 			case Item::TYPE::STAMINA:
@@ -176,7 +178,6 @@ void GameScene::Collision(void)
 				if (!hitFlgP_) {
 					if (!player_->SuccessDodge()) {
 						if (!player_->IsDodge()) {
-
 							hitFlgP_ = true;
 							player_->Damage(10, enemyBase_->GetAngle().y);
 							AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
@@ -187,7 +188,6 @@ void GameScene::Collision(void)
 								player_->GreatDodge();
 							}
 							else {
-
 								player_->GoodDodge();
 							}
 						}
@@ -203,7 +203,6 @@ void GameScene::Collision(void)
 				if (!hitFlgP_) {
 					if (!player_->SuccessDodge()) {
 						if (!player_->IsDodge()) {
-
 							hitFlgP_ = true;
 							player_->Damage(20, enemyBase_->GetAngle().y);
 							AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);

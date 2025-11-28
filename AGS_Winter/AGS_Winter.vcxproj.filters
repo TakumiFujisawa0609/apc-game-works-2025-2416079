@@ -30,6 +30,7 @@
     <ClInclude Include="Src\Manager\Audio\SoundTable.h" />
     <ClInclude Include="Src\Manager\Input\Controller.h" />
     <ClInclude Include="Src\Manager\Input\InputManager.h" />
+    <ClInclude Include="Src\Manager\Pause.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\main.cpp" />
@@ -61,8 +62,12 @@
     <ClCompile Include="Src\Manager\Audio\SoundTable.cpp" />
     <ClCompile Include="Src\Manager\Input\Controller.cpp" />
     <ClCompile Include="Src\Manager\Input\InputManager.cpp" />
+    <ClCompile Include="Src\Manager\Pause.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Src\Manager\PixelShader.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="x64\Release\icon.rc" />
   </ItemGroup>
 </Project>

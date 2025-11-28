@@ -7,6 +7,7 @@ class SceneBase;
 class Fader;
 class Camera;
 class Grid;
+class Pause;
 
 class SceneManager
 {
@@ -73,6 +74,8 @@ private:
 
 	// ŠeíƒV[ƒ“
 	SceneBase* scene_;
+
+	Pause* pause_;
 
 	int backGround_;
 

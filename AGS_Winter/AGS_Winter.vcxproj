@@ -31,6 +31,7 @@
     <ClInclude Include="Src\Manager\FpsControll.h" />
     <ClInclude Include="Src\Manager\Input\Controller.h" />
     <ClInclude Include="Src\Manager\Input\InputManager.h" />
+    <ClInclude Include="Src\Manager\Pause.h" />
     <ClInclude Include="Src\Manager\SceneManager.h" />
     <ClInclude Include="Src\Object\Common\AnimationController.h" />
     <ClInclude Include="Src\Object\Actor\EnemyBase.h" />
@@ -62,6 +63,7 @@
     <ClCompile Include="Src\Manager\FpsControll.cpp" />
     <ClCompile Include="Src\Manager\Input\Controller.cpp" />
     <ClCompile Include="Src\Manager\Input\InputManager.cpp" />
+    <ClCompile Include="Src\Manager\Pause.cpp" />
     <ClCompile Include="Src\Manager\SceneManager.cpp" />
     <ClCompile Include="Src\Object\Common\AnimationController.cpp" />
     <ClCompile Include="Src\Object\Actor\EnemyBase.cpp" />
@@ -88,12 +90,16 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="x64\Release\icon.rc" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{15f585cc-70b9-4b11-b047-2b97541d9b46}</ProjectGuid>
     <RootNamespace>AGSWinter</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>ColoHunt</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

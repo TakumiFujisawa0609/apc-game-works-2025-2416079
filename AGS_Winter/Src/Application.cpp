@@ -34,7 +34,8 @@ void Application::Init(void)
 {
 
 	// アプリケーションの初期設定
-	SetWindowText("2416079_水野寛斗");
+	SetWindowText("Colo Hunt");
+	SetWindowIconID(317);
 
 	// ウィンドウサイズ
 	SetGraphMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 32);
@@ -81,6 +82,8 @@ void Application::Init(void)
 	SceneManager::CreateInstance();
 
 	fpsControll_ = new FpsControll(FPS);
+
+	isFinish_ = false;
 }
 
 void Application::Run(void)
@@ -91,7 +94,7 @@ void Application::Run(void)
 	SceneManager& sceneManager = SceneManager::GetInstance();
 
 	// ゲームループ
-	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0 && controller.GetJPadState(Controller::JOYPAD_NO::PAD1).ButtonsNew[12] == 0)
+	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0 && !isFinish_)
 	{
 
 		inputManager.Update();

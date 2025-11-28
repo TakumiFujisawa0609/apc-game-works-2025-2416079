@@ -287,6 +287,11 @@ void Player::Damage(int damage, float dir)
 	}
 }
 
+bool Player::Healable(void) const
+{
+	return animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::IDLE) || animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::WALK) || animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::RUN);
+}
+
 bool Player::IsCollisionState(void)
 {
 	return false;
@@ -356,6 +361,7 @@ void Player::GoodDodge(void)
 
 		power_++;
 	}
+	AudioManager::GetInstance()->PlaySE(SoundID::SE_DODGE);
 }
 
 void Player::Status(void)
@@ -380,7 +386,10 @@ void Player::Status(void)
 	}
 	if (isHeal_) {
 		if (hp_ < MAX_HP) {
+			if (autoHealHp_ > 0) {
 
+				autoHealHp_--;
+			}
 			hp_++;
 			healCount_++;
 		}
@@ -392,7 +401,10 @@ void Player::Status(void)
 	}
 	if (isHealMax_) {
 		if (hp_ < MAX_HP) {
+			if (autoHealHp_ > 0) {
 
+				autoHealHp_--;
+			}
 			hp_++;
 		}
 		else {
@@ -415,7 +427,7 @@ void Player::Status(void)
 
 		autoHealCnt_++;
 
-		if (autoHealCnt_ >= 60) {
+		if (autoHealCnt_ >= 65) {
 
 			autoHealCnt_ = 0;
 			autoHealHp_--;
@@ -426,7 +438,7 @@ void Player::Status(void)
 
 		powerUpCnt_++;
 
-		if (powerUpCnt_ >= Application::FPS * 5) {
+		if (powerUpCnt_ >= Application::FPS * 3) {
 		
 			powerUpCnt_ = 0;
 			power_--;
@@ -442,6 +454,8 @@ void Player::Status(void)
 		power_ = MAX_POWER;
 
 		if (!powerUp_) {
+
+			damage_ = BASIC_DAMAGE * 1.5;
 			powerUp_ = true;
 		}
 	}
@@ -912,13 +926,12 @@ void Player::UpdateAttack(void)
 	}
 	else {
 
+		damage_ *= 1.2;
 		isAttack_ = true;
-		power_ = 3;
 	}
 
 	if (animationController_->IsEnd()) {
 
-		power_ = 1;
 		isAttack_ = false;
 		//待機モーションに移行
 		ChangeState(STATE::WAIT);
@@ -952,6 +965,7 @@ void Player::UpdateCombo(void)
 
 				isAttack_ = true;
 				animationController_->Play(static_cast<int>(ANIM_TYPE::COMBO_3), false);
+				damage_ *= 1.1;
 			}
 		}
 	}
@@ -966,7 +980,7 @@ void Player::UpdateCombo(void)
 void Player::UpdateDodge(void)
 {
 	//移動させる
-	pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 1.1f));
+	pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 1.1f)); 
 
 	if (dodgeFlg_) {
 		if (dodgeCnt_ <= 13.0f) {

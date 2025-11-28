@@ -48,7 +48,7 @@ public:
 	static constexpr float DOGDE_STAMINA = 100.0f;
 	static constexpr int STAMINA_MAX_TIME = 180 * 60;
 	static constexpr int BASIC_DAMAGE = 10;
-	static constexpr int MAX_POWER = 9;
+	static constexpr int MAX_POWER = 10;
 	static constexpr int EFFECT_NUM = 9;
 
 	// コンストラクタ
@@ -88,6 +88,7 @@ public:
 	void StaminaMax(void) { isStaminaMax_ = true; staminaMaxCnt_ = 0; }
 
 	bool HealUsed(void) const { return isHeal_ || isHealMax_; }
+	bool Healable(void) const;
 
 	int GetPower(void) const { return damage_; }
 
