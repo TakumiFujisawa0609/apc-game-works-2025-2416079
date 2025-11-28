@@ -133,11 +133,6 @@ void GameScene::Collision(void)
 
 				hitFlgE_ = true;
 				enemyBase_->Damage(player_->GetPower());
-
-				if (player_->GetPower() > 1) {
-
-					player_->SetPower(1);
-				}
 			}
 		}
 	}
@@ -152,22 +147,22 @@ void GameScene::Collision(void)
 
 			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
-					if (!player_->IsDodge() && !player_->SuccessDodge()) {
+					if (!player_->SuccessDodge()) {
+						if (!player_->IsDodge()) {
 
-						hitFlgP_ = true;
-						player_->Damage(13, enemyBase_->GetAngle().y);
-						AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
-					}
-					else {
-						if (player_->DodgeCount() <= 3) {
-
-							player_->GreatDodge();
-							player_->SetPower(3);
+							hitFlgP_ = true;
+							player_->Damage(13, enemyBase_->GetAngle().y);
+							AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 						}
 						else {
+							if (player_->DodgeCount() <= 3) {
 
-							player_->GoodDodge();
-							player_->SetPower(1);
+								player_->GreatDodge();
+							}
+							else {
+
+								player_->GoodDodge();
+							}
 						}
 					}
 				}
@@ -179,22 +174,22 @@ void GameScene::Collision(void)
 
 			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
-					if (!player_->IsDodge() && !player_->SuccessDodge()) {
+					if (!player_->SuccessDodge()) {
+						if (!player_->IsDodge()) {
 
-						hitFlgP_ = true;
-						player_->Damage(10, enemyBase_->GetAngle().y);
-						AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
-					}
-					else {
-						if (player_->DodgeCount() <= 10) {
-
-							player_->GreatDodge();
-							player_->SetPower(3);
+							hitFlgP_ = true;
+							player_->Damage(10, enemyBase_->GetAngle().y);
+							AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 						}
-						else if (player_->DodgeCount() <= 20) {
+						else {
+							if (player_->DodgeCount() <= 3) {
 
-							player_->GoodDodge();
-							player_->SetPower(1);
+								player_->GreatDodge();
+							}
+							else {
+
+								player_->GoodDodge();
+							}
 						}
 					}
 				}
@@ -206,22 +201,22 @@ void GameScene::Collision(void)
 
 			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
-					if (!player_->IsDodge() && !player_->SuccessDodge()) {
+					if (!player_->SuccessDodge()) {
+						if (!player_->IsDodge()) {
 
-						hitFlgP_ = true;
-						player_->Damage(20, enemyBase_->GetAngle().y);
-						AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
-					}
-					else {
-						if (player_->DodgeCount() <= 10) {
-
-							player_->GreatDodge();
-							player_->SetPower(3);
+							hitFlgP_ = true;
+							player_->Damage(20, enemyBase_->GetAngle().y);
+							AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 						}
-						else if (player_->DodgeCount() <= 20) {
+						else {
+							if (player_->DodgeCount() <= 3) {
 
-							player_->GoodDodge();
-							player_->SetPower(1);
+								player_->GreatDodge();
+							}
+							else {
+
+								player_->GoodDodge();
+							}
 						}
 					}
 				}
@@ -306,16 +301,15 @@ void GameScene::CollisionStage(CollisionData data)
 			}
 			break;
 		}
-		
 	}
 	MV1CollResultPolyDimTerminate(res);
 }
 
 void GameScene::GameCamera(void)
 {
-	//カメラのインスタンスとプレイヤーの頭の位置を取る
+	//カメラのインスタンスとプレイヤーの注視点の位置を取る
 	Camera* camera = SceneManager::GetInstance().GetCamera();
-	VECTOR headPos = VAdd(player_->GetPos(), { 0.0f, 200.0f, 0.0f });
+	VECTOR headPos = VAdd(player_->GetPos(), { 0.0f, 180.0f, 0.0f });
 
 	// 上下左右回転
 

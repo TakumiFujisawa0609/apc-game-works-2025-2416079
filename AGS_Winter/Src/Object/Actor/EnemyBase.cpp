@@ -8,11 +8,11 @@
 #include "EnemyBase.h"
 
 
-EnemyBase::EnemyBase(Player* pl):angles_(), animationController_(nullptr), attackAFlg_(), attackBFlg_(), attackCFlg_(),
-	attackDiff_(), attackDir_(), attackPos1_(), attackPos2_(), attackPrevPos_(), attackShowFlg_(), attackSpeed_(), clearFlg_(),
-	cnt_(), coolDown_(), hp_(), isCoolDown_(), modelId_(), moveDir_(), pos_(), prevPos_(), scales_(), speed_(), state_(), targetAngles_()
+EnemyBase::EnemyBase(Player* pl):angles_(), animationController_(nullptr), attackAFlg_(false), attackBFlg_(false), attackCFlg_(false),
+	attackDiff_(120), attackDir_(), attackPos1_(Utility::VECTOR_ZERO), attackPos2_(Utility::VECTOR_ZERO), attackPrevPos_(), attackShowFlg_(),
+	attackSpeed_(28.0f), clearFlg_(false), cnt_(0), coolDown_(0), hp_(), isCoolDown_(false), modelId_(), moveDir_(Utility::VECTOR_ZERO),
+	player_(pl), pos_(DEFAULT_POS), prevPos_(DEFAULT_POS), scales_(), speed_(), state_(), targetAngles_()
 {
-	player_ = pl;
 }
 
 EnemyBase::~EnemyBase(void)
@@ -32,25 +32,9 @@ void EnemyBase::Init()
 	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::WALK), 45, 6);
 	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::RUN), 60, 4);
 
-	pos_ = prevPos_ = DEFAULT_POS;
-	moveDir_ = Utility::VECTOR_ZERO;
-	scales_ = { 6.0f, 6.0f ,6.0f };
-
-	hp_ = 40;
-	clearFlg_ = false;
-
-	coolDown_ = 0;
-	isCoolDown_ = false;
-	
-	attackDiff_ = GetRand(120) + 120;
-	cnt_ = 0;
-	
-	attackSpeed_ = 28.0f;
-	attackAFlg_ = attackBFlg_ = false;
-	attackPos2_ = attackPos1_ = Utility::VECTOR_ZERO;
-
 	DirectionPlayer();
 	angles_ = targetAngles_;
+
 	MV1SetPosition(modelId_, pos_);
 	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
 	MV1SetScale(modelId_, scales_);
@@ -61,7 +45,6 @@ void EnemyBase::Init()
 void EnemyBase::Update(void)
 {
 	//前のステータスを持っておく
-	STATE prevState = state_;
 	prevPos_ = pos_;
 
 	//ステータス別の更新
@@ -92,12 +75,6 @@ void EnemyBase::Update(void)
 	animationController_->Update();
 	MV1SetPosition(modelId_, pos_);
 
-	//ステータスが変わっていれば変える
-	if (prevState != state_) {
-
-		ChangeState(state_);
-	}
-
 	//HPがゼロならクリア
 	if (hp_ <= 0) {
 
@@ -109,8 +86,10 @@ void EnemyBase::Update(void)
 
 void EnemyBase::ChangeState(STATE state)
 {
+	state_ = state;
+
 	//ステータス変更時の初期化
-	switch (state)
+	switch (state_)
 	{
 	case EnemyBase::STATE::WAIT:
 
@@ -266,12 +245,12 @@ void EnemyBase::UpdateWait(void)
 	if (cnt_ >= attackDiff_) {
 
 		cnt_ = 0;
-		state_ = EnemyBase::STATE::ATTACK;
+		ChangeState(STATE::ATTACK);
 	}
 	else if(GetRand(attackDiff_ - cnt_) >= 180){
 
 		cnt_ = 0;
-		state_ = STATE::MOVE;
+		ChangeState(STATE::MOVE);
 	}
 }
 
@@ -291,7 +270,7 @@ void EnemyBase::UpdateMove(void)
 
 	if (prevDist <= fabsf(VSize(VSub(player_->GetPos(), pos_))) || fabsf(VSize(VSub(player_->GetPos(), pos_))) <= 350.0f){
 			
-		state_ = STATE::ATTACK;
+		ChangeState(STATE::ATTACK);
 	}
 }
 
@@ -311,7 +290,7 @@ void EnemyBase::UpdateAttack(void)
 	}
 	else {
 
-		state_ = STATE::WAIT;
+		ChangeState(STATE::WAIT);
 	}
 }
 

@@ -11,11 +11,12 @@
 #include "../../Manager/Input/Controller.h"
 
 
-Player::Player(void):angles_(), animationController_(nullptr), attackPos1_(), attackPos2_(),autoHealCnt_(), autoHealHp_(), dodgeCnt_(), dodgeFlg_(),
-	healCount_(), hp_(), isAttack_(), isHealMax_(), isHeal_(), isStaminaMax_(), knockBackDir_(), modelId_(), moveDir_(), overFlg_(), pos_(),
-	power_(), prevPos_(), scales_(), speed_(), staminaMaxCnt_(), stamina_(), state_(), effectDir_(), barEX_(), barHpEY_(), barHpSY_(), barSize_(),
-	barSX_(), barStaEY_(), barStaSY_(), damage_(), goodDodge_(), greatDodge_(), guageEX_(),guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(),
-	powerUp_(), powerUpCnt_()
+Player::Player(void):angles_(Utility::VECTOR_ZERO), animationController_(nullptr), attackPos1_(), attackPos2_(),autoHealCnt_(0), autoHealHp_(0),
+	dodgeCnt_(), dodgeFlg_(), healCount_(0), hp_(MAX_HP), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(), knockBackDir_(0.0f),
+	modelId_(), moveDir_(Utility::DIR_F), overFlg_(false), pos_(DEFAULT_POS), power_(0), prevPos_(DEFAULT_POS), scales_(Utility::VECTOR_ONE),
+	speed_(6.0f), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(), barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),
+	barStaEY_(), barStaSY_(), damage_(), goodDodge_(), greatDodge_(), guageEX_(),guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(),
+	powerUp_(), powerUpCnt_(), dodgeBottomPos_(), dodgeTopPos_()
 {
 }
 
@@ -31,27 +32,6 @@ void Player::Init()
 	hpBar_ = LoadSoftImage((Application::PATH_IMAGE + "HpBar.png").c_str());
 
 	FindHpAndPower();
-
-	//変数の初期化
-	pos_ = prevPos_ = DEFAULT_POS;
-	angles_ = Utility::VECTOR_ZERO;
-	moveDir_ = { 0.0f, 0.0f, 1.0f };
-	scales_ = { 1.0f, 1.0f, 1.0f };
-
-	knockBackDir_ = 0.0f;
-
-	power_ = MAX_POWER;
-	isAttack_ = false;
-
-	hp_ = MAX_HP;
-	autoHealHp_ = 0;
-	isHeal_ = false;
-	healCount_ = 0;
-	autoHealCnt_ = 0;
-	stamina_ = MAX_STAMINA;
-	overFlg_ = false;
-
-	speed_ = 6.0f;
 
 	//モデルの設定
 	MV1SetPosition(modelId_, pos_);
@@ -120,13 +100,11 @@ void Player::Init()
 			break;
 		}
 	}
-	state_ = STATE::WAIT;
-	ChangeState(state_);
+	ChangeState(STATE::WAIT);
 }
 
 void Player::Update(void)
 {
-	Player::STATE prevState = state_;
 	prevPos_ = pos_;
 
 	//状態別更新処理
@@ -167,10 +145,6 @@ void Player::Update(void)
 		UpdateDamagedHeavy();
 		break;
 	}
-	if (prevState != state_) {
-
-		ChangeState(state_);
-	}
 
 	Status();
 
@@ -185,7 +159,9 @@ void Player::Update(void)
 
 void Player::ChangeState(STATE state)
 {
-	switch (state)
+	state_ = state;
+
+	switch (state_)
 	{
 	case Player::STATE::WAIT:
 
@@ -229,12 +205,12 @@ void Player::Draw(void)
 {
 	if (greatDodge_) {
 		for (int i = 0; i < 9; i++) {
-			DrawCone3D(VAdd(VAdd(pos_, {0.0f, 80.0f, 0.0f}), VScale(effectDir_[i], 100.0f)), VAdd(pos_, { 0.0f, 80.0f, 0.0f }), 10.2f, 32, 0xffff00, 0xffffff, true);
+			DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0xffff00, 0xffffff, true);
 		}
 	}
 	else if (goodDodge_) {
 		for (int i = 0; i < 9; i++) {
-			DrawCone3D(VAdd(VAdd(pos_, { 0.0f, 80.0f, 0.0f }), VScale(effectDir_[i], 100.0f)), VAdd(pos_, { 0.0f, 80.0f, 0.0f }), 10.2f, 32, 0xffffff, 0xffffff, true);
+			DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0xffffff, 0xffffff, true);
 		}
 	}
 	DrawHpAndPower();
@@ -297,13 +273,12 @@ void Player::Damage(int damage, float dir)
 
 	if (damage >= 15) {
 
-		state_ = STATE::DAMAGED_HEAVY;
+		ChangeState(STATE::DAMAGED_HEAVY);
 	}
 	else {
 
-		state_ = STATE::DAMAGED_LIGHT;
+		ChangeState(STATE::DAMAGED_LIGHT);
 	}
-	ChangeState(state_);
 
 	if (hp_ <= 0) {
 
@@ -338,6 +313,48 @@ bool Player::IsHit(void) const
 	else {
 
 		return false;
+	}
+}
+
+void Player::GreatDodge(void)
+{
+	greatDodge_ = true;
+
+	for (int i = 0; i < EFFECT_NUM; i++) {
+
+		effectDir_[i].x = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
+		effectDir_[i].y = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
+		effectDir_[i].z = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
+
+		effectDir_[i] = VScale(VNorm(effectDir_[i]), 20.0f);
+
+		dodgeTopPos_[i] = VAdd(VAdd(pos_, { 0.0f, 70.0f, 0.0f }), effectDir_[i]);
+		dodgeBottomPos_[i] = VAdd(pos_, { 0.0f, 70.0f, 0.0f });
+	}
+	if (!powerUp_) {
+
+		power_ += 3;
+	}
+}
+
+void Player::GoodDodge(void)
+{
+	goodDodge_ = true;
+
+	for (int i = 0; i < EFFECT_NUM; i++) {
+
+		effectDir_[i].x = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
+		effectDir_[i].y = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
+		effectDir_[i].z = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
+
+		effectDir_[i] = VScale(VNorm(effectDir_[i]), 20.0f);
+
+		dodgeTopPos_[i] = VAdd(VAdd(pos_, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], 30.0f));
+		dodgeBottomPos_[i] = VAdd(pos_, { 0.0f, 70.0f, 0.0f });
+	}
+	if (!powerUp_) {
+
+		power_++;
 	}
 }
 
@@ -637,13 +654,6 @@ void Player::ChangeCombo(void)
 
 void Player::ChangeDodge(void)
 {
-	for (int i = 0; i < 9; i++) {
-
-			effectDir_[i].x = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
-			effectDir_[i].y = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
-			effectDir_[i].z = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
-	}
-
 	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
 		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
@@ -693,23 +703,23 @@ void Player::UpdateWait(void)
 		if (CheckHitKey(KEY_INPUT_F) == 1) {
 		
 			//攻撃モーションに移行
-			state_ = STATE::ATTACK;
+			ChangeState(STATE::ATTACK);
 		}
 		if (CheckHitKey(KEY_INPUT_G) == 1) {
 		
 			//攻撃モーションに移行
-			state_ = STATE::COMBO;
+			ChangeState(STATE::COMBO);
 		}
 		if (CheckHitKey(KEY_INPUT_W) == 1 || CheckHitKey(KEY_INPUT_A) == 1 || CheckHitKey(KEY_INPUT_S) == 1 || CheckHitKey(KEY_INPUT_D) == 1) {
 
 			//移動モーションに移行
-			state_ = STATE::MOVE;
+			ChangeState(STATE::MOVE);
 		}
 		if (CheckHitKey(KEY_INPUT_SPACE) == 1) {
 			if (stamina_ >= DOGDE_STAMINA) {
 
 				//回避モーションに移行
-				state_ = STATE::DOGDE;
+				ChangeState(STATE::DOGDE);
 			}
 		}
 	}
@@ -722,23 +732,23 @@ void Player::UpdateWait(void)
 		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP)]) {
 
 			//攻撃モーションに移行
-			state_ = STATE::ATTACK;
-		}		
+			ChangeState(STATE::ATTACK);
+		}
 		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
 			//攻撃モーションに移行
-			state_ = STATE::COMBO;
+			ChangeState(STATE::COMBO);
 		}
 		if (padState.AKeyLX != 0 || padState.AKeyLY != 0) {
 
 			//移動モーションに移行
-			state_ = STATE::MOVE;
+			ChangeState(STATE::MOVE);
 		}
 		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
 			if (stamina_ >= DOGDE_STAMINA) {
 
 				//回避モーションに移行
-				state_ = STATE::DOGDE;
+				ChangeState(STATE::DOGDE);
 			}
 		}
 	}
@@ -852,18 +862,18 @@ void Player::UpdateMove(void)
 		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP)]) {
 
 			//攻撃モーションに移行
-			state_ = STATE::ATTACK;
+			ChangeState(STATE::ATTACK);
 		}
 		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
 			//攻撃モーションに移行
-			state_ = STATE::COMBO;
+			ChangeState(STATE::COMBO);
 		}
 		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
 			if (stamina_ >= DOGDE_STAMINA) {
 
 				//回避モーションに移行
-				state_ = STATE::DOGDE;
+				ChangeState(STATE::DOGDE);
 			}
 		}
 		angles_.y = atan2f(moveDir_.x, moveDir_.z);
@@ -911,7 +921,7 @@ void Player::UpdateAttack(void)
 		power_ = 1;
 		isAttack_ = false;
 		//待機モーションに移行
-		state_ = STATE::WAIT;
+		ChangeState(STATE::WAIT);
 	}
 }
 
@@ -949,29 +959,40 @@ void Player::UpdateCombo(void)
 
 		isAttack_ = false;
 		//待機モーションに移行
-		state_ = STATE::WAIT;
+		ChangeState(STATE::WAIT);
 	}
 }
 
 void Player::UpdateDodge(void)
 {
 	//移動させる
-	pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 1.1f)); 
-	
-	if (animationController_->GetTime() <= 10.0f) {
+	pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 1.1f));
 
-		dodgeCnt_++;
+	if (dodgeFlg_) {
+		if (dodgeCnt_ <= 13.0f) {
+
+			dodgeCnt_++;
+		}
+		else {
+
+			dodgeFlg_ = false;
+			dodgeCnt_ = 0;
+		}
 	}
-	else if (dodgeFlg_){
+	if (goodDodge_ || greatDodge_) {
+		for (int i = 0; i < EFFECT_NUM; i++) {
 
-		dodgeFlg_ = false;
-		dodgeCnt_ = 0;
+			effectDir_[i] = VScale(effectDir_[i], 1.05f);
+
+			dodgeTopPos_[i] = VAdd(VAdd(pos_, { 0.0f, 70.0f, 0.0f }), effectDir_[i]);
+			dodgeBottomPos_[i] = VAdd(pos_, { 0.0f, 70.0f, 0.0f });
+		}
 	}
 
 	if (animationController_->IsEnd()) {
 
 		//待機モーションに移行
-		state_ = STATE::WAIT;
+		ChangeState(STATE::WAIT);
 
 		greatDodge_ = goodDodge_ = false;
 	}
@@ -981,7 +1002,7 @@ void Player::UpdateDamagedLight(void)
 {
 	if (animationController_->GetTime() >= 40) {
 
-		state_ = STATE::WAIT;
+		ChangeState(STATE::WAIT);
 	}
 }
 
@@ -1027,7 +1048,7 @@ void Player::UpdateDamagedHeavy(void)
 	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::STAND_UP)) {
 		if (animationController_->GetTime() >= 210) {
 
-			state_ = STATE::WAIT;
+			ChangeState(STATE::WAIT);
 		}
 	}
 }

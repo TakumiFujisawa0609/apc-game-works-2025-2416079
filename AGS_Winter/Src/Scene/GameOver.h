@@ -22,6 +22,5 @@ public:
 private:
 
 	// ‰æ‘œ
-	int imgTitle_;
-	int imgBg_;
+	int img_;
 };

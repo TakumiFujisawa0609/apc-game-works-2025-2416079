@@ -8,7 +8,6 @@
 
 GameOver::GameOver(void)
 {
-	imgTitle_ = -1;
 }
 
 GameOver::~GameOver(void)
@@ -17,8 +16,7 @@ GameOver::~GameOver(void)
 
 void GameOver::Init(void)
 {
-	//imgTitle_ = LoadGraph((Application::PATH_IMAGE + "Title.png").c_str());
-	//imgBg_ = LoadGraph((Application::PATH_IMAGE + "Background.png").c_str());
+	//img_ = LoadGraph((Application::PATH_IMAGE + "Background.png").c_str());
 }
 
 void GameOver::Update(void)
@@ -35,17 +33,13 @@ void GameOver::Update(void)
 
 void GameOver::Draw(void)
 {
-	SceneBase::Draw();
-
 	DrawFormatString(100, 100, 0x000000, "GameOver", SetFontSize(30));
 	DrawFormatString(100, 150, 0x000000, "Press A", SetFontSize(30));
 
-	//DrawRotaGraph(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 1.0f, 0.0, imgBg_, true);
-	//DrawRotaGraph( Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2 - 100, 1.0f, 0.0, imgTitle_, true);
+	//DrawRotaGraph(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 1.0f, 0.0, img_, true);
 }
 
 void GameOver::Release(void)
 {
-	//DeleteGraph(imgTitle_);
-	//DeleteGraph(imgBg_);
+	//DeleteGraph(img_);
 }
