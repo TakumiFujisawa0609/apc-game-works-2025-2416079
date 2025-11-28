@@ -9,9 +9,9 @@
 
 
 EnemyBase::EnemyBase(Player* pl):angles_(), animationController_(nullptr), attackAFlg_(false), attackBFlg_(false), attackCFlg_(false),
-	attackDiff_(120), attackDir_(), attackPos1_(Utility::VECTOR_ZERO), attackPos2_(Utility::VECTOR_ZERO), attackPrevPos_(), attackShowFlg_(),
-	attackSpeed_(28.0f), clearFlg_(false), cnt_(0), coolDown_(0), hp_(), isCoolDown_(false), modelId_(), moveDir_(Utility::VECTOR_ZERO),
-	player_(pl), pos_(DEFAULT_POS), prevPos_(DEFAULT_POS), scales_(), speed_(), state_(), targetAngles_()
+	attackDiff_(120), attackDir_(), attackPos1_(Utility::VECTOR_ZERO), attackPos2_(Utility::VECTOR_ZERO), attackPrevPos_(Utility::VECTOR_ZERO),
+	attackShowFlg_(false), clearFlg_(false), cnt_(0), coolDown_(0), hp_(MAX_HP), isCoolDown_(false), modelId_(-1), moveDir_(Utility::VECTOR_ZERO),
+	player_(pl), pos_(DEFAULT_POS), prevPos_(DEFAULT_POS), state_(STATE::WAIT), targetAngles_()
 {
 }
 
@@ -37,7 +37,7 @@ void EnemyBase::Init()
 
 	MV1SetPosition(modelId_, pos_);
 	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
-	MV1SetScale(modelId_, scales_);
+	MV1SetScale(modelId_, SCALE);
 
 	MV1SetupCollInfo(modelId_);
 }
@@ -265,8 +265,8 @@ void EnemyBase::UpdateMove(void)
 
 	animationController_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
 
-	pos_.x += moveDir_.x * 8.5f;
-	pos_.z += moveDir_.z * 8.5f;
+	pos_.x += moveDir_.x * SPEED;
+	pos_.z += moveDir_.z * SPEED;
 
 	if (prevDist <= fabsf(VSize(VSub(player_->GetPos(), pos_))) || fabsf(VSize(VSub(player_->GetPos(), pos_))) <= 350.0f){
 			
@@ -300,7 +300,7 @@ void EnemyBase::UpdateAttackA(void)
 
 	if (animationController_->GetTime() >= 33) {
 
-		attackPos1_ = VAdd(attackPos1_, VScale(attackDir_, attackSpeed_));
+		attackPos1_ = VAdd(attackPos1_, VScale(attackDir_, ATTACK_SPEED));
 
 		if (!attackShowFlg_) {
 

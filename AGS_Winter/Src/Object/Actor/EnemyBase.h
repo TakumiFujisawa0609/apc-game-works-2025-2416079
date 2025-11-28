@@ -34,8 +34,12 @@ public:
 
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 1000.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
+	static constexpr VECTOR SCALE = { 6.0f, 6.0f, 6.0f };
+	static constexpr float SPEED = 8.5f;
 	static constexpr VECTOR ATTACK_POS_A = { 0.0f, 250.0f, 325.0f };
 	static constexpr float ATTACK_RADIUS = 35.0f;
+	static constexpr int MAX_HP = 500;
+	static constexpr float ATTACK_SPEED = 28.0f;
 
 	// コンストラクタ
 	EnemyBase(Player* pl);
@@ -105,21 +109,19 @@ protected:
 	// 座標
 	VECTOR pos_;
 	VECTOR prevPos_;
+
 	// 角度
 	VECTOR angles_;
 	VECTOR targetAngles_;
-	// 大きさ
-	VECTOR scales_;
+
 	// 移動方向
 	VECTOR moveDir_;
-	// 移動速度
-	float speed_;
+
 	//攻撃判定の中心
 	VECTOR attackPrevPos_;
 	VECTOR attackPos1_;
 	VECTOR attackPos2_;
 	VECTOR attackDir_;
-	float attackSpeed_;
 
 	// HP
 	int hp_;
