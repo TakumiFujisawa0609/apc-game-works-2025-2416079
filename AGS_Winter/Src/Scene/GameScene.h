@@ -16,6 +16,7 @@ public:
 	static constexpr float CAMERA_TO_PLAYER = 350.0f;
 
 	static constexpr float COLLISION_STAGE_DIFF = 25.0f;
+	static constexpr float COLLISION_CAMERA_DIFF = 3.0f;
 
 	// コンストラクタ
 	GameScene(void);
@@ -36,6 +37,7 @@ private:
 		PLAYER,
 		ENEMY,
 		ENEMY_ATTACK,
+		CAMERA
 	};
 
 	struct CollisionData {
@@ -47,7 +49,7 @@ private:
 
 	// ステージ
 	Stage* stage_;
-	EnemyBase* enemyBase_;
+	EnemyBase* enemy_;
 	Player* player_;
 	Item* item_;
 
@@ -64,6 +66,7 @@ private:
 
 	void Collision(void);
 	void CollisionStage(CollisionData data);
+	void CollisionCamera(CollisionData data);
 	void GameCamera(void);
 	void Effect(MV1_COLL_RESULT_POLY dim);
 };

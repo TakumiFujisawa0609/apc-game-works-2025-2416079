@@ -13,7 +13,7 @@
 
 Player::Player(void):angles_(Utility::VECTOR_ZERO), animationController_(nullptr), attackPos1_(), attackPos2_(),autoHealCnt_(0), autoHealHp_(0),
 	dodgeCnt_(), dodgeFlg_(), healCount_(0), hp_(MAX_HP), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(), knockBackDir_(0.0f),
-	modelId_(), moveDir_(Utility::DIR_F), overFlg_(false), pos_(DEFAULT_POS), power_(0), prevPos_(DEFAULT_POS), scales_(Utility::VECTOR_ONE),
+	modelId_(), moveDir_(Utility::DIR_F), overFlg_(false), pos_(DEFAULT_POS), power_(MAX_POWER), prevPos_(DEFAULT_POS), scales_(Utility::VECTOR_ONE),
 	speed_(6.0f), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(), barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),
 	barStaEY_(), barStaSY_(), damage_(), goodDodge_(), greatDodge_(), guageEX_(),guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(),
 	powerUp_(), powerUpCnt_(), dodgeBottomPos_(), dodgeTopPos_()
@@ -901,7 +901,7 @@ void Player::UpdateMove(void)
 
 			AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
 		}
-		state_ = STATE::WAIT;
+		ChangeState(STATE::WAIT);
 	}
 }
 

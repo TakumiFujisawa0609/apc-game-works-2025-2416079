@@ -203,7 +203,7 @@ void EnemyBase::ChangeMove(void)
 
 void EnemyBase::ChangeAttack(void)
 {
-	if (VSize(VSub(player_->GetPos(), pos_)) >= 800.0f) {
+	if (VSize(VSub(player_->GetPos(), pos_)) >= 600.0f) {
 
 		animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK_A), false);
 
@@ -268,9 +268,13 @@ void EnemyBase::UpdateMove(void)
 	pos_.x += moveDir_.x * SPEED;
 	pos_.z += moveDir_.z * SPEED;
 
-	if (prevDist <= fabsf(VSize(VSub(player_->GetPos(), pos_))) || fabsf(VSize(VSub(player_->GetPos(), pos_))) <= 350.0f){
+	if (fabsf(VSize(VSub(player_->GetPos(), pos_))) <= 350.0f){
 			
 		ChangeState(STATE::ATTACK);
+	}
+	else if (prevDist <= fabsf(VSize(VSub(player_->GetPos(), pos_)))) {
+
+		ChangeState(STATE::MOVE);
 	}
 }
 

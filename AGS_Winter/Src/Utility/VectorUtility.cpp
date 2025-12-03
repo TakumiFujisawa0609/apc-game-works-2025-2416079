@@ -55,3 +55,19 @@ bool VectorUtility::EqualsVZero(const VECTOR& v1)
     }
     return false;
 }
+
+/// <summary>
+/// 大きさの比較
+/// </summary>
+/// <param name="v1">一つ目のベクトル</param>
+/// <param name="v2">二つ目のベクトル</param>
+/// <return> 一つ目 >= 二つ目 True : 一つ目 / False : 二つ目</returns>
+//
+bool VectorUtility::Comparison(const VECTOR& v1, const VECTOR& v2)
+{
+    if (VSize(v1) >= VSize(v2)) {
+     
+        return true;
+    }
+    return false;
+}

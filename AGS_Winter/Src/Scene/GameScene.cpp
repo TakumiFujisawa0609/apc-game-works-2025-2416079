@@ -18,7 +18,7 @@
 #include "GameScene.h"
 
 
-GameScene::GameScene(void):enemyBase_(), hitFlgE_(), hitFlgP_(), isFirst_(), isLockon_(), item_(), pitch_(), yaw_(),
+GameScene::GameScene(void):enemy_(), hitFlgE_(), hitFlgP_(), isFirst_(), isLockon_(), item_(), pitch_(), yaw_(),
 	shadowMap_(), stage_(), player_()
 {
 }
@@ -42,8 +42,8 @@ void GameScene::Init(void)
 	item_->Init();
 
 	//エネミーの初期化
-	enemyBase_ = new EnemyBase(player_);
-	enemyBase_->Init();
+	enemy_ = new EnemyBase(player_);
+	enemy_->Init();
 
 	// サウンドの読み込み
 	AudioManager::GetInstance()->LoadSceneSound(LoadScene::GAME);
@@ -68,7 +68,7 @@ void GameScene::Init(void)
 void GameScene::Update(void)
 {
 	player_->Update();
-	enemyBase_->Update();
+	enemy_->Update();
 	GameCamera();
 
 	if (player_->HealUsed() || !player_->Healable()) {
@@ -109,7 +109,7 @@ void GameScene::Update(void)
 
 	Collision();
 
-	if (enemyBase_->ClearFlg() == true) {
+	if (enemy_->ClearFlg() == true) {
 
 		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
 	}
@@ -125,7 +125,7 @@ void GameScene::Collision(void)
 
 	if (player_->IsAttack()) {
 		
-		info = MV1CollCheck_Capsule(enemyBase_->GetModelId(), -1, player_->GetAttackStartPos(), player_->GetAttackEndPos(), 10.0f);
+		info = MV1CollCheck_Capsule(enemy_->GetModelId(), -1, player_->GetAttackStartPos(), player_->GetAttackEndPos(), 10.0f);
 
 		if (!hitFlgE_) {
 			if (info.HitNum > 0) {
@@ -134,7 +134,7 @@ void GameScene::Collision(void)
 				Effect(info.Dim[info.HitNum - 1]);
 
 				hitFlgE_ = true;
-				enemyBase_->Damage(player_->GetPower());
+				enemy_->Damage(player_->GetPower());
 			}
 		}
 	}
@@ -143,9 +143,9 @@ void GameScene::Collision(void)
 		hitFlgE_ = false;
 	}
 	if (player_->IsHit()) {
-		if (enemyBase_->IsAttackA()) {
+		if (enemy_->IsAttackA()) {
 
-			info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), EnemyBase::ATTACK_RADIUS);
+			info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), EnemyBase::ATTACK_RADIUS);
 
 			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
@@ -153,7 +153,7 @@ void GameScene::Collision(void)
 						if (!player_->IsDodge()) {
 
 							hitFlgP_ = true;
-							player_->Damage(13, enemyBase_->GetAngle().y);
+							player_->Damage(13, enemy_->GetAngle().y);
 							AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 						}
 						else {
@@ -170,16 +170,16 @@ void GameScene::Collision(void)
 				}
 			}
 		}
-		if (enemyBase_->IsAttackB()) {
+		if (enemy_->IsAttackB()) {
 
-			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS);
+			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS);
 
 			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
 					if (!player_->SuccessDodge()) {
 						if (!player_->IsDodge()) {
 							hitFlgP_ = true;
-							player_->Damage(10, enemyBase_->GetAngle().y);
+							player_->Damage(10, enemy_->GetAngle().y);
 							AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 						}
 						else {
@@ -195,16 +195,16 @@ void GameScene::Collision(void)
 				}
 			}
 		}
-		if (enemyBase_->IsAttackC()) {
+		if (enemy_->IsAttackC()) {
 
-			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS * 2);
+			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS * 2);
 
 			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
 					if (!player_->SuccessDodge()) {
 						if (!player_->IsDodge()) {
 							hitFlgP_ = true;
-							player_->Damage(20, enemyBase_->GetAngle().y);
+							player_->Damage(20, enemy_->GetAngle().y);
 							AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 						}
 						else {
@@ -222,7 +222,7 @@ void GameScene::Collision(void)
 			}
 		}
 	}
-	if (!enemyBase_->IsAttack()) {
+	if (!enemy_->IsAttack()) {
 
 		hitFlgP_ = false;
 	}
@@ -231,9 +231,9 @@ void GameScene::Collision(void)
 	
 	//ステージと
 	CollisionData data = { player_->GetPos(), player_->GetPrevPos(), COLLISION_TYPE::PLAYER };
-	CollisionData datA = { enemyBase_->GetPos(), enemyBase_->GetPrevPos(), COLLISION_TYPE::ENEMY };
-	if (enemyBase_->IsAttackA()) {
-		CollisionData daTA = { enemyBase_->GetAttackStartPos(), enemyBase_->GetAttackPrevPos(), COLLISION_TYPE::ENEMY_ATTACK };
+	CollisionData datA = { enemy_->GetPos(), enemy_->GetPrevPos(), COLLISION_TYPE::ENEMY };
+	if (enemy_->IsAttackA()) {
+		CollisionData daTA = { enemy_->GetAttackStartPos(), enemy_->GetAttackPrevPos(), COLLISION_TYPE::ENEMY_ATTACK };
 		CollisionStage(daTA);
 	}
 	CollisionStage(data);
@@ -242,7 +242,7 @@ void GameScene::Collision(void)
 
 void GameScene::CollisionStage(CollisionData data)
 {
-	//上下
+	//上下(線)
 	VECTOR topPos = data.pos;
 	topPos.y += COLLISION_STAGE_DIFF * 2.0f;
 
@@ -261,11 +261,11 @@ void GameScene::CollisionStage(CollisionData data)
 
 		case COLLISION_TYPE::ENEMY:
 
-			enemyBase_->SetPos(result.HitPosition);
+			enemy_->SetPos(result.HitPosition);
 			break;
 		}
 	}
-	//左右
+	//前後左右(球)
 	if (!VectorUtility::Equals(data.pos, data.prev)) {
 		switch (data.type) {
 		case COLLISION_TYPE::PLAYER:
@@ -286,7 +286,7 @@ void GameScene::CollisionStage(CollisionData data)
 
 			if (res.HitNum > 0) {
 
-				enemyBase_->SetPos(data.prev);
+				enemy_->SetPos(data.prev);
 			}
 			break;
 
@@ -296,12 +296,57 @@ void GameScene::CollisionStage(CollisionData data)
 
 			if (res.HitNum > 0) {
 
-				enemyBase_->DeleteAttackA();
+				enemy_->DeleteAttackA();
 			}
 			break;
 		}
 	}
 	MV1CollResultPolyDimTerminate(res);
+}
+
+void GameScene::CollisionCamera(CollisionData data)
+{
+	//線分のポジションと焦点の角度の設定
+	VECTOR startPos = data.pos;
+	VECTOR endPos = data.prev;
+	VECTOR dir = VNorm(VSub(startPos, endPos));
+
+	//ステージとの当たり判定
+	MV1_COLL_RESULT_POLY resultS = MV1CollCheck_Line(stage_->GetModelId(), -1, startPos, endPos);
+	VECTOR distS = Utility::VECTOR_ZERO;
+
+	//敵との当たり判定
+	MV1_COLL_RESULT_POLY resultE = MV1CollCheck_Line(enemy_->GetModelId(), -1, startPos, endPos);
+	VECTOR distE = Utility::VECTOR_ZERO;
+
+	if (resultS.HitFlag == 1) {
+		if (resultE.HitFlag == 1) {
+
+			//どちらも当たっているのでカメラの位置から当たった場所へのベクトルを取る
+			distS = VSub(endPos, resultS.HitPosition);
+			distE = VSub(endPos, resultE.HitPosition);
+
+			//取ったベクトル大きさがの大きい方に位置を合わせる
+			SceneManager::GetInstance().GetCamera()->SetAbsCameraPos(VAdd(VectorUtility::Comparison(distS, distE)? resultS.HitPosition : resultE.HitPosition,
+				VScale(dir, COLLISION_CAMERA_DIFF)));
+		}
+		else {
+
+			//ステージのみ当たっているので当たった場所に移す
+			SceneManager::GetInstance().GetCamera()->SetAbsCameraPos(VAdd(resultS.HitPosition, VScale(dir, COLLISION_CAMERA_DIFF)));
+		}
+	}
+	else {
+		if (resultE.HitFlag == 1) {
+
+			//敵のみ当たっているので当たった場所に移す
+			SceneManager::GetInstance().GetCamera()->SetAbsCameraPos(VAdd(resultE.HitPosition, VScale(dir, COLLISION_CAMERA_DIFF)));
+		}
+		else {
+			//当たってない場合引数でもらったカメラの位置にする
+			SceneManager::GetInstance().GetCamera()->SetAbsCameraPos(endPos);
+		}
+	}
 }
 
 void GameScene::GameCamera(void)
@@ -369,7 +414,7 @@ void GameScene::GameCamera(void)
 	}
 	else {
 
-		VECTOR enemyPos = VAdd(enemyBase_->GetPos(), { 0.0f, 200.f, 0.0f });
+		VECTOR enemyPos = VAdd(enemy_->GetPos(), { 0.0f, 200.f, 0.0f });
 		VECTOR dir = VSub(enemyPos, headPos);
 
 		float prevPitch = pitch_;
@@ -385,7 +430,7 @@ void GameScene::GameCamera(void)
 		pitch_ = AngleUtility::LerpAngle(prevPitch, pitch_, 0.8f);
 		yaw_ = AngleUtility::LerpAngle(prevYaw, yaw_, 0.8f);
 
-		if ((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f) || VSize(VSub(player_->GetPos(), enemyBase_->GetPos())) <= 300.0f) {
+		if ((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f) || VSize(VSub(player_->GetPos(), enemy_->GetPos())) <= 300.0f) {
 
 			isLockon_ = false;
 		}
@@ -407,8 +452,10 @@ void GameScene::GameCamera(void)
 	newPos.y = headPos.y + CAMERA_TO_PLAYER * sinf(pitch_);
 	newPos.z = headPos.z - CAMERA_TO_PLAYER * cosf(pitch_) * cosf(yaw_);
 
-	//カメラの位置の設定
-	camera->SetAbsCameraPos(newPos);
+	CollisionData data = { headPos, newPos, COLLISION_TYPE::CAMERA };
+	CollisionCamera(data);
+
+	//角度の設定
 	camera->SetAbsCameraAngles({ pitch_, yaw_, 0.0f });
 }
 
@@ -433,10 +480,10 @@ void GameScene::Draw(void)
 	ShadowMap_DrawSetup(shadowMap_);
 
 	//MV1DrawModel(player_->GetModelId());
-	//MV1DrawModel(enemyBase_->GetModelId());
+	//MV1DrawModel(enemy_->GetModelId());
 
 	player_->DrawModel();
-	enemyBase_->DrawModel();
+	enemy_->DrawModel();
 
 	ShadowMap_DrawEnd();
 
@@ -445,8 +492,8 @@ void GameScene::Draw(void)
 
 	stage_->Draw();
 	player_->DrawModel();
-	enemyBase_->DrawModel();
-	enemyBase_->Draw();
+	enemy_->DrawModel();
+	enemy_->Draw();
 
 	SetUseShadowMap(0, -1);
 
@@ -481,8 +528,8 @@ void GameScene::Release(void)
 	player_->Release();
 	delete player_;
 
-	enemyBase_->Release();
-	delete enemyBase_;
+	enemy_->Release();
+	delete enemy_;
 	
 	item_->Release();
 	delete item_;
@@ -490,6 +537,6 @@ void GameScene::Release(void)
 
 void GameScene::EnemyToPlayer(void)
 {
-	MATRIX angles = AngleUtility::GetMatrixRotateXYZ(VSub(player_->GetPos(), enemyBase_->GetPos()));
-	enemyBase_->SetAngle(VTransform(enemyBase_->GetAngle(), angles));
+	MATRIX angles = AngleUtility::GetMatrixRotateXYZ(VSub(player_->GetPos(), enemy_->GetPos()));
+	enemy_->SetAngle(VTransform(enemy_->GetAngle(), angles));
 }

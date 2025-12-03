@@ -21,4 +21,5 @@ public:
 	// î‰är
 	static bool Equals(const VECTOR& v1, const VECTOR& v2);
 	static bool EqualsVZero(const VECTOR& v1);
+	static bool Comparison(const VECTOR& v1, const VECTOR& v2);
 };
