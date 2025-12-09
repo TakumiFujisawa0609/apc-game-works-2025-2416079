@@ -11,6 +11,8 @@ public:
 	// デストラクタ
 	virtual ~SceneBase(void) = 0;
 
+	//ロード
+	virtual void InitLoad(void) = 0;
 	// 初期化処理
 	virtual void Init(void) = 0;
 	// 更新ステップ

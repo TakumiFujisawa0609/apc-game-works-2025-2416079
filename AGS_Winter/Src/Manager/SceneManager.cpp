@@ -32,7 +32,7 @@ SceneManager& SceneManager::GetInstance(void)
 
 void SceneManager::Init(void)
 {
-	sceneId_ = SCENE_ID::TITLE;
+	sceneId_ = SCENE_ID::NONE;
 	waitSceneId_ = SCENE_ID::NONE;
 
 	camera_ = new Camera();
@@ -45,7 +45,7 @@ void SceneManager::Init(void)
 	fader_ = new Fader();
 	fader_->Init();
 
-	pause_ = new Pause();;
+	pause_ = new Pause();
 
 	backGround_ = MV1LoadModel((Application::PATH_MODEL + "Sky.mv1").c_str());
 
@@ -54,6 +54,7 @@ void SceneManager::Init(void)
 	MV1SetScale(backGround_, { 7.0f, 7.0f, 7.0f });
 
 	isSceneChanging_ = false;
+	isLoad_ = false;
 
 	// デルタタイム
 	preTime_ = std::chrono::system_clock::now();
@@ -71,7 +72,19 @@ void SceneManager::Update(void)
 
 		return;
 	}
+	static bool isFirst = true;
 
+	if (isFirst) {
+		if (isLoad_) {
+
+			// 初期シーンの設定
+			DoChangeScene(SCENE_ID::TITLE);
+		}
+		else {
+			isFirst = false;
+		}
+		return;
+	}
 	// デルタタイム
 	auto nowTime = std::chrono::system_clock::now();
 	deltaTime_ = static_cast<float>( std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - preTime_).count() / 1000000000.0);
@@ -130,8 +143,10 @@ void SceneManager::Draw(void)
 	SetUseLighting(true);
 
 	// 各シーンの描画処理
-	scene_->Draw();
+	if (!isLoad_) {
 
+		scene_->Draw();
+	}
 	// グリッドの描画
 	//grid_->Draw();
 
@@ -147,6 +162,12 @@ void SceneManager::Draw(void)
 
 	// 暗転・明転
 	fader_->Draw();
+
+	if (isLoad_) {
+
+		DrawBox(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, 0x000000, true);
+		DrawFormatString(150, 150, 0xffffff, "LOADING");
+	}
 
 //#pragma region Step1 ポイントライト
 //	if (CheckHitKey(KEY_INPUT_T)) { pointLightPos_.z += 3.0f; }
@@ -227,6 +248,7 @@ SceneManager::SceneManager(void)
 	fader_ = nullptr;
 
 	isSceneChanging_ = false;
+	isLoad_ = false;
 
 	// デルタタイム
 	deltaTime_ = 1.0f / Application::FPS;
@@ -241,46 +263,59 @@ void SceneManager::ResetDeltaTime(void)
 
 void SceneManager::DoChangeScene(SCENE_ID sceneId)
 {
-	// シーンを変更する
-	sceneId_ = sceneId;
+	if (sceneId_ != sceneId) {
+		// シーンを変更する
+		sceneId_ = sceneId;
+		
+		// 現在のシーンを解放
+		if (scene_ != nullptr) {
 
-	// 現在のシーンを解放
-	if (scene_ != nullptr){
+			scene_->Release();
+			delete scene_;
+		}
 
-		scene_->Release();
-		delete scene_;
+		switch (sceneId_) {
+		case SCENE_ID::TITLE:
+
+			scene_ = new TitleScene();
+			break;
+
+		case SCENE_ID::GAME:
+
+			scene_ = new GameScene();
+			break;
+
+		case SCENE_ID::OVER:
+
+			scene_ = new GameOver();
+			break;
+
+		case SCENE_ID::CLEAR:
+
+			scene_ = new GameClear();
+			break;
+		}
 	}
-
-	switch (sceneId_) {
-	case SCENE_ID::TITLE:
-
-		scene_ = new TitleScene();
-		break;
-
-	case SCENE_ID::GAME:
-
-		scene_ = new GameScene();
-		break;
-
-	case SCENE_ID::OVER:
-
-		scene_ = new GameOver();
-		break;
-
-	case SCENE_ID::CLEAR:
-
-		scene_ = new GameClear();
-		break;
-	}
-
 	// 各シーンの初期化
-	scene_->Init();
-	camera_->SetBeforeDraw();
+	if (!isLoad_) {
+	
+		isLoad_ = true;
+		SetUseASyncLoadFlag(true);
+		scene_->InitLoad();
+		SetUseASyncLoadFlag(false);
+	}
+	if (GetASyncLoadNum() <= 0) {
 
-	ResetDeltaTime();
+		isLoad_ = false;
 
-	waitSceneId_ = SCENE_ID::NONE;
+		// 初期化
+		camera_->Init();
+		scene_->Init();
 
+		ResetDeltaTime();
+
+		waitSceneId_ = SCENE_ID::NONE;
+	}
 }
 
 void SceneManager::Fade(void)
@@ -302,12 +337,14 @@ void SceneManager::Fade(void)
 		// 暗転中
 		if (fader_->IsEnd()){
 
-			// カメラの初期化
-			camera_->Init();
 			// 完全に暗転してからシーン遷移
 			DoChangeScene(waitSceneId_);
-			// 暗転から明転へ
-			fader_->SetFade(Fader::STATE::FADE_IN);
+
+			if (!isLoad_) {
+
+				// 暗転から明転へ
+				fader_->SetFade(Fader::STATE::FADE_IN);
+			}
 		}
 		break;
 	}

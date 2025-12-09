@@ -14,6 +14,10 @@ GameOver::~GameOver(void)
 {
 }
 
+void GameOver::InitLoad(void)
+{
+}
+
 void GameOver::Init(void)
 {
 	//img_ = LoadGraph((Application::PATH_IMAGE + "Background.png").c_str());

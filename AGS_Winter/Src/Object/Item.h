@@ -19,22 +19,36 @@ public:
 	// デストラクタ
 	~Item(void);
 
+	//ロード
+	void InitLoad(void);
+	//その他の初期化
 	void Init(void);
+	//更新
 	void Update(void);
+	//描画
 	void Draw(void);
+	//解放
 	void Release(void);
 
+	//何の種類か
 	TYPE GetType(void) { return type_; }
+	
+	//使用状況取得
 	bool IsUse(void) { return use_; }
 	void SetUsing(bool use) { using_ = use; }
 
 private:
 
+	//アイテムのイメージハンドル
 	int itemImg_[static_cast<int>(TYPE::MAX)];
 
+	//種類ごとの数
 	int itemNum_[static_cast<int>(TYPE::MAX)];
 
+	//種類
 	TYPE type_;
+	
+	//使用状況
 	bool use_;
 	bool using_;
 

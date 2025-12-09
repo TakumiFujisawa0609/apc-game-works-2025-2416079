@@ -1,7 +1,8 @@
 #include <EffekseerForDXLib.h>
 #include <cmath>
-#include "../Object/Stage.h"
-#include "../Object/Actor/EnemyBase.h"
+#include "../Object/Actor/Stage.h"
+#include "../Object/Actor/ActorBase.h"
+#include "../Object/Actor/Enemy.h"
 #include "../Object/Actor/Player.h"
 #include "../Object/Item.h"
 #include "../Manager/Audio/AudioManager.h"
@@ -18,8 +19,8 @@
 #include "GameScene.h"
 
 
-GameScene::GameScene(void):enemy_(), hitFlgE_(), hitFlgP_(), isFirst_(), isLockon_(), item_(), pitch_(), yaw_(),
-	shadowMap_(), stage_(), player_()
+GameScene::GameScene(void) :enemy_(), hitFlgE_(), hitFlgP_(), isFirst_(false), isLockon_(false), item_(), pitch_(0.3f), yaw_(0.0f),
+	shadowMap_(), stage_(), player_(), cntDown_(false), cnt_(10), lockOnImg_()
 {
 }
 
@@ -27,33 +28,54 @@ GameScene::~GameScene(void)
 {
 }
 
+void GameScene::InitLoad(void)
+{
+	// ステージのロード
+	stage_ = new Stage();
+	stage_->InitLoad();
+
+	//プレイヤーのロード
+	player_ = new Player();
+	player_->InitLoad();
+
+	//アイテムのロード
+	item_ = new Item();
+	item_->InitLoad();
+
+	//エネミーのロード
+	enemy_ = new Enemy(player_);
+	enemy_->InitLoad();
+
+	lockOnImg_ = LoadGraph((Application::PATH_IMAGE + "LockOn.png").c_str());
+	AudioManager::GetInstance()->LoadSceneSound(LoadScene::GAME);
+}
+
 void GameScene::Init(void)
 {
 	// ステージの初期化
-	stage_ = new Stage();
 	stage_->Init();
 
 	//プレイヤーの初期化
-	player_ = new Player();
 	player_->Init();
 
 	//アイテムの初期化
-	item_ = new Item();
 	item_->Init();
 
 	//エネミーの初期化
-	enemy_ = new EnemyBase(player_);
 	enemy_->Init();
 
 	// サウンドの読み込み
-	AudioManager::GetInstance()->LoadSceneSound(LoadScene::GAME);
 	AudioManager::GetInstance()->PlayBGM(SoundID::BGM_BATTLE);
-
-	pitch_ = 0.3f;
-	yaw_ = 0.0f;
-	isFirst_ = false;
-	isLockon_ = false;
 		
+	CollisionData data = { player_->GetPos(), player_->GetPrevPos(), COLLISION_TYPE::PLAYER };
+	CollisionData datA = { enemy_->GetPos(), enemy_->GetPrevPos(), COLLISION_TYPE::ENEMY };
+
+	CollisionStage(data);
+	CollisionStage(datA);
+
+	enemy_->InitModel();
+	player_->InitModel();
+
 	GameCamera();
 
 	hitFlgE_ = false;
@@ -145,7 +167,7 @@ void GameScene::Collision(void)
 	if (player_->IsHit()) {
 		if (enemy_->IsAttackA()) {
 
-			info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), EnemyBase::ATTACK_RADIUS);
+			info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), Enemy::ATTACK_RADIUS);
 
 			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
@@ -172,14 +194,14 @@ void GameScene::Collision(void)
 		}
 		if (enemy_->IsAttackB()) {
 
-			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS);
+			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), Enemy::ATTACK_RADIUS);
 
 			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
 					if (!player_->SuccessDodge()) {
 						if (!player_->IsDodge()) {
 							hitFlgP_ = true;
-							player_->Damage(10, enemy_->GetAngle().y);
+							player_->Damage(17, enemy_->GetAngle().y);
 							AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 						}
 						else {
@@ -197,7 +219,7 @@ void GameScene::Collision(void)
 		}
 		if (enemy_->IsAttackC()) {
 
-			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), EnemyBase::ATTACK_RADIUS * 2);
+			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), Enemy::ATTACK_RADIUS * 2);
 
 			if (info.HitNum > 0) {
 				if (!hitFlgP_) {
@@ -292,7 +314,7 @@ void GameScene::CollisionStage(CollisionData data)
 
 		case COLLISION_TYPE::ENEMY_ATTACK:
 
-			res = MV1CollCheck_Sphere(stage_->GetModelId(), -1, data.pos , EnemyBase::ATTACK_RADIUS);
+			res = MV1CollCheck_Sphere(stage_->GetModelId(), -1, data.pos , Enemy::ATTACK_RADIUS);
 
 			if (res.HitNum > 0) {
 
@@ -409,7 +431,9 @@ void GameScene::GameCamera(void)
 
 		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::L)] || CheckHitKey(KEY_INPUT_O)) {
 
+			cnt_ = 10;
 			isLockon_ = true;
+			cntDown_ = true;
 		}
 	}
 	else {
@@ -433,6 +457,15 @@ void GameScene::GameCamera(void)
 		if ((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f) || VSize(VSub(player_->GetPos(), enemy_->GetPos())) <= 300.0f) {
 
 			isLockon_ = false;
+		}
+	}
+	if (cntDown_) {
+
+		cnt_--;
+		if (cnt_ <= 0) {
+
+			cnt_ = 10;
+			cntDown_ = false;
 		}
 	}
 
@@ -490,7 +523,7 @@ void GameScene::Draw(void)
 	//影に関係のあるものの描画
 	SetUseShadowMap(0, shadowMap_);
 
-	stage_->Draw();
+	stage_->DrawModel();
 	player_->DrawModel();
 	enemy_->DrawModel();
 	enemy_->Draw();
@@ -501,6 +534,13 @@ void GameScene::Draw(void)
 	player_->Draw();
 	item_->Draw();
 
+	if (cntDown_) {
+
+		VECTOR enemyPos = VAdd(enemy_->GetPos(), { 0.0f, 200.f, 0.0f });
+
+		VECTOR pos = ConvWorldPosToScreenPos(enemyPos);
+		DrawRotaGraph (pos.x, pos.y, 1.0 * cnt_, 0.0, lockOnImg_, true);
+	}
 	//if (hitFlgP_) {
 
 	//	DrawString(0, 0, "あたった", 0xff00ff);
@@ -533,10 +573,4 @@ void GameScene::Release(void)
 	
 	item_->Release();
 	delete item_;
-}
-
-void GameScene::EnemyToPlayer(void)
-{
-	MATRIX angles = AngleUtility::GetMatrixRotateXYZ(VSub(player_->GetPos(), enemy_->GetPos()));
-	enemy_->SetAngle(VTransform(enemy_->GetAngle(), angles));
 }

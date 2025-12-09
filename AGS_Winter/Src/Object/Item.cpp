@@ -13,25 +13,31 @@ Item::~Item(void)
 {
 }
 
+void Item::InitLoad(void)
+{
+	for (int i = 0; i < static_cast<int>(TYPE::MAX); i++) {
+
+		itemImg_[i] = LoadGraph((Application::PATH_IMAGE + "item_" + std::to_string(i) + ".png").c_str());
+	}
+}
+
 void Item::Init(void)
 {
-	for (int i = 0; i < static_cast<int>(TYPE::MAX); i++){
-				
-		itemImg_[i] = LoadGraph((Application::PATH_IMAGE + "item_" + std::to_string(i) + ".png").c_str());
+	for (int i = 0; i < static_cast<int>(TYPE::MAX); i++) {
 
 		switch (i)
 		{
-			case 0:
+		case 0:
 
 			itemNum_[i] = 10;
 			break;
 
-			case 1:
+		case 1:
 
 			itemNum_[i] = 2;
 			break;
 
-			case 2:
+		case 2:
 
 			itemNum_[i] = 5;
 			break;

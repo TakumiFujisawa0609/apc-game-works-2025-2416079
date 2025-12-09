@@ -11,12 +11,11 @@
 #include "../../Manager/Input/Controller.h"
 
 
-Player::Player(void):angles_(Utility::VECTOR_ZERO), animationController_(nullptr), attackPos1_(), attackPos2_(),autoHealCnt_(0), autoHealHp_(0),
-	dodgeCnt_(), dodgeFlg_(), healCount_(0), hp_(MAX_HP), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(), knockBackDir_(0.0f),
-	modelId_(), moveDir_(Utility::DIR_F), overFlg_(false), pos_(DEFAULT_POS), power_(MAX_POWER), prevPos_(DEFAULT_POS), scales_(Utility::VECTOR_ONE),
-	speed_(6.0f), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(), barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),
-	barStaEY_(), barStaSY_(), damage_(), goodDodge_(), greatDodge_(), guageEX_(),guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(),
-	powerUp_(), powerUpCnt_(), dodgeBottomPos_(), dodgeTopPos_()
+Player::Player(void): ActorBase(), attackPos1_(), attackPos2_(), autoHealCnt_(0), autoHealHp_(0),
+	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(), knockBackDir_(0.0f),
+	overFlg_(false), power_(MAX_POWER), speed_(6.0f), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),
+	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),	barStaEY_(), barStaSY_(), damage_(), goodDodge_(), greatDodge_(), guageEX_(),
+	guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(), powerUp_(), powerUpCnt_(), dodgeBottomPos_(), dodgeTopPos_()
 {
 }
 
@@ -24,82 +23,44 @@ Player::~Player(void)
 {
 }
 
-void Player::Init()
+void Player::InitLoad()
 {
 	//モデルのロード
 	modelId_ = MV1LoadModel((Application::PATH_MODEL + "Player.mv1").c_str());
 	powerGauge_ = LoadSoftImage((Application::PATH_IMAGE + "Power.png").c_str());
 	hpBar_ = LoadSoftImage((Application::PATH_IMAGE + "HpBar.png").c_str());
+}
 
+void Player::InitAnim()
+{
+	//アニメーションのロード
+	animationCtrl_ = new AnimationController(modelId_);
+
+	animationCtrl_->AddInFbx(0, 60.0f, 0);
+			
+	animationCtrl_->Add(1, 60.0f, (Application::PATH_ANIMATION + "Walking.mv1").c_str());
+	animationCtrl_->Add(2, 60.0f, (Application::PATH_ANIMATION + "Run.mv1").c_str());
+	animationCtrl_->Add(3, 90.0f, (Application::PATH_ANIMATION + "Slash.mv1").c_str());
+	animationCtrl_->Add(4, 90.0f, (Application::PATH_ANIMATION + "Slash_1.mv1").c_str());
+	animationCtrl_->Add(5, 90.0f, (Application::PATH_ANIMATION + "Slash_2.mv1").c_str());
+	animationCtrl_->Add(6, 90.0f, (Application::PATH_ANIMATION + "Slash_3.mv1").c_str());
+	animationCtrl_->Add(7, 100.0f, (Application::PATH_ANIMATION + "Dodge.mv1").c_str());
+	animationCtrl_->Add(8, 90.0f, (Application::PATH_ANIMATION + "Hit_Light.mv1").c_str());
+	animationCtrl_->Add(9, 60.0f, (Application::PATH_ANIMATION + "Hit_Heavy.mv1").c_str());
+	animationCtrl_->Add(10, 200.0f, (Application::PATH_ANIMATION + "Hit_Up.mv1").c_str());
+}
+
+void Player::InitOwn()
+{
 	FindHpAndPower();
 
-	//モデルの設定
-	MV1SetPosition(modelId_, pos_);
-	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
-	MV1SetScale(modelId_, scales_);
-	MV1SetupCollInfo(modelId_);
-
-	//アニメーションのロード
-	animationController_ = new AnimationController(modelId_);
-
-	for (int i = 0; i < static_cast<int>(ANIM_TYPE::MAX); i++) {
-		switch (i) {
-		case 0:
+	pos_ = DEFAULT_POS;
+	angles_ = Utility::VECTOR_ZERO;
+	localAngles_ = DIFF_ANGLES;
+	scales_ = Utility::VECTOR_ONE;
 	
-			animationController_->AddInFbx(i, 60.0f, i);
-			break;
+	hp_ = MAX_HP;
 
-		case 1:
-
-			animationController_->Add(i, 60.0f, (Application::PATH_ANIMATION + "Walking.mv1").c_str());
-			break;
-
-		case 2:
-
-			animationController_->Add(i, 60.0f, (Application::PATH_ANIMATION + "Run.mv1").c_str());
-			break;
-		
-		case 3:
-
-			animationController_->Add(i, 90.0f, (Application::PATH_ANIMATION + "Slash.mv1").c_str());
-			break;	
-	
-		case 4:
-
-			animationController_->Add(i, 90.0f, (Application::PATH_ANIMATION + "Slash_1.mv1").c_str());
-			break;	
-	
-		case 5:
-
-			animationController_->Add(i, 90.0f, (Application::PATH_ANIMATION + "Slash_2.mv1").c_str());
-			break;	
-			
-		case 6:
-
-			animationController_->Add(i, 90.0f, (Application::PATH_ANIMATION + "Slash_3.mv1").c_str());
-			break;	
-
-		case 7:
-
-			animationController_->Add(i, 100.0f, (Application::PATH_ANIMATION + "Dodge.mv1").c_str());
-			break;
-
-		case 8:
-
-			animationController_->Add(i, 90.0f, (Application::PATH_ANIMATION + "Hit_Light.mv1").c_str());
-			break;	
-			
-		case 9:
-
-			animationController_->Add(i, 60.0f, (Application::PATH_ANIMATION + "Hit_Heavy.mv1").c_str());
-			break;	
-
-		case 10:
-
-			animationController_->Add(i, 200.0f, (Application::PATH_ANIMATION + "Hit_Up.mv1").c_str());
-			break;
-		}
-	}
 	ChangeState(STATE::WAIT);
 }
 
@@ -153,7 +114,7 @@ void Player::Update(void)
 	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
 	MV1SetScale(modelId_, scales_);
 
-	animationController_->Update();
+	animationCtrl_->Update();
 	MV1SetupCollInfo(modelId_);
 }
 
@@ -244,24 +205,15 @@ void Player::Draw(void)
 	//for (int i = 0; i < static_cast<int>(Controller::JOYPAD_BTN::MAX); i++) {
 	//	DrawFormatString(0, 20 * i, 0x000000, "%d", padState.IsTrgDown[i]);
 	//}
-	//DrawFormatString(50, 15, 0xfffff , "%.2f", animationController_->GetTime());
+	//DrawFormatString(50, 15, 0xfffff , "%.2f", animationCtrl_->GetTime());
 }
 
 void Player::Release(void)
 {
-	//アニメーションコントローラーのリリース
-	animationController_->Release();
-	delete animationController_;
+	ActorBase::Release();
 
-	//モデルの削除
-	MV1DeleteModel(modelId_);
 	DeleteSoftImage(hpBar_);
 	DeleteSoftImage(powerGauge_);
-}
-
-void Player::DrawModel(void) const
-{
-	MV1DrawModel(modelId_);
 }
 
 void Player::Damage(int damage, float dir)
@@ -289,7 +241,7 @@ void Player::Damage(int damage, float dir)
 
 bool Player::Healable(void) const
 {
-	return animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::IDLE) || animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::WALK) || animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::RUN);
+	return animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::IDLE) || animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::WALK) || animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::RUN);
 }
 
 bool Player::IsCollisionState(void)
@@ -629,7 +581,7 @@ void Player::ChangeWait(void)
 		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
 	}
 	//待機モーション
-	animationController_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
+	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
 }
 
 void Player::ChangeMove(void)
@@ -647,7 +599,7 @@ void Player::ChangeAttack(void)
 		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
 	}
 	//攻撃モーション
-	animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK), false);
+	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK), false);
 	isAttack_ = true;
 }
 
@@ -662,7 +614,7 @@ void Player::ChangeCombo(void)
 		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
 	}
 	//攻撃モーション
-	animationController_->Play(static_cast<int>(ANIM_TYPE::COMBO_1), false);
+	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_1), false);
 	isAttack_ = true;
 }
 
@@ -676,7 +628,7 @@ void Player::ChangeDodge(void)
 
 		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
 	}
-	animationController_->Play(static_cast<int>(ANIM_TYPE::DODGE), false);
+	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DODGE), false);
 	dodgeCnt_ = 0;
 	dodgeFlg_ = true;
 	if (!isStaminaMax_) {
@@ -695,7 +647,7 @@ void Player::ChangeDamagedLight(void)
 
 		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
 	}
-	animationController_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_LIGHT), false);
+	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_LIGHT), false);
 }
 
 void Player::ChangeDamagedHeavy(void)
@@ -708,7 +660,7 @@ void Player::ChangeDamagedHeavy(void)
 
 		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
 	}
-	animationController_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY), false);
+	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY), false);
 }
 
 void Player::UpdateWait(void)
@@ -821,7 +773,7 @@ void Player::UpdateMove(void)
 			if (stamina_ > 0.0f) {
 
 				//移動モーション
-				animationController_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
+				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
 				
 				if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
 
@@ -843,7 +795,7 @@ void Player::UpdateMove(void)
 			else {
 
 				//移動モーション
-				animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
+				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 				
 				if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
@@ -860,7 +812,7 @@ void Player::UpdateMove(void)
 		else {
 
 			//移動モーション
-			animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
+			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 			
 			if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
@@ -907,19 +859,19 @@ void Player::UpdateMove(void)
 
 void Player::UpdateAttack(void)
 {
-	if (animationController_->GetTime() >= 61.0f && animationController_->GetTime() <= 62.0f) {
+	if (animationCtrl_->GetTime() >= 61.0f && animationCtrl_->GetTime() <= 62.0f) {
 		
 		isAttack_ = true;
 	}
-	if (animationController_->GetTime() >= 92.0f && animationController_->GetTime() <= 93.0f) {
+	if (animationCtrl_->GetTime() >= 92.0f && animationCtrl_->GetTime() <= 93.0f) {
 
 		isAttack_ = false;
 	}
-	if (animationController_->GetTime() >= 115.0f && animationController_->GetTime() <= 116.0f) {
+	if (animationCtrl_->GetTime() >= 115.0f && animationCtrl_->GetTime() <= 116.0f) {
 
 		isAttack_ = true;
 	}
-	if (animationController_->GetTime() <= 138.0f) {
+	if (animationCtrl_->GetTime() <= 138.0f) {
 	
 		//移動させる
 		pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 0.2f));
@@ -930,7 +882,7 @@ void Player::UpdateAttack(void)
 		isAttack_ = true;
 	}
 
-	if (animationController_->IsEnd()) {
+	if (animationCtrl_->IsEnd()) {
 
 		isAttack_ = false;
 		//待機モーションに移行
@@ -944,32 +896,32 @@ void Player::UpdateCombo(void)
 	//ゲームパッドの情報を取得
 	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
-	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_1)) {
-		if (animationController_->GetTime() >= 67.5f) {
+	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_1)) {
+		if (animationCtrl_->GetTime() >= 67.5f) {
 			
 			isAttack_ = false;
 
 			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
 				isAttack_ = true;
-				animationController_->Play(static_cast<int>(ANIM_TYPE::COMBO_2), false);
+				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_2), false);
 			}
 		}
 	}
-	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_2)) {
-		if (animationController_->GetTime() >= 75.0f) {
+	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_2)) {
+		if (animationCtrl_->GetTime() >= 75.0f) {
 			
 			isAttack_ = false;
 
 			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
 				isAttack_ = true;
-				animationController_->Play(static_cast<int>(ANIM_TYPE::COMBO_3), false);
+				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_3), false);
 				damage_ *= 1.1;
 			}
 		}
 	}
-	if (animationController_->IsEnd()) {
+	if (animationCtrl_->IsEnd()) {
 
 		isAttack_ = false;
 		//待機モーションに移行
@@ -1003,7 +955,7 @@ void Player::UpdateDodge(void)
 		}
 	}
 
-	if (animationController_->IsEnd()) {
+	if (animationCtrl_->IsEnd()) {
 
 		//待機モーションに移行
 		ChangeState(STATE::WAIT);
@@ -1014,7 +966,7 @@ void Player::UpdateDodge(void)
 
 void Player::UpdateDamagedLight(void)
 {
-	if (animationController_->GetTime() >= 40) {
+	if (animationCtrl_->GetTime() >= 40) {
 
 		ChangeState(STATE::WAIT);
 	}
@@ -1025,19 +977,19 @@ void Player::UpdateDamagedHeavy(void)
 	static int steps = 0;
 	static bool prevPause = false;
 
-	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY)) {
-		if (animationController_->GetTime() <= 110) {
+	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY)) {
+		if (animationCtrl_->GetTime() <= 110) {
 
 			KnockBack();
 		}
 		if (!prevPause){
-			if (animationController_->GetTime() >= 130) {
+			if (animationCtrl_->GetTime() >= 130) {
 				
 				prevPause = true;
-				animationController_->ChangePause(true);
+				animationCtrl_->ChangePause(true);
 			}
 		}
-		if (animationController_->IsPause()) {
+		if (animationCtrl_->IsPause()) {
 
 			steps++;
 
@@ -1048,19 +1000,19 @@ void Player::UpdateDamagedHeavy(void)
 			if (padState.Anyone || steps >= 90) {
 
 				steps = 0;
-				animationController_->ChangePause(false);
+				animationCtrl_->ChangePause(false);
 			}
 		}
-		if (animationController_-> GetTime() >= 160) {
+		if (animationCtrl_-> GetTime() >= 160) {
 
 			prevPause = false;
-			animationController_->Play(static_cast<int>(ANIM_TYPE::STAND_UP), false);
+			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::STAND_UP), false);
 		}
 	}
 
 
-	if (animationController_->GetPlayType() == static_cast<int>(ANIM_TYPE::STAND_UP)) {
-		if (animationController_->GetTime() >= 210) {
+	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::STAND_UP)) {
+		if (animationCtrl_->GetTime() >= 210) {
 
 			ChangeState(STATE::WAIT);
 		}

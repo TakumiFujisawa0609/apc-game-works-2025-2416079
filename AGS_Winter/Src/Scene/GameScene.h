@@ -5,7 +5,7 @@
 
 class SceneManager;
 class Stage;
-class EnemyBase;
+class Enemy;
 class Player;
 class Item;
 
@@ -23,12 +23,16 @@ public:
 	// デストラクタ
 	~GameScene(void);
 
+	//ロード
+	void InitLoad(void) override;
+	//その他の初期化
 	void Init(void) override;
+	//更新
 	void Update(void) override;
+	//描画
 	void Draw(void) override;
+	//解放
 	void Release(void) override;
-	
-	void EnemyToPlayer(void);
 
 private:
 
@@ -49,7 +53,7 @@ private:
 
 	// ステージ
 	Stage* stage_;
-	EnemyBase* enemy_;
+	Enemy* enemy_;
 	Player* player_;
 	Item* item_;
 
@@ -63,6 +67,10 @@ private:
 
 	bool isFirst_;
 	bool isLockon_;
+
+	int lockOnImg_;
+	bool cntDown_;
+	int cnt_;
 
 	void Collision(void);
 	void CollisionStage(CollisionData data);

@@ -1,12 +1,12 @@
 #pragma once
 #include <vector>
 #include <DxLib.h>
+#include "ActorBase.h"
 
 
-class AnimationController;
 class Player;
 
-class EnemyBase
+class Enemy : public ActorBase
 {
 public:
 
@@ -32,41 +32,42 @@ public:
 		MAX,
 	};
 
+	//初期値
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 1000.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
 	static constexpr VECTOR SCALE = { 6.0f, 6.0f, 6.0f };
 	static constexpr float SPEED = 8.5f;
+	
+	//攻撃の予備動作や後隙には当たらない場所に飛ばす
+	static constexpr VECTOR ATTACK = { -100000.0f, -10000.0f, -100000.0f };
+	//遠距離攻撃の頭の位置
 	static constexpr VECTOR ATTACK_POS_A = { 0.0f, 250.0f, 325.0f };
-	static constexpr float ATTACK_RADIUS = 35.0f;
-	static constexpr int MAX_HP = 500;
+	//遠距離攻撃の速さ
 	static constexpr float ATTACK_SPEED = 28.0f;
+	//攻撃範囲
+	static constexpr float ATTACK_RADIUS = 35.0f;
+
+	//体力
+	static constexpr int MAX_HP = 650;
 
 	// コンストラクタ
-	EnemyBase(Player* pl);
+	Enemy(Player* pl);
 	// デストラクタ
-	~EnemyBase(void);
+	~Enemy(void);
 
-	// 初期処理
-	void Init();
+	// ロード
+	void InitLoad() override;
+	//アニメーションの初期化
+	void InitAnim() override;
+	//その他の初期化
+	void InitOwn() override;
 	// 更新処理
-	void Update(void);
+	void Update(void) override;
 	// 状態遷移
 	void ChangeState(STATE state);
 	// 描画処理
-	void Draw(void) const;
-	//モデルの描画
-	void DrawModel(void) const;
-	// 解放処理
-	void Release(void);
+	void Draw(void) override;
 
-	//モデルの取得
-	int GetModelId(void) const { return modelId_; }
-
-	// 座標取得
-	VECTOR GetPos(void) const { return pos_; }
-	VECTOR GetPrevPos(void) const { return prevPos_; }
-	void SetPos(VECTOR pos) { pos_ = pos; }
-	
 	// 角度取得
 	VECTOR GetAngle(void) const { return angles_; }
 	// 角度設定
@@ -96,35 +97,19 @@ public:
 
 protected:
 
-	// アニメーションコントローラ
-	AnimationController* animationController_;
 	//ゲームシーン
 	Player* player_;
 	// 状態
 	STATE state_;
 
-	// モデルのハンドルID
-	int modelId_;
-
-	// 座標
-	VECTOR pos_;
-	VECTOR prevPos_;
-
 	// 角度
-	VECTOR angles_;
 	VECTOR targetAngles_;
-
-	// 移動方向
-	VECTOR moveDir_;
 
 	//攻撃判定の中心
 	VECTOR attackPrevPos_;
 	VECTOR attackPos1_;
 	VECTOR attackPos2_;
 	VECTOR attackDir_;
-
-	// HP
-	int hp_;
 
 	bool clearFlg_;
 

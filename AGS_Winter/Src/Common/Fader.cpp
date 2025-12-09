@@ -2,6 +2,7 @@
 #include "../Application.h"
 #include "Fader.h"
 
+
 Fader::STATE Fader::GetState(void) const
 {
 	return state_;

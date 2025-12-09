@@ -81,6 +81,7 @@ private:
 
 	// シーン遷移中判定
 	bool isSceneChanging_;
+	bool isLoad_;
 
 	// デルタタイム
 	std::chrono::system_clock::time_point preTime_;

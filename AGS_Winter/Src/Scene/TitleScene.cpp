@@ -17,9 +17,13 @@ TitleScene::~TitleScene(void)
 {
 }
 
-void TitleScene::Init(void)
+void TitleScene::InitLoad(void)
 {
 	imgTitle_ = LoadGraph((Application::PATH_IMAGE + "Title.png").c_str());
+}
+
+void TitleScene::Init(void)
+{
 	//imgBg_ = LoadGraph((Application::PATH_IMAGE + "Background.png").c_str());
 	AudioManager::GetInstance()->LoadSceneSound(LoadScene::TITLE);
 	AudioManager::GetInstance()->PlayBGM(SoundID::BGM_TITLE);

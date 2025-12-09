@@ -15,6 +15,10 @@ GameClear::~GameClear(void)
 {
 }
 
+void GameClear::InitLoad(void)
+{
+}
+
 void GameClear::Init(void)
 {
 	//imgTitle_ = LoadGraph((Application::PATH_IMAGE + "Title.png").c_str());

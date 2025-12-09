@@ -1,11 +1,12 @@
 #pragma once
 #include <vector>
 #include <DxLib.h>
+#include "ActorBase.h"
 
 
 class AnimationController;
 
-class Player
+class Player : public ActorBase
 {
 public:
 
@@ -56,26 +57,20 @@ public:
 	// デストラクタ
 	~Player(void);
 
-	// 初期処理
-	void Init();
+	// ロード
+	void InitLoad() override;
+	//アニメーションの初期化
+	void InitAnim() override;
+	//その他の初期化
+	void InitOwn() override;
 	// 更新処理
-	void Update(void);
+	void Update(void) override;
 	// 状態遷移
 	void ChangeState(STATE state);
 	// 描画処理
-	void Draw(void);
-	//モデルの描画
-	void DrawModel(void) const;
+	void Draw(void) override;
 	// 解放処理
-	void Release(void);
-
-	//モデルの取得
-	int GetModelId(void) const { return modelId_; }
-
-	// 座標取得
-	VECTOR GetPos(void) const { return pos_; }
-	VECTOR GetPrevPos(void) const { return prevPos_; }
-	void SetPos(VECTOR pos) { pos_ = pos;}
+	void Release(void) override;
 
 	//攻撃座標の取得
 	VECTOR GetAttackStartPos(void) const { return attackPos1_; }
@@ -111,23 +106,9 @@ public:
 
 protected:
 
-	// アニメーションコントローラ
-	AnimationController* animationController_;
 	// 状態
 	STATE state_;
 
-	// モデルのハンドルID
-	int modelId_;
-
-	// 座標
-	VECTOR pos_;
-	VECTOR prevPos_;
-	// 角度
-	VECTOR angles_;
-	// 大きさ
-	VECTOR scales_;
-	// 移動方向
-	VECTOR moveDir_;
 	// 移動速度
 	float speed_;
 	//攻撃判定の始点と終点
@@ -137,7 +118,6 @@ protected:
 	float knockBackDir_;
 
 	// HP
-	int hp_;
 	bool isHeal_;
 	bool isHealMax_;
 	int healCount_;

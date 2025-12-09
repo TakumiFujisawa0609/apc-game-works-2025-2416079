@@ -5,44 +5,53 @@
 #include "../Common/AnimationController.h"
 #include "../../Manager/SceneManager.h"
 #include "Player.h"
-#include "EnemyBase.h"
+#include "Enemy.h"
 
 
-EnemyBase::EnemyBase(Player* pl):angles_(), animationController_(nullptr), attackAFlg_(false), attackBFlg_(false), attackCFlg_(false),
+Enemy::Enemy(Player* pl): ActorBase(), attackAFlg_(false), attackBFlg_(false), attackCFlg_(false),
 	attackDiff_(120), attackDir_(), attackPos1_(Utility::VECTOR_ZERO), attackPos2_(Utility::VECTOR_ZERO), attackPrevPos_(Utility::VECTOR_ZERO),
-	attackShowFlg_(false), clearFlg_(false), cnt_(0), coolDown_(0), hp_(MAX_HP), isCoolDown_(false), modelId_(-1), moveDir_(Utility::VECTOR_ZERO),
-	player_(pl), pos_(DEFAULT_POS), prevPos_(DEFAULT_POS), state_(STATE::WAIT), targetAngles_()
+	attackShowFlg_(false), clearFlg_(false), cnt_(0), coolDown_(0), isCoolDown_(false),	player_(pl), state_(STATE::WAIT), targetAngles_()
 {
 }
 
-EnemyBase::~EnemyBase(void)
+Enemy::~Enemy(void)
 {
 }
 
-void EnemyBase::Init()
+void Enemy::InitLoad()
 {
 	modelId_ = MV1LoadModel((Application::PATH_MODEL + "Wolf.mv1").c_str());
+}
 
-	animationController_ = new AnimationController(modelId_);
+void Enemy::InitAnim()
+{
+	animationCtrl_ = new AnimationController(modelId_);
 
-	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_A), 45, 0);
-	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_B), 45, 1);
-	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_C), 45, 2);
-	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::IDLE), 30, 3);
-	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::WALK), 45, 6);
-	animationController_->AddInFbx(static_cast<int>(ANIM_TYPE::RUN), 60, 4);
+	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_A), 45, 0);
+	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_B), 45, 1);
+	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_C), 45, 2);
+	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::IDLE), 30, 3);
+	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::WALK), 45, 6);
+	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::RUN), 60, 4);
+}
+
+void Enemy::InitOwn()
+{
+	pos_ = DEFAULT_POS;
+	prevPos_ = pos_;
 
 	DirectionPlayer();
 	angles_ = targetAngles_;
+	localAngles_ = DIFF_ANGLES;
 
-	MV1SetPosition(modelId_, pos_);
-	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
-	MV1SetScale(modelId_, SCALE);
+	scales_ = SCALE;
 
-	MV1SetupCollInfo(modelId_);
+	moveDir_ = Utility::DIR_B;
+
+	hp_ = MAX_HP;
 }
 
-void EnemyBase::Update(void)
+void Enemy::Update(void)
 {
 	//前のステータスを持っておく
 	prevPos_ = pos_;
@@ -50,29 +59,29 @@ void EnemyBase::Update(void)
 	//ステータス別の更新
 	switch (state_)
 	{
-	case EnemyBase::STATE::WAIT:
+	case Enemy::STATE::WAIT:
 		
 		UpdateWait();
 		break;
 
-	case EnemyBase::STATE::MOVE:
+	case Enemy::STATE::MOVE:
 		
 		UpdateMove();
 		break;
 
-	case EnemyBase::STATE::ATTACK:
+	case Enemy::STATE::ATTACK:
 		
 		UpdateAttack();
 		break;
 
-	case EnemyBase::STATE::ESCAPE:
+	case Enemy::STATE::ESCAPE:
 		
 		UpdateEscape();
 		break;
 	}
 
 	//モデルの更新
-	animationController_->Update();
+	animationCtrl_->Update();
 	MV1SetPosition(modelId_, pos_);
 
 	//HPがゼロならクリア
@@ -84,42 +93,42 @@ void EnemyBase::Update(void)
 	MV1RefreshCollInfo(modelId_);
 }
 
-void EnemyBase::ChangeState(STATE state)
+void Enemy::ChangeState(STATE state)
 {
 	state_ = state;
 
 	//ステータス変更時の初期化
 	switch (state_)
 	{
-	case EnemyBase::STATE::WAIT:
+	case Enemy::STATE::WAIT:
 
 		ChangeWait();
 		break;
 
-	case EnemyBase::STATE::MOVE:
+	case Enemy::STATE::MOVE:
 
 		ChangeMove();
 		break;
 
-	case EnemyBase::STATE::ATTACK:
+	case Enemy::STATE::ATTACK:
 		
 		ChangeAttack();
 		break;
 
-	case EnemyBase::STATE::ESCAPE:
+	case Enemy::STATE::ESCAPE:
 		
 		ChangeEscape();
 		break;
 	}
 }
 
-void EnemyBase::Draw(void) const
+void Enemy::Draw(void)
 {
 	//DrawFormatString(Application::SCREEN_SIZE_X - 100, 20, 0x000000, "%.2f", (300.0f - cnt_) / 60.0f, SetFontSize(25));
 	//DrawFormatString(100, 20, 0x000000, "%.2f", angles_.y, SetFontSize(25));
 
 	if (attackAFlg_ && attackShowFlg_) {
-	
+
 		DrawSphere3D(attackPos1_, ATTACK_RADIUS, 16, 0xffaa55, 0xffaa55, true);
 		//DrawCapsule3D(attackPos1_, attackPos2_, 10.0f, 16, 0x00ffff, 0x00ffff, true);
 	}
@@ -133,20 +142,7 @@ void EnemyBase::Draw(void) const
 	//}
 }
 
-void EnemyBase::Release(void)
-{
-	animationController_->Release();
-	delete animationController_;
-
-	MV1DeleteModel(modelId_);
-}
-
-void EnemyBase::DrawModel(void) const
-{
-	MV1DrawModel(modelId_);
-}
-
-bool EnemyBase::IsAttack(void) const
+bool Enemy::IsAttack(void) const
 {
 	if (attackAFlg_ || attackBFlg_ || attackCFlg_) {
 
@@ -158,13 +154,13 @@ bool EnemyBase::IsAttack(void) const
 	}
 }
 
-void EnemyBase::DirectionPlayer(void)
+void Enemy::DirectionPlayer(void)
 {
 	VECTOR dir = VSub(player_->GetPos(), pos_);
 	targetAngles_.y = atan2f(dir.x, dir.z);
 }
 
-bool EnemyBase::Turn(void)
+bool Enemy::Turn(void)
 {
 	//ターゲットの角度までゆっくり動く
 	angles_.y = AngleUtility::LerpAngle(angles_.y, targetAngles_.y, 0.1f);
@@ -179,19 +175,19 @@ bool EnemyBase::Turn(void)
 		if (state_ != STATE::ATTACK) {
 		
 			//攻撃中以外軸合わせは歩きモーション使う
-			animationController_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
+			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 		}
 
 		return false;
 	}
 }
 
-void EnemyBase::ChangeWait(void)
+void Enemy::ChangeWait(void)
 {
 	attackDiff_ = GetRand(120) + 120;
 }
 
-void EnemyBase::ChangeMove(void)
+void Enemy::ChangeMove(void)
 {
 	DirectionPlayer();
 	Turn();
@@ -201,43 +197,43 @@ void EnemyBase::ChangeMove(void)
 	moveDir_.z = cosf(targetAngles_.y);
 }
 
-void EnemyBase::ChangeAttack(void)
+void Enemy::ChangeAttack(void)
 {
+	attackPos1_ = attackPos2_ = { -100000.0f, -10000.0f, -100000.0f };
+
 	if (VSize(VSub(player_->GetPos(), pos_)) >= 600.0f) {
 
-		animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK_A), false);
+		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_A), false);
 
 		attackAFlg_ = true;
 	}
 	else {
 		if (GetRand(1) == 1) {
 
-			animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK_B), false);
+			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_B), false);
 
 			attackBFlg_ = true;
 		}
 		else {
 
-			animationController_->Play(static_cast<int>(ANIM_TYPE::ATTACK_C), false);
-
-			attackPos1_ = attackPos2_ = { 0.0f, -10000.0f, 0.0f };
+			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_C), false);
 
 			attackCFlg_ = true;
 		}
 	}
 }
 
-void EnemyBase::ChangeEscape(void)
+void Enemy::ChangeEscape(void)
 {
 }
 
-void EnemyBase::UpdateWait(void)
+void Enemy::UpdateWait(void)
 {
 	DirectionPlayer();
 	
 	if (Turn()) {
 
-		animationController_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
+		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
 	}
 
 	cnt_++;
@@ -254,7 +250,7 @@ void EnemyBase::UpdateWait(void)
 	}
 }
 
-void EnemyBase::UpdateMove(void)
+void Enemy::UpdateMove(void)
 {
 	if (!Turn()) {
 
@@ -263,7 +259,7 @@ void EnemyBase::UpdateMove(void)
 
 	float prevDist = fabsf(VSize(VSub(player_->GetPos(), pos_)));
 
-	animationController_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
+	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
 
 	pos_.x += moveDir_.x * SPEED;
 	pos_.z += moveDir_.z * SPEED;
@@ -278,7 +274,7 @@ void EnemyBase::UpdateMove(void)
 	}
 }
 
-void EnemyBase::UpdateAttack(void)
+void Enemy::UpdateAttack(void)
 {
 	if (attackAFlg_) {
 		
@@ -298,11 +294,11 @@ void EnemyBase::UpdateAttack(void)
 	}
 }
 
-void EnemyBase::UpdateAttackA(void)
+void Enemy::UpdateAttackA(void)
 {
 	attackPrevPos_ = attackPos1_;
 
-	if (animationController_->GetTime() >= 33) {
+	if (animationCtrl_->GetTime() >= 33) {
 
 		attackPos1_ = VAdd(attackPos1_, VScale(attackDir_, ATTACK_SPEED));
 
@@ -324,30 +320,40 @@ void EnemyBase::UpdateAttackA(void)
 	//attackPos2_ = VAdd(attackPos1_, attackDir_);
 }
 
-void EnemyBase::UpdateAttackB(void)
+void Enemy::UpdateAttackB(void)
 {
-	attackPos1_ = MV1GetFramePosition(modelId_, 57);
-	attackPos2_ = MV1GetFramePosition(modelId_, 59);
+	if (animationCtrl_->GetTime() >= 50) {
 
-	if (animationController_->IsEnd()) {
+		attackPos1_ = attackPos2_ = { -100000.0f, -10000.0f, -100000.0f };
+	}
+	else if (animationCtrl_->GetTime() >= 26) {
+	
+		attackPos1_ = MV1GetFramePosition(modelId_, 57);
+		attackPos2_ = MV1GetFramePosition(modelId_, 59);
+	}
+	if (animationCtrl_->IsEnd()) {
 
 		attackBFlg_ = false;
 	}
 }
 
-void EnemyBase::UpdateAttackC(void)
+void Enemy::UpdateAttackC(void)
 {
-	if (animationController_->GetTime() >= 14) {
+	if (animationCtrl_->GetTime() >= 50) {
+
+		attackPos1_ = attackPos2_ = { -100000.0f, -10000.0f, -100000.0f };
+	}
+	else if (animationCtrl_->GetTime() >= 30) {
 
 		attackPos1_ = MV1GetFramePosition(modelId_, 6);
 		attackPos2_ = MV1GetFramePosition(modelId_, 16);
 	}
-	if (animationController_->IsEnd()) {
+	if (animationCtrl_->IsEnd()) {
 
 		attackCFlg_ = false;
 	}
 }
 
-void EnemyBase::UpdateEscape(void)
+void Enemy::UpdateEscape(void)
 {
 }
