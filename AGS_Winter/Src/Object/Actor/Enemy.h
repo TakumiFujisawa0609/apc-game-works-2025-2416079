@@ -48,7 +48,7 @@ public:
 	static constexpr float ATTACK_RADIUS = 35.0f;
 
 	//体力
-	static constexpr int MAX_HP = 650;
+	static constexpr int MAX_HP =1;
 
 	// コンストラクタ
 	Enemy(Player* pl);
@@ -66,7 +66,7 @@ public:
 	// 状態遷移
 	void ChangeState(STATE state);
 	// 描画処理
-	void Draw(void) override;
+	void Draw(void) const override;
 
 	// 角度取得
 	VECTOR GetAngle(void) const { return angles_; }
@@ -91,6 +91,8 @@ public:
 	void Damage(int damage) { hp_ -= damage; }
 
 	bool ClearFlg(void) const { return clearFlg_; }
+
+	AnimationController* GetEnemyAnim(void) { return animationCtrl_; }
 	//// 衝突判定が有効な状態
 	//bool IsCollisionState(void);
 	//bool IsAttackA(void);

@@ -55,7 +55,12 @@ public:
 	Camera* GetCamera(void) const { return camera_; }
 	SceneBase* GetSceneBase(void) { return scene_; }
 
+	void SetResultImage(void) const;
+	int GetResultImage(void) const { return resultImg_; }
+
 private:
+
+	int resultImg_;
 
 	// 静的インスタンス
 	static SceneManager* instance_;

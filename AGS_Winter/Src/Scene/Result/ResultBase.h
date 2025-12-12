@@ -1,18 +1,18 @@
 #pragma once
-#include "SceneBase.h"
+#include "../SceneBase.h"
 
 
 class SceneManager;
 
-class GameClear : public SceneBase
+class ResultBase : public SceneBase
 {
 
 public:
 
 	// コンストラクタ
-	GameClear(void);
+	ResultBase(void);
 	// デストラクタ
-	~GameClear(void);
+	~ResultBase(void);
 
 	//ロード
 	void InitLoad(void) override;
@@ -27,7 +27,5 @@ public:
 
 private:
 
-	// 画像
-	int imgTitle_;
-	int imgBg_;
+	int resultImg_;
 };

@@ -22,5 +22,5 @@ public:
 	void Update(void) override {};
 
 	//•`‰æ
-	void Draw(void) override {};
+	void Draw(void) const override {};
 };

@@ -24,7 +24,7 @@ void ActorBase::Init()
 	InitModel();
 }
 
-void ActorBase::InitModel()
+void ActorBase::InitModel() const
 {
 	//èÍèäèîÅXÇÃèâä˙âª
 	MV1SetPosition(modelId_, pos_);
@@ -35,12 +35,12 @@ void ActorBase::InitModel()
 	MV1SetupCollInfo(modelId_);
 }
 
-void ActorBase::DrawModel()
+void ActorBase::DrawModel() const
 {
 	MV1DrawModel(modelId_);
 }
 
-void ActorBase::Release()
+void ActorBase::Release() const
 {
 	if (animationCtrl_ != nullptr) {
 	

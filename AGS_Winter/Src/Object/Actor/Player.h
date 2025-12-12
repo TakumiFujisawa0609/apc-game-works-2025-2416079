@@ -20,6 +20,7 @@ public:
 		DOGDE,
 		DAMAGED_LIGHT,
 		DAMAGED_HEAVY,
+		KO,
 		END,
 	};
 
@@ -37,13 +38,15 @@ public:
 		DAMAGED_LIGHT,
 		DAMAGED_HEAVY,
 		STAND_UP,
+		KO_MOVE,
+		KO,
 		MAX,
 	};
 
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, -500.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
 	static constexpr VECTOR SWORD_POS = { 77.5f, 27.5f, -10.0f };
-	static constexpr int MAX_HP = 100;
+	static constexpr int MAX_HP = 1;
 	static constexpr int HEAL_COUNT = 15;
 	static constexpr float MAX_STAMINA = 1000.0f;
 	static constexpr float DOGDE_STAMINA = 100.0f;
@@ -68,9 +71,11 @@ public:
 	// èÛë‘ëJà⁄
 	void ChangeState(STATE state);
 	// ï`âÊèàóù
-	void Draw(void) override;
+	void Draw(void) const  override;
 	// âï˙èàóù
-	void Release(void) override;
+	void Release(void) const  override;
+
+	VECTOR GetAngle(void) const { return angles_; }
 
 	//çUåÇç¿ïWÇÃéÊìæ
 	VECTOR GetAttackStartPos(void) const { return attackPos1_; }
@@ -88,7 +93,6 @@ public:
 	int GetPower(void) const { return damage_; }
 
 	// è’ìÀîªíËÇ™óLå¯Ç»èÛë‘
-	bool IsCollisionState(void);
 	bool IsAttackMotion(void) const;
 	
 	bool IsHit(void) const;
@@ -100,9 +104,14 @@ public:
 	void GreatDodge(void);
 	void GoodDodge(void);
 
-	bool SuccessDodge(void) { return greatDodge_ || goodDodge_; }
+	bool SuccessDodge(void) const { return greatDodge_ || goodDodge_; }
 
 	bool OverFlg(void) const { return overFlg_; }
+
+	AnimationController* GetPlayerAnim(void) const { return animationCtrl_; }
+
+	double GetBuff(void) const { return buff_; }
+	void ResetBuff(void) { buff_ = 1.0; }
 
 protected:
 
@@ -142,6 +151,7 @@ protected:
 	bool powerUp_;
 	int powerUpCnt_;
 	int damage_;
+	double buff_;
 
 	int powerGauge_;
 	float guageSX_, guageSY_;
@@ -161,16 +171,17 @@ protected:
 	void KnockBack(void);
 
 	void FindHpAndPower(void);
-	void DrawHpAndPower(void);
+	void DrawHpAndPower(void) const;
 
 	// èÛë‘ëJà⁄
-	void ChangeWait(void);
-	void ChangeMove(void);
+	void ChangeWait(void) const;
+	void ChangeMove(void) const;
 	void ChangeAttack(void);
 	void ChangeCombo(void);
 	void ChangeDodge(void);
-	void ChangeDamagedLight(void);
-	void ChangeDamagedHeavy(void);
+	void ChangeDamagedLight(void) const;
+	void ChangeDamagedHeavy(void) const;
+	void ChangeKO(void) const;
 
 	// èÛë‘ï çXêV
 	void UpdateWait(void);
@@ -180,4 +191,5 @@ protected:
 	void UpdateDodge(void);
 	void UpdateDamagedLight(void);
 	void UpdateDamagedHeavy(void);
+	void UpdateKO(void);
 };

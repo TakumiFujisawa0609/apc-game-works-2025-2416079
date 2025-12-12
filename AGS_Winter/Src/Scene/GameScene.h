@@ -18,6 +18,9 @@ public:
 	static constexpr float COLLISION_STAGE_DIFF = 25.0f;
 	static constexpr float COLLISION_CAMERA_DIFF = 3.0f;
 
+	static constexpr float DEFAULT_TILT = 0.3f;
+	static constexpr float DEFAULT_YAW = 0.0f;
+
 	// コンストラクタ
 	GameScene(void);
 	// デストラクタ
@@ -40,8 +43,7 @@ private:
 
 		PLAYER,
 		ENEMY,
-		ENEMY_ATTACK,
-		CAMERA
+		ENEMY_ATTACK
 	};
 
 	struct CollisionData {
@@ -57,6 +59,9 @@ private:
 	Player* player_;
 	Item* item_;
 
+	int failedImg_;
+	int clearImg_;
+
 	int shadowMap_;
 
 	bool hitFlgP_;
@@ -65,16 +70,18 @@ private:
 	float yaw_;
 	float pitch_;
 
-	bool isFirst_;
 	bool isLockon_;
 
 	int lockOnImg_;
 	bool cntDown_;
 	int cnt_;
 
+	bool changeFlg_;
+	int changeCnt_;
+
 	void Collision(void);
 	void CollisionStage(CollisionData data);
-	void CollisionCamera(CollisionData data);
 	void GameCamera(void);
+	void SetCameraPos(VECTOR targetPos, float diff);
 	void Effect(MV1_COLL_RESULT_POLY dim);
 };

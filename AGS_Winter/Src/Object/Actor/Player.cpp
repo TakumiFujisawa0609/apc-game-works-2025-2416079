@@ -13,9 +13,9 @@
 
 Player::Player(void): ActorBase(), attackPos1_(), attackPos2_(), autoHealCnt_(0), autoHealHp_(0),
 	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(), knockBackDir_(0.0f),
-	overFlg_(false), power_(MAX_POWER), speed_(6.0f), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),
+	overFlg_(false), power_(MAX_POWER), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),
 	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),	barStaEY_(), barStaSY_(), damage_(), goodDodge_(), greatDodge_(), guageEX_(),
-	guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(), powerUp_(), powerUpCnt_(), dodgeBottomPos_(), dodgeTopPos_()
+	guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(), powerUp_(), powerUpCnt_(), dodgeBottomPos_(), dodgeTopPos_(), buff_(1.0)
 {
 }
 
@@ -48,6 +48,7 @@ void Player::InitAnim()
 	animationCtrl_->Add(8, 90.0f, (Application::PATH_ANIMATION + "Hit_Light.mv1").c_str());
 	animationCtrl_->Add(9, 60.0f, (Application::PATH_ANIMATION + "Hit_Heavy.mv1").c_str());
 	animationCtrl_->Add(10, 200.0f, (Application::PATH_ANIMATION + "Hit_Up.mv1").c_str());
+	animationCtrl_->Add(11, 45.0f, (Application::PATH_ANIMATION + "KO.mv1").c_str());
 }
 
 void Player::InitOwn()
@@ -59,7 +60,9 @@ void Player::InitOwn()
 	localAngles_ = DIFF_ANGLES;
 	scales_ = Utility::VECTOR_ONE;
 	
+	speed_ = 6.0f;
 	hp_ = MAX_HP;
+	moveDir_ = Utility::DIR_F;
 
 	ChangeState(STATE::WAIT);
 }
@@ -104,6 +107,11 @@ void Player::Update(void)
 	case STATE::DAMAGED_HEAVY:
 		
 		UpdateDamagedHeavy();
+		break;
+
+	case STATE::KO:
+
+		UpdateKO();
 		break;
 	}
 
@@ -158,11 +166,16 @@ void Player::ChangeState(STATE state)
 	
 		ChangeDamagedHeavy();
 		break;
+
+	case Player::STATE::KO:
+
+		ChangeKO();
+		break;
 	}
 
 }
 
-void Player::Draw(void)
+void Player::Draw(void) const
 {
 	if (greatDodge_) {
 		for (int i = 0; i < 9; i++) {
@@ -208,7 +221,7 @@ void Player::Draw(void)
 	//DrawFormatString(50, 15, 0xfffff , "%.2f", animationCtrl_->GetTime());
 }
 
-void Player::Release(void)
+void Player::Release(void) const
 {
 	ActorBase::Release();
 
@@ -235,18 +248,15 @@ void Player::Damage(int damage, float dir)
 	if (hp_ <= 0) {
 
 		hp_ = 0;
-		overFlg_ = true;
+		autoHealHp_ = 0;
+		SceneManager::GetInstance().SetResultImage();
+		ChangeState(STATE::KO);
 	}
 }
 
 bool Player::Healable(void) const
 {
 	return animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::IDLE) || animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::WALK) || animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::RUN);
-}
-
-bool Player::IsCollisionState(void)
-{
-	return false;
 }
 
 bool Player::IsAttackMotion(void) const
@@ -501,7 +511,7 @@ void Player::FindHpAndPower(void)
 
 }
 
-void Player::DrawHpAndPower(void)
+void Player::DrawHpAndPower(void) const
 {
 	float barRate = static_cast<float>(barSize_ / MAX_HP);
 	float barNorm = barRate * hp_;
@@ -570,7 +580,7 @@ void Player::DrawHpAndPower(void)
 	DrawSoftImage(240, 100, powerGauge_);
 }
 
-void Player::ChangeWait(void)
+void Player::ChangeWait(void) const
 {
 	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
@@ -584,7 +594,7 @@ void Player::ChangeWait(void)
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
 }
 
-void Player::ChangeMove(void)
+void Player::ChangeMove(void) const
 {
 }
 
@@ -600,7 +610,6 @@ void Player::ChangeAttack(void)
 	}
 	//攻撃モーション
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK), false);
-	isAttack_ = true;
 }
 
 void Player::ChangeCombo(void)
@@ -615,7 +624,6 @@ void Player::ChangeCombo(void)
 	}
 	//攻撃モーション
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_1), false);
-	isAttack_ = true;
 }
 
 void Player::ChangeDodge(void)
@@ -637,7 +645,7 @@ void Player::ChangeDodge(void)
 	}
 }
 
-void Player::ChangeDamagedLight(void)
+void Player::ChangeDamagedLight(void) const
 {
 	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
@@ -650,7 +658,7 @@ void Player::ChangeDamagedLight(void)
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_LIGHT), false);
 }
 
-void Player::ChangeDamagedHeavy(void)
+void Player::ChangeDamagedHeavy(void) const
 {
 	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
@@ -661,6 +669,11 @@ void Player::ChangeDamagedHeavy(void)
 		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
 	}
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY), false);
+}
+
+void Player::ChangeKO(void) const
+{
+	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::KO_MOVE), false);
 }
 
 void Player::UpdateWait(void)
@@ -859,6 +872,10 @@ void Player::UpdateMove(void)
 
 void Player::UpdateAttack(void)
 {
+	if (animationCtrl_->GetTime() >= 35.0f && animationCtrl_->GetTime() <= 36.0f) {
+		
+		isAttack_ = true;
+	}
 	if (animationCtrl_->GetTime() >= 61.0f && animationCtrl_->GetTime() <= 62.0f) {
 		
 		isAttack_ = true;
@@ -867,23 +884,24 @@ void Player::UpdateAttack(void)
 
 		isAttack_ = false;
 	}
-	if (animationCtrl_->GetTime() >= 115.0f && animationCtrl_->GetTime() <= 116.0f) {
+	if (animationCtrl_->GetTime() >= 138.0f && animationCtrl_->GetTime() <= 139.0f) {
 
+		buff_ = 1.1;
 		isAttack_ = true;
+	}
+	if (animationCtrl_->GetTime() >= 160.0f) {
+
+		isAttack_ = false;
 	}
 	if (animationCtrl_->GetTime() <= 138.0f) {
 	
 		//移動させる
 		pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 0.2f));
 	}
-	else {
-
-		damage_ *= 1.2;
-		isAttack_ = true;
-	}
 
 	if (animationCtrl_->IsEnd()) {
 
+		buff_ = 1.0;
 		isAttack_ = false;
 		//待機モーションに移行
 		ChangeState(STATE::WAIT);
@@ -897,28 +915,46 @@ void Player::UpdateCombo(void)
 	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_1)) {
+		if (animationCtrl_->GetTime() >= 32.0f && animationCtrl_->GetTime() <= 34.0f) {
+
+			isAttack_ = true;
+		}
 		if (animationCtrl_->GetTime() >= 67.5f) {
 			
 			isAttack_ = false;
 
 			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
-				isAttack_ = true;
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_2), false);
 			}
 		}
 	}
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_2)) {
+		if (animationCtrl_->GetTime() >= 40.0f && animationCtrl_->GetTime() <= 41.0f) {
+
+			isAttack_ = true;
+
+		}
 		if (animationCtrl_->GetTime() >= 75.0f) {
 			
 			isAttack_ = false;
 
 			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
-				isAttack_ = true;
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_3), false);
-				damage_ *= 1.1;
 			}
+		}
+	}
+	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_3)) {
+		if (animationCtrl_->GetTime() >= 43.0f && animationCtrl_->GetTime() <= 44.0f) {
+
+			buff_ = 1.1;
+			isAttack_ = true;
+		}
+		if (animationCtrl_->GetTime() >= 61.0f) {
+			
+			buff_ = 1.0;
+			isAttack_ = false;
 		}
 	}
 	if (animationCtrl_->IsEnd()) {
@@ -1017,4 +1053,9 @@ void Player::UpdateDamagedHeavy(void)
 			ChangeState(STATE::WAIT);
 		}
 	}
+}
+
+void Player::UpdateKO(void)
+{
+	overFlg_ = true;
 }

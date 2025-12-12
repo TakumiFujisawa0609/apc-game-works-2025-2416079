@@ -1,10 +1,8 @@
 #pragma once
-#include "SceneBase.h"
+#include "ResultBase.h"
 
 
-class SceneManager;
-
-class GameOver : public SceneBase
+class GameOver : public ResultBase
 {
 
 public:
@@ -14,12 +12,6 @@ public:
 	// デストラクタ
 	~GameOver(void);
 
-	//ロード
-	void InitLoad(void) override;
-	//その他の初期化
-	void Init(void) override;
-	//更新
-	void Update(void) override;
 	//描画
 	void Draw(void) override;
 	//解放

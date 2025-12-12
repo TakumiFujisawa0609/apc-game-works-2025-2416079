@@ -5,8 +5,8 @@
 #include "../Common/Fader.h"
 #include "../Scene/TitleScene.h"
 #include "../Scene/GameScene.h"
-#include "../Scene/GameOver.h"
-#include "../Scene/GameClear.h"
+#include "../Scene/Result/GameOver.h"
+#include "../Scene/Result/GameClear.h"
 #include "../Application.h"
 #include "../Manager/Input/Controller.h"
 #include "Pause.h"
@@ -55,6 +55,7 @@ void SceneManager::Init(void)
 
 	isSceneChanging_ = false;
 	isLoad_ = false;
+	resultImg_ = MakeGraph(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
 
 	// デルタタイム
 	preTime_ = std::chrono::system_clock::now();
@@ -103,15 +104,10 @@ void SceneManager::Update(void)
 	}
 	else{
 		if (!pause_->IsPause()) {
-			if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]) {
-				if (sceneId_ != SCENE_ID::TITLE) {
+			if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]||
+				CheckHitKey(KEY_INPUT_P)) {
 
 					pause_->Init(sceneId_);
-				}
-				else {
-
-					Application::GetInstance().FinishGame();
-				}
 			}
 			// 各シーンの更新処理
 			scene_->Update();
@@ -168,7 +164,6 @@ void SceneManager::Draw(void)
 		DrawBox(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, 0x000000, true);
 		DrawFormatString(150, 150, 0xffffff, "LOADING");
 	}
-
 //#pragma region Step1 ポイントライト
 //	if (CheckHitKey(KEY_INPUT_T)) { pointLightPos_.z += 3.0f; }
 //	if (CheckHitKey(KEY_INPUT_G)) { pointLightPos_.z -= 3.0f; }
@@ -212,8 +207,7 @@ void SceneManager::Destroy(void)
 	// インスタンスのメモリ解放
 	delete instance_;
 
-	DeleteLightHandle(pointLight1_);
-	DeleteLightHandle(pointLight2_);
+	DeleteGraph(resultImg_);
 }
 
 void SceneManager::ChangeScene(SCENE_ID nextId)
@@ -236,6 +230,11 @@ float SceneManager::GetDeltaTime(void) const
 {
 	//return 1.0f / 60.0f;
 	return deltaTime_;
+}
+
+void SceneManager::SetResultImage(void) const
+{
+	GetDrawScreenGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, resultImg_);
 }
 
 SceneManager::SceneManager(void)

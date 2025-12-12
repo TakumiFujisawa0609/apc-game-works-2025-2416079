@@ -87,6 +87,7 @@ void Enemy::Update(void)
 	//HPがゼロならクリア
 	if (hp_ <= 0) {
 
+		SceneManager::GetInstance().SetResultImage();
 		clearFlg_ = true;
 	}
 	//当たり判定を更新
@@ -122,7 +123,7 @@ void Enemy::ChangeState(STATE state)
 	}
 }
 
-void Enemy::Draw(void)
+void Enemy::Draw(void) const
 {
 	//DrawFormatString(Application::SCREEN_SIZE_X - 100, 20, 0x000000, "%.2f", (300.0f - cnt_) / 60.0f, SetFontSize(25));
 	//DrawFormatString(100, 20, 0x000000, "%.2f", angles_.y, SetFontSize(25));
@@ -184,7 +185,7 @@ bool Enemy::Turn(void)
 
 void Enemy::ChangeWait(void)
 {
-	attackDiff_ = GetRand(120) + 120;
+	attackDiff_ = GetRand(120) + 60;
 }
 
 void Enemy::ChangeMove(void)
@@ -201,7 +202,7 @@ void Enemy::ChangeAttack(void)
 {
 	attackPos1_ = attackPos2_ = { -100000.0f, -10000.0f, -100000.0f };
 
-	if (VSize(VSub(player_->GetPos(), pos_)) >= 600.0f) {
+	if (VSize(VSub(player_->GetPos(), pos_)) >= 350.0f) {
 
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_A), false);
 
@@ -264,13 +265,9 @@ void Enemy::UpdateMove(void)
 	pos_.x += moveDir_.x * SPEED;
 	pos_.z += moveDir_.z * SPEED;
 
-	if (fabsf(VSize(VSub(player_->GetPos(), pos_))) <= 350.0f){
-			
-		ChangeState(STATE::ATTACK);
-	}
-	else if (prevDist <= fabsf(VSize(VSub(player_->GetPos(), pos_)))) {
+	if (fabsf(VSize(VSub(player_->GetPos(), pos_))) <= 300.0f || prevDist <= fabsf(VSize(VSub(player_->GetPos(), pos_)))) {
 
-		ChangeState(STATE::MOVE);
+		ChangeState(STATE::WAIT);
 	}
 }
 

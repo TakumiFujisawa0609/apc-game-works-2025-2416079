@@ -21,18 +21,18 @@ public:
 	//各自の初期化
 	virtual void InitOwn() = 0;
 	//モデルの初期化
-	virtual void InitModel();
+	virtual void InitModel() const;
 
 	//更新
 	virtual void Update() = 0;
 
 	//モデルの描画
-	virtual void DrawModel();
+	virtual void DrawModel() const;
 	//他の描画
-	virtual void Draw() = 0;
+	virtual void Draw() const = 0;
 
 	//解放
-	virtual void Release();
+	virtual void Release() const;
 
 	//モデルの取得
 	int GetModelId(void) const { return modelId_; }

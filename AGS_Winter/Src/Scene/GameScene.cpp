@@ -1,5 +1,6 @@
 #include <EffekseerForDXLib.h>
 #include <cmath>
+#include "../Object/Common/AnimationController.h"
 #include "../Object/Actor/Stage.h"
 #include "../Object/Actor/ActorBase.h"
 #include "../Object/Actor/Enemy.h"
@@ -19,7 +20,7 @@
 #include "GameScene.h"
 
 
-GameScene::GameScene(void) :enemy_(), hitFlgE_(), hitFlgP_(), isFirst_(false), isLockon_(false), item_(), pitch_(0.3f), yaw_(0.0f),
+GameScene::GameScene(void) :enemy_(), hitFlgE_(), hitFlgP_(), isLockon_(false), item_(), pitch_(DEFAULT_TILT), yaw_(DEFAULT_YAW),
 	shadowMap_(), stage_(), player_(), cntDown_(false), cnt_(10), lockOnImg_()
 {
 }
@@ -47,6 +48,8 @@ void GameScene::InitLoad(void)
 	enemy_->InitLoad();
 
 	lockOnImg_ = LoadGraph((Application::PATH_IMAGE + "LockOn.png").c_str());
+	failedImg_ = LoadGraph((Application::PATH_IMAGE + "Failed.png").c_str());
+	clearImg_ = LoadGraph((Application::PATH_IMAGE + "Clear.png").c_str());
 	AudioManager::GetInstance()->LoadSceneSound(LoadScene::GAME);
 }
 
@@ -76,7 +79,8 @@ void GameScene::Init(void)
 	enemy_->InitModel();
 	player_->InitModel();
 
-	GameCamera();
+	VECTOR headPos = VAdd(player_->GetPos(), { 0.0f, 180.0f, 0.0f });
+	SetCameraPos(headPos, CAMERA_TO_PLAYER);
 
 	hitFlgE_ = false;
 	hitFlgP_ = false;
@@ -130,14 +134,40 @@ void GameScene::Update(void)
 	stage_->Update();
 
 	Collision();
+	
+	if (player_->OverFlg()) {
+		if (!changeFlg_) {
+			if (player_->GetPlayerAnim()->IsEnd()) {
 
-	if (enemy_->ClearFlg() == true) {
+				changeFlg_ = true;
+				changeCnt_ = 0;
+			}
+		}
+		else {
+		
+			changeCnt_++;
 
-		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
+			if (changeCnt_ >= 90) {
+				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::OVER);
+			}
+		}
 	}
-	if (player_->OverFlg() == true) {
+	else if(enemy_->ClearFlg()) {
+		if (!changeFlg_) {
+			if (enemy_->GetEnemyAnim()->IsEnd()) {
 
-		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::OVER);
+				changeFlg_ = true;
+				changeCnt_ = 0;
+			}
+		}
+		else {
+
+			changeCnt_++;
+
+			if (changeCnt_ >= 90) {
+				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
+			}
+		}
 	}
 }
 
@@ -156,7 +186,8 @@ void GameScene::Collision(void)
 				Effect(info.Dim[info.HitNum - 1]);
 
 				hitFlgE_ = true;
-				enemy_->Damage(player_->GetPower());
+				enemy_->Damage(player_->GetPower() * player_->GetBuff());
+				player_->ResetBuff();
 			}
 		}
 	}
@@ -164,79 +195,81 @@ void GameScene::Collision(void)
 
 		hitFlgE_ = false;
 	}
-	if (player_->IsHit()) {
-		if (enemy_->IsAttackA()) {
+	if (!player_->OverFlg()) {
+		if (player_->IsHit()) {
+			if (enemy_->IsAttackA()) {
 
-			info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), Enemy::ATTACK_RADIUS);
+				info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), Enemy::ATTACK_RADIUS);
 
-			if (info.HitNum > 0) {
-				if (!hitFlgP_) {
-					if (!player_->SuccessDodge()) {
-						if (!player_->IsDodge()) {
+				if (info.HitNum > 0) {
+					if (!hitFlgP_) {
+						if (!player_->SuccessDodge()) {
+							if (!player_->IsDodge()) {
 
-							hitFlgP_ = true;
-							player_->Damage(13, enemy_->GetAngle().y);
-							AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
-						}
-						else {
-							if (player_->DodgeCount() <= 3) {
-
-								player_->GreatDodge();
+								hitFlgP_ = true;
+								player_->Damage(13, enemy_->GetAngle().y);
+								AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 							}
 							else {
+								if (player_->DodgeCount() <= 3) {
 
-								player_->GoodDodge();
+									player_->GreatDodge();
+								}
+								else {
+
+									player_->GoodDodge();
+								}
 							}
 						}
 					}
 				}
 			}
-		}
-		if (enemy_->IsAttackB()) {
+			if (enemy_->IsAttackB()) {
 
-			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), Enemy::ATTACK_RADIUS);
+				info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), Enemy::ATTACK_RADIUS);
 
-			if (info.HitNum > 0) {
-				if (!hitFlgP_) {
-					if (!player_->SuccessDodge()) {
-						if (!player_->IsDodge()) {
-							hitFlgP_ = true;
-							player_->Damage(17, enemy_->GetAngle().y);
-							AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
-						}
-						else {
-							if (player_->DodgeCount() <= 3) {
-
-								player_->GreatDodge();
+				if (info.HitNum > 0) {
+					if (!hitFlgP_) {
+						if (!player_->SuccessDodge()) {
+							if (!player_->IsDodge()) {
+								hitFlgP_ = true;
+								player_->Damage(17, enemy_->GetAngle().y);
+								AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 							}
 							else {
-								player_->GoodDodge();
+								if (player_->DodgeCount() <= 3) {
+
+									player_->GreatDodge();
+								}
+								else {
+									player_->GoodDodge();
+								}
 							}
 						}
 					}
 				}
 			}
-		}
-		if (enemy_->IsAttackC()) {
+			if (enemy_->IsAttackC()) {
 
-			info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), Enemy::ATTACK_RADIUS * 2);
+				info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), Enemy::ATTACK_RADIUS * 2);
 
-			if (info.HitNum > 0) {
-				if (!hitFlgP_) {
-					if (!player_->SuccessDodge()) {
-						if (!player_->IsDodge()) {
-							hitFlgP_ = true;
-							player_->Damage(20, enemy_->GetAngle().y);
-							AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
-						}
-						else {
-							if (player_->DodgeCount() <= 3) {
-
-								player_->GreatDodge();
+				if (info.HitNum > 0) {
+					if (!hitFlgP_) {
+						if (!player_->SuccessDodge()) {
+							if (!player_->IsDodge()) {
+								hitFlgP_ = true;
+								player_->Damage(20, enemy_->GetAngle().y);
+								AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 							}
 							else {
+								if (player_->DodgeCount() <= 3) {
 
-								player_->GoodDodge();
+									player_->GreatDodge();
+								}
+								else {
+
+									player_->GoodDodge();
+								}
 							}
 						}
 					}
@@ -326,73 +359,40 @@ void GameScene::CollisionStage(CollisionData data)
 	MV1CollResultPolyDimTerminate(res);
 }
 
-void GameScene::CollisionCamera(CollisionData data)
-{
-	//線分のポジションと焦点の角度の設定
-	VECTOR startPos = data.pos;
-	VECTOR endPos = data.prev;
-	VECTOR dir = VNorm(VSub(startPos, endPos));
-
-	//ステージとの当たり判定
-	MV1_COLL_RESULT_POLY resultS = MV1CollCheck_Line(stage_->GetModelId(), -1, startPos, endPos);
-	VECTOR distS = Utility::VECTOR_ZERO;
-
-	//敵との当たり判定
-	MV1_COLL_RESULT_POLY resultE = MV1CollCheck_Line(enemy_->GetModelId(), -1, startPos, endPos);
-	VECTOR distE = Utility::VECTOR_ZERO;
-
-	if (resultS.HitFlag == 1) {
-		if (resultE.HitFlag == 1) {
-
-			//どちらも当たっているのでカメラの位置から当たった場所へのベクトルを取る
-			distS = VSub(endPos, resultS.HitPosition);
-			distE = VSub(endPos, resultE.HitPosition);
-
-			//取ったベクトル大きさがの大きい方に位置を合わせる
-			SceneManager::GetInstance().GetCamera()->SetAbsCameraPos(VAdd(VectorUtility::Comparison(distS, distE)? resultS.HitPosition : resultE.HitPosition,
-				VScale(dir, COLLISION_CAMERA_DIFF)));
-		}
-		else {
-
-			//ステージのみ当たっているので当たった場所に移す
-			SceneManager::GetInstance().GetCamera()->SetAbsCameraPos(VAdd(resultS.HitPosition, VScale(dir, COLLISION_CAMERA_DIFF)));
-		}
-	}
-	else {
-		if (resultE.HitFlag == 1) {
-
-			//敵のみ当たっているので当たった場所に移す
-			SceneManager::GetInstance().GetCamera()->SetAbsCameraPos(VAdd(resultE.HitPosition, VScale(dir, COLLISION_CAMERA_DIFF)));
-		}
-		else {
-			//当たってない場合引数でもらったカメラの位置にする
-			SceneManager::GetInstance().GetCamera()->SetAbsCameraPos(endPos);
-		}
-	}
-}
-
 void GameScene::GameCamera(void)
 {
 	//カメラのインスタンスとプレイヤーの注視点の位置を取る
 	Camera* camera = SceneManager::GetInstance().GetCamera();
 	VECTOR headPos = VAdd(player_->GetPos(), { 0.0f, 180.0f, 0.0f });
 
-	// 上下左右回転
+	if (player_->OverFlg()) {
+		if (!changeFlg_) {
 
-	if (!isFirst_) {
+			pitch_ += 0.005f;
+			yaw_ += 0.01f;
 
-		// カメラの位置を計算
-		VECTOR newPos{};
-		newPos.x = headPos.x - CAMERA_TO_PLAYER * cosf(pitch_) * sinf(yaw_);
-		newPos.y = headPos.y + CAMERA_TO_PLAYER * sinf(pitch_);
-		newPos.z = headPos.z - CAMERA_TO_PLAYER * cosf(pitch_) * cosf(yaw_);
+			if (changeCnt_ == 0) {
 
-		//カメラの位置の設定
-		camera->SetAbsCameraPos(newPos);
-		camera->SetAbsCameraAngles({ pitch_, yaw_, 0.0f });
+				pitch_ = -DEFAULT_TILT;
+				yaw_ = player_->GetAngle().y - DX_PI_F;
+			}
 
-		isFirst_ = true;
+			changeCnt_++;
 
+			if (pitch_ > DX_PI_F / 2.0f - 0.1f) {
+
+				pitch_ = DX_PI_F / 2.0f - 0.1f;
+			}
+
+			SetCameraPos(headPos, CAMERA_TO_PLAYER + (changeCnt_ - 50.0f) * 3.0f);
+		}
+		else {
+
+			pitch_ = DEFAULT_TILT;
+			yaw_ = DEFAULT_YAW;
+
+			SetCameraPos(headPos, CAMERA_TO_PLAYER);
+		}
 		return;
 	}
 
@@ -479,17 +479,21 @@ void GameScene::GameCamera(void)
 		pitch_ = -DX_PI_F / 18.0f;
 	}
 
+	SetCameraPos(headPos, CAMERA_TO_PLAYER);
+}
+
+void GameScene::SetCameraPos(VECTOR targetPos, float diff)
+{
 	// カメラの位置を計算
 	VECTOR newPos{};
-	newPos.x = headPos.x - CAMERA_TO_PLAYER * cosf(pitch_) * sinf(yaw_);
-	newPos.y = headPos.y + CAMERA_TO_PLAYER * sinf(pitch_);
-	newPos.z = headPos.z - CAMERA_TO_PLAYER * cosf(pitch_) * cosf(yaw_);
-
-	CollisionData data = { headPos, newPos, COLLISION_TYPE::CAMERA };
-	CollisionCamera(data);
+	newPos.x = targetPos.x - diff * cosf(pitch_) * sinf(yaw_);
+	newPos.y = targetPos.y + diff * sinf(pitch_);
+	newPos.z = targetPos.z - diff * cosf(pitch_) * cosf(yaw_);
 
 	//角度の設定
+	Camera* camera = SceneManager::GetInstance().GetCamera();
 	camera->SetAbsCameraAngles({ pitch_, yaw_, 0.0f });
+	camera->SetAbsCameraPos(newPos);
 }
 
 void GameScene::Effect(MV1_COLL_RESULT_POLY dim)
@@ -533,6 +537,20 @@ void GameScene::Draw(void)
 	//影に関係ないものの描画(後)
 	player_->Draw();
 	item_->Draw();
+
+	if (changeFlg_) {
+
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
+		DrawBox(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, 0xaa5500, true);
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+
+		if (player_->OverFlg()) {
+			DrawRotaGraph(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 1.0, 0.0, failedImg_, true);
+		}
+		else {
+			DrawRotaGraph(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 1.0, 0.0, clearImg_, true);
+		}
+	}
 
 	if (cntDown_) {
 

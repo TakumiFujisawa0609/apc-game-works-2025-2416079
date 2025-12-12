@@ -33,14 +33,14 @@ void AnimationController::AddInFbx(int type, float speed, int animIndex)
 
 void AnimationController::Play(int type, bool isLoop)
 {
-	if (playType_ == type) 
+	if (playType_ == type)
 	{
 		//ë±çs
 		return;
 	}
 	if (playType_ != -1) {
-		if (isDetach_ = -1) {
-		
+		if (isDetach_ == -1) {
+
 			MV1DetachAnim(modelId_, prevAnim_.attachNo);
 		}
 		MV1DetachAnim(modelId_, playAnim_.attachNo);
@@ -78,8 +78,14 @@ void AnimationController::Play(int type, bool isLoop)
 		playAnim_.totalTime = MV1GetAnimTotalTime(playAnim_.model, playAnim_.animIndex);
 	}
 	isLoop_ = isLoop;
-	blendRate_ = 0.0f;
+	blendRate_ = 0.1f;
 	isDetach_ = -1;
+
+	if (prevAnim_.speed != 0) {
+
+		MV1SetAttachAnimBlendRate(modelId_, prevAnim_.attachNo, 1.0f - blendRate_);
+		MV1SetAttachAnimBlendRate(modelId_, playAnim_.attachNo, blendRate_);
+	}
 }
 
 void AnimationController::Update(void)
@@ -168,4 +174,3 @@ void AnimationController::Add(int type, float speed, Animation& animation)
 		animations_.emplace(type, animation);
 	}
 }
-
