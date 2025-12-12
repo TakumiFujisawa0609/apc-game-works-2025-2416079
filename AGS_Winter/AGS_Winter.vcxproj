@@ -33,15 +33,17 @@
     <ClInclude Include="Src\Manager\Input\InputManager.h" />
     <ClInclude Include="Src\Manager\Pause.h" />
     <ClInclude Include="Src\Manager\SceneManager.h" />
+    <ClInclude Include="Src\Object\Actor\ActorBase.h" />
     <ClInclude Include="Src\Object\Common\AnimationController.h" />
-    <ClInclude Include="Src\Object\Actor\EnemyBase.h" />
+    <ClInclude Include="Src\Object\Actor\Enemy.h" />
     <ClInclude Include="Src\Object\Grid.h" />
     <ClInclude Include="Src\Object\Item.h" />
     <ClInclude Include="Src\Object\Actor\Player.h" />
-    <ClInclude Include="Src\Object\Stage.h" />
-    <ClInclude Include="Src\Scene\GameClear.h" />
-    <ClInclude Include="Src\Scene\GameOver.h" />
+    <ClInclude Include="Src\Object\Actor\Stage.h" />
+    <ClInclude Include="Src\Scene\Result\GameClear.h" />
+    <ClInclude Include="Src\Scene\Result\GameOver.h" />
     <ClInclude Include="Src\Scene\GameScene.h" />
+    <ClInclude Include="Src\Scene\Result\ResultBase.h" />
     <ClInclude Include="Src\Scene\SceneBase.h" />
     <ClInclude Include="Src\Scene\TitleScene.h" />
     <ClInclude Include="Src\Utility\AngleUtility.h" />
@@ -65,15 +67,17 @@
     <ClCompile Include="Src\Manager\Input\InputManager.cpp" />
     <ClCompile Include="Src\Manager\Pause.cpp" />
     <ClCompile Include="Src\Manager\SceneManager.cpp" />
+    <ClCompile Include="Src\Object\Actor\ActorBase.cpp" />
     <ClCompile Include="Src\Object\Common\AnimationController.cpp" />
-    <ClCompile Include="Src\Object\Actor\EnemyBase.cpp" />
+    <ClCompile Include="Src\Object\Actor\Enemy.cpp" />
     <ClCompile Include="Src\Object\Grid.cpp" />
     <ClCompile Include="Src\Object\Item.cpp" />
     <ClCompile Include="Src\Object\Actor\Player.cpp" />
-    <ClCompile Include="Src\Object\Stage.cpp" />
-    <ClCompile Include="Src\Scene\GameClear.cpp" />
-    <ClCompile Include="Src\Scene\GameOver.cpp" />
+    <ClCompile Include="Src\Object\Actor\Stage.cpp" />
+    <ClCompile Include="Src\Scene\Result\GameClear.cpp" />
+    <ClCompile Include="Src\Scene\Result\GameOver.cpp" />
     <ClCompile Include="Src\Scene\GameScene.cpp" />
+    <ClCompile Include="Src\Scene\Result\ResultBase.cpp" />
     <ClCompile Include="Src\Scene\SceneBase.cpp" />
     <ClCompile Include="Src\Scene\TitleScene.cpp" />
     <ClCompile Include="Src\Utility\AngleUtility.cpp" />
@@ -81,14 +85,6 @@
     <ClCompile Include="Src\Utility\CollisionUtility.cpp" />
     <ClCompile Include="Src\Utility\Utility.cpp" />
     <ClCompile Include="Src\Utility\VectorUtility.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Src\Manager\PixelShader.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="x64\Release\icon.rc" />
