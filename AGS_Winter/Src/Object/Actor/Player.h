@@ -46,7 +46,7 @@ public:
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, -500.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
 	static constexpr VECTOR SWORD_POS = { 77.5f, 27.5f, -10.0f };
-	static constexpr int MAX_HP = 1;
+	static constexpr int MAX_HP = 3000;
 	static constexpr int HEAL_COUNT = 15;
 	static constexpr float MAX_STAMINA = 1000.0f;
 	static constexpr float DOGDE_STAMINA = 100.0f;

@@ -79,6 +79,8 @@ private:
 	bool changeFlg_;
 	int changeCnt_;
 
+	bool clearCamera_;
+
 	void Collision(void);
 	void CollisionStage(CollisionData data);
 	void GameCamera(void);

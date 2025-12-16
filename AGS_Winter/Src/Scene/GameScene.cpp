@@ -21,7 +21,7 @@
 
 
 GameScene::GameScene(void) :enemy_(), hitFlgE_(), hitFlgP_(), isLockon_(false), item_(), pitch_(DEFAULT_TILT), yaw_(DEFAULT_YAW),
-	shadowMap_(), stage_(), player_(), cntDown_(false), cnt_(10), lockOnImg_()
+	shadowMap_(), stage_(), player_(), cntDown_(false), cnt_(10), lockOnImg_(), clearCamera_(false)
 {
 }
 
@@ -135,7 +135,24 @@ void GameScene::Update(void)
 
 	Collision();
 	
-	if (player_->OverFlg()) {
+	if (enemy_->ClearFlg()) {
+		if (!changeFlg_) {
+			if (enemy_->GetEnemyAnim()->IsEnd() && clearCamera_) {
+
+				changeFlg_ = true;
+				changeCnt_ = 0;
+			}
+		}
+		else {
+
+			changeCnt_++;
+
+			if (changeCnt_ >= 90) {
+				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
+			}
+		}
+	}
+	else if (player_->OverFlg()) {
 		if (!changeFlg_) {
 			if (player_->GetPlayerAnim()->IsEnd()) {
 
@@ -149,23 +166,6 @@ void GameScene::Update(void)
 
 			if (changeCnt_ >= 90) {
 				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::OVER);
-			}
-		}
-	}
-	else if(enemy_->ClearFlg()) {
-		if (!changeFlg_) {
-			if (enemy_->GetEnemyAnim()->IsEnd()) {
-
-				changeFlg_ = true;
-				changeCnt_ = 0;
-			}
-		}
-		else {
-
-			changeCnt_++;
-
-			if (changeCnt_ >= 90) {
-				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
 			}
 		}
 	}
@@ -195,7 +195,7 @@ void GameScene::Collision(void)
 
 		hitFlgE_ = false;
 	}
-	if (!player_->OverFlg()) {
+	if (!player_->OverFlg() && !enemy_->ClearFlg()) {
 		if (player_->IsHit()) {
 			if (enemy_->IsAttackA()) {
 
@@ -365,9 +365,47 @@ void GameScene::GameCamera(void)
 	Camera* camera = SceneManager::GetInstance().GetCamera();
 	VECTOR headPos = VAdd(player_->GetPos(), { 0.0f, 180.0f, 0.0f });
 
-	if (player_->OverFlg()) {
-		if (!changeFlg_) {
+	if (!changeFlg_) {
+		if (enemy_->ClearFlg()) {
+			VECTOR targetPos = VAdd(enemy_->GetPos(), { 0.0f, 180.0f, 0.0f });
 
+			if (cntDown_) {
+				
+				cntDown_ = false;
+			}
+			changeCnt_++;
+
+			if (changeCnt_ < 80) {
+
+				yaw_ = DEFAULT_YAW - changeCnt_ * 0.01f;
+				pitch_ = -DEFAULT_TILT;
+			}
+			else if (changeCnt_ < 160) {
+
+				yaw_ = -DEFAULT_YAW - changeCnt_ * 0.01f;
+				pitch_ = DEFAULT_TILT;
+			}
+			else if (changeCnt_ < 260) {
+
+				yaw_ = enemy_->GetAngle().y - DX_PI_F;
+				pitch_ = DX_PI_F / 2.0f - 0.1f;
+				targetPos.y += changeCnt_ * 2.0f;
+			}
+			else {
+
+				clearCamera_ = true;
+			}
+
+			SetCameraPos(targetPos, CAMERA_TO_PLAYER * 1.8f);
+
+			return;
+		}
+		if (player_->OverFlg()) {
+
+			if (cntDown_) {
+
+				cntDown_ = false;
+			}
 			pitch_ += 0.005f;
 			yaw_ += 0.01f;
 
@@ -384,15 +422,16 @@ void GameScene::GameCamera(void)
 				pitch_ = DX_PI_F / 2.0f - 0.1f;
 			}
 
-			SetCameraPos(headPos, CAMERA_TO_PLAYER + (changeCnt_ - 50.0f) * 3.0f);
+			SetCameraPos(headPos, CAMERA_TO_PLAYER + (changeCnt_ - 55.0f) * 2.0f);
+			return;
 		}
-		else {
+	}
+	else {
 
-			pitch_ = DEFAULT_TILT;
-			yaw_ = DEFAULT_YAW;
+		pitch_ = DEFAULT_TILT;
+		yaw_ = DEFAULT_YAW;
 
-			SetCameraPos(headPos, CAMERA_TO_PLAYER);
-		}
+		SetCameraPos(headPos, CAMERA_TO_PLAYER);
 		return;
 	}
 
@@ -557,7 +596,7 @@ void GameScene::Draw(void)
 		VECTOR enemyPos = VAdd(enemy_->GetPos(), { 0.0f, 200.f, 0.0f });
 
 		VECTOR pos = ConvWorldPosToScreenPos(enemyPos);
-		DrawRotaGraph (pos.x, pos.y, 1.0 * cnt_, 0.0, lockOnImg_, true);
+		DrawRotaGraph (pos.x, pos.y, cnt_, 0.0, lockOnImg_, true);
 	}
 	//if (hitFlgP_) {
 

@@ -10,7 +10,7 @@
 
 Enemy::Enemy(Player* pl): ActorBase(), attackAFlg_(false), attackBFlg_(false), attackCFlg_(false),
 	attackDiff_(120), attackDir_(), attackPos1_(Utility::VECTOR_ZERO), attackPos2_(Utility::VECTOR_ZERO), attackPrevPos_(Utility::VECTOR_ZERO),
-	attackShowFlg_(false), clearFlg_(false), cnt_(0), coolDown_(0), isCoolDown_(false),	player_(pl), state_(STATE::WAIT), targetAngles_()
+	attackShowFlg_(false), clearFlg_(false), cnt_(0), coolDown_(0), isCoolDown_(false),	player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0)
 {
 }
 
@@ -30,9 +30,12 @@ void Enemy::InitAnim()
 	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_A), 45, 0);
 	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_B), 45, 1);
 	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_C), 45, 2);
-	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::IDLE), 30, 3);
-	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::WALK), 45, 6);
-	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::RUN), 60, 4);
+	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::IDLE), 30, 4);
+	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::WALK), 45, 9);
+	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::RUN), 60, 7);
+	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::DOWN), 30, 3);
+	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::STRUGGLE), 45, 5);
+	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::UP), 60, 6);
 }
 
 void Enemy::InitOwn()
@@ -74,9 +77,14 @@ void Enemy::Update(void)
 		UpdateAttack();
 		break;
 
-	case Enemy::STATE::ESCAPE:
+	case Enemy::STATE::DOWN:
+
+		UpdateDown();
+		break;
+
+	case Enemy::STATE::KO:
 		
-		UpdateEscape();
+		UpdateKO();
 		break;
 	}
 
@@ -84,12 +92,6 @@ void Enemy::Update(void)
 	animationCtrl_->Update();
 	MV1SetPosition(modelId_, pos_);
 
-	//HPがゼロならクリア
-	if (hp_ <= 0) {
-
-		SceneManager::GetInstance().SetResultImage();
-		clearFlg_ = true;
-	}
 	//当たり判定を更新
 	MV1RefreshCollInfo(modelId_);
 }
@@ -116,9 +118,14 @@ void Enemy::ChangeState(STATE state)
 		ChangeAttack();
 		break;
 
-	case Enemy::STATE::ESCAPE:
+	case Enemy::STATE::DOWN:
+
+		ChangeDown();
+		break;
+
+	case Enemy::STATE::KO:
 		
-		ChangeEscape();
+		ChangeKO();
 		break;
 	}
 }
@@ -152,6 +159,22 @@ bool Enemy::IsAttack(void) const
 	else {
 
 		return false;
+	}
+}
+
+void Enemy::Damage(int damage)
+{
+	if (hp_ < 200 && hp_ >190) {
+
+		ChangeState(STATE::DOWN);
+	}
+	hp_ -= damage;
+
+	//HPがゼロならクリア
+	if (hp_ <= 0 && !clearFlg_) {
+
+		ChangeState(STATE::KO);
+		SceneManager::GetInstance().SetResultImage();
 	}
 }
 
@@ -224,8 +247,14 @@ void Enemy::ChangeAttack(void)
 	}
 }
 
-void Enemy::ChangeEscape(void)
+void Enemy::ChangeDown(void)
 {
+	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DOWN), false);
+}
+
+void Enemy::ChangeKO(void)
+{
+	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DOWN), false);
 }
 
 void Enemy::UpdateWait(void)
@@ -244,7 +273,7 @@ void Enemy::UpdateWait(void)
 		cnt_ = 0;
 		ChangeState(STATE::ATTACK);
 	}
-	else if(GetRand(attackDiff_ - cnt_) >= 180){
+	else if(GetRand(attackDiff_ - cnt_) >= 180 && VSize(VSub(player_->GetPos(), pos_)) >= 220.0f) {
 
 		cnt_ = 0;
 		ChangeState(STATE::MOVE);
@@ -351,6 +380,28 @@ void Enemy::UpdateAttackC(void)
 	}
 }
 
-void Enemy::UpdateEscape(void)
+void Enemy::UpdateDown(void)
 {
+	if (animationCtrl_->IsEnd()) {
+		if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::UP)) {
+
+			ChangeState(STATE::WAIT);
+			return;
+		}
+		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::STRUGGLE), true);
+	}
+	if (animationCtrl_->GetTime() >= animationCtrl_->GetTotalTime()) {
+	
+		downCnt_++;
+	}
+	if (downCnt_ >= 3) {
+
+		downCnt_ = 0;
+		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::UP), false);
+	}
+}
+
+void Enemy::UpdateKO(void)
+{
+	clearFlg_ = true;
 }
