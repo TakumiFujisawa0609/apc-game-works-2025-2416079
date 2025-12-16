@@ -16,7 +16,8 @@ public:
 		WAIT,
 		MOVE,
 		ATTACK,
-		ESCAPE,
+		KO,
+		DOWN,
 		END,
 	};
 
@@ -29,6 +30,9 @@ public:
 		ATTACK_A,
 		ATTACK_B,
 		ATTACK_C,
+		DOWN,
+		STRUGGLE,
+		UP,
 		MAX,
 	};
 
@@ -48,7 +52,7 @@ public:
 	static constexpr float ATTACK_RADIUS = 35.0f;
 
 	//体力
-	static constexpr int MAX_HP =1;
+	static constexpr int MAX_HP = 200;
 
 	// コンストラクタ
 	Enemy(Player* pl);
@@ -88,7 +92,7 @@ public:
 	bool IsAttack(void) const;
 
 	// ダメージを与える
-	void Damage(int damage) { hp_ -= damage; }
+	void Damage(int damage);
 
 	bool ClearFlg(void) const { return clearFlg_; }
 
@@ -117,6 +121,7 @@ protected:
 
 	int attackDiff_;
 	float cnt_;
+	int downCnt_;
 
 	int coolDown_;
 	bool isCoolDown_;
@@ -134,7 +139,8 @@ protected:
 	void ChangeWait(void);
 	void ChangeMove(void);
 	void ChangeAttack(void);
-	void ChangeEscape(void);
+	void ChangeDown(void);
+	void ChangeKO(void);
 
 	// 状態別更新
 	void UpdateWait(void);
@@ -143,5 +149,6 @@ protected:
 	void UpdateAttackA(void);
 	void UpdateAttackB(void);
 	void UpdateAttackC(void);
-	void UpdateEscape(void);
+	void UpdateDown(void);
+	void UpdateKO(void);
 };

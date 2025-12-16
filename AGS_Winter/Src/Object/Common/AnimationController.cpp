@@ -88,6 +88,10 @@ void AnimationController::Play(int type, bool isLoop)
 	}
 }
 
+void AnimationController::End(int type)
+{
+}
+
 void AnimationController::Update(void)
 {
 	if (isPause_) {
