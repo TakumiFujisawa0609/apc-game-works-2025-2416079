@@ -3,6 +3,7 @@
 #include "../../Utility/AsoUtility.h"
 #include "../../Manager/SceneManager.h"
 #include "../../Manager/Input/Controller.h"
+#include "../../Manager/Audio/AudioManager.h"
 #include "ResultBase.h"
 
 
@@ -49,4 +50,5 @@ void ResultBase::Draw(void)
 
 void ResultBase::Release(void)
 {
+	AudioManager::GetInstance()->DeleteSceneSound(LoadScene::RESULT);
 }

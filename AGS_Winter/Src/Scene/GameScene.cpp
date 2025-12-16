@@ -21,7 +21,7 @@
 
 
 GameScene::GameScene(void) :enemy_(), hitFlgE_(), hitFlgP_(), isLockon_(false), item_(), pitch_(DEFAULT_TILT), yaw_(DEFAULT_YAW),
-	shadowMap_(), stage_(), player_(), cntDown_(false), cnt_(10), lockOnImg_()
+	shadowMap_(), stage_(), player_(), cntDown_(false), cnt_(10), lockOnImg_(), changeCnt_(0), changeFlg_(false)
 {
 }
 
@@ -51,6 +51,7 @@ void GameScene::InitLoad(void)
 	failedImg_ = LoadGraph((Application::PATH_IMAGE + "Failed.png").c_str());
 	clearImg_ = LoadGraph((Application::PATH_IMAGE + "Clear.png").c_str());
 	AudioManager::GetInstance()->LoadSceneSound(LoadScene::GAME);
+	AudioManager::GetInstance()->LoadSceneSound(LoadScene::RESULT);
 }
 
 void GameScene::Init(void)
@@ -69,7 +70,8 @@ void GameScene::Init(void)
 
 	// ƒTƒEƒ“ƒh‚Ì“Ç‚Ýž‚Ý
 	AudioManager::GetInstance()->PlayBGM(SoundID::BGM_BATTLE);
-		
+	AudioManager::GetInstance()->SetBgmVolume(150);
+
 	CollisionData data = { player_->GetPos(), player_->GetPrevPos(), COLLISION_TYPE::PLAYER };
 	CollisionData datA = { enemy_->GetPos(), enemy_->GetPrevPos(), COLLISION_TYPE::ENEMY };
 
@@ -135,25 +137,13 @@ void GameScene::Update(void)
 
 	Collision();
 	
-	if (player_->OverFlg()) {
+	if (enemy_->ClearFlg()) {
 		if (!changeFlg_) {
-			if (player_->GetPlayerAnim()->IsEnd()) {
+			if (changeCnt_ <= 1) {
 
-				changeFlg_ = true;
-				changeCnt_ = 0;
+				AudioManager::GetInstance()->PlayBGM(SoundID::BGM_CLEAR);
+				AudioManager::GetInstance()->SetBgmVolume(255);
 			}
-		}
-		else {
-		
-			changeCnt_++;
-
-			if (changeCnt_ >= 90) {
-				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::OVER);
-			}
-		}
-	}
-	else if(enemy_->ClearFlg()) {
-		if (!changeFlg_) {
 			if (enemy_->GetEnemyAnim()->IsEnd()) {
 
 				changeFlg_ = true;
@@ -166,6 +156,28 @@ void GameScene::Update(void)
 
 			if (changeCnt_ >= 90) {
 				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
+			}
+		}
+	}
+	else if (player_->OverFlg()) {
+		if (!changeFlg_) {
+			if (changeCnt_ <= 1) {
+
+				AudioManager::GetInstance()->PlayBGM(SoundID::BGM_GAMEOVER);
+				AudioManager::GetInstance()->SetBgmVolume(255);
+			}
+			if (player_->GetPlayerAnim()->IsEnd()) {
+
+				changeFlg_ = true;
+				changeCnt_ = 0;
+			}
+		}
+		else {
+		
+			changeCnt_++;
+
+			if (changeCnt_ >= 90) {
+				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::OVER);
 			}
 		}
 	}

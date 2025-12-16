@@ -16,6 +16,7 @@ void Pause::Init(SceneManager::SCENE_ID id)
 {
 	prevId_ = id;
 	isPause_ = true;
+	state_ = PAUSE_STATE::CONTINUE;
 
 	if (image_ == -1) {
 	
