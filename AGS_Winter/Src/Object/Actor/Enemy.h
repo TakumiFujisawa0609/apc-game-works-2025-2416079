@@ -52,7 +52,7 @@ public:
 	static constexpr float ATTACK_RADIUS = 35.0f;
 
 	//体力
-	static constexpr int MAX_HP = 200;
+	static constexpr int MAX_HP = 250;
 
 	// コンストラクタ
 	Enemy(Player* pl);

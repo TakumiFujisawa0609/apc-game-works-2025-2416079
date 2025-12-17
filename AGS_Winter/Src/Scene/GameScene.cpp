@@ -139,6 +139,11 @@ void GameScene::Update(void)
 	
 	if (enemy_->ClearFlg()) {
 		if (!changeFlg_) {
+			if (changeCnt_ <= 1) {
+
+				AudioManager::GetInstance()->PlayBGM(SoundID::BGM_CLEAR);
+				AudioManager::GetInstance()->SetBgmVolume(255);
+			}
 			if (enemy_->GetEnemyAnim()->IsEnd() && clearCamera_) {
 
 				changeFlg_ = true;
@@ -155,13 +160,13 @@ void GameScene::Update(void)
 		}
 	}
 	else if (player_->OverFlg()) {
-		if (!changeFlg_) {
-			if (changeCnt_ <= 1) {
+		if (changeCnt_ <= 1) {
 
-				AudioManager::GetInstance()->PlayBGM(SoundID::BGM_CLEAR);
-				AudioManager::GetInstance()->SetBgmVolume(255);
-			}
-			if (enemy_->GetEnemyAnim()->IsEnd()) {
+			AudioManager::GetInstance()->PlayBGM(SoundID::BGM_GAMEOVER);
+			AudioManager::GetInstance()->SetBgmVolume(255);
+		}
+		if (!changeFlg_) {
+			if (player_->GetPlayerAnim()->IsEnd()) {
 
 				changeFlg_ = true;
 				changeCnt_ = 0;
@@ -172,7 +177,7 @@ void GameScene::Update(void)
 			changeCnt_++;
 
 			if (changeCnt_ >= 90) {
-				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
+				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::OVER);
 			}
 		}
 	}

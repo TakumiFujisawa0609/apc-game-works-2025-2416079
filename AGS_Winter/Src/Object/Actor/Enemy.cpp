@@ -164,7 +164,7 @@ bool Enemy::IsAttack(void) const
 
 void Enemy::Damage(int damage)
 {
-	if (hp_ < 200 && hp_ >190) {
+	if (hp_ <= 200 && hp_ >190) {
 
 		ChangeState(STATE::DOWN);
 	}
@@ -225,13 +225,13 @@ void Enemy::ChangeAttack(void)
 {
 	attackPos1_ = attackPos2_ = { -100000.0f, -10000.0f, -100000.0f };
 
-	if (VSize(VSub(player_->GetPos(), pos_)) >= 350.0f) {
+	if (VSize(VSub(player_->GetPos(), pos_)) >= 400.0f) {
 
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_A), false);
 
 		attackAFlg_ = true;
 	}
-	else {
+	else if (fabsf(VSize(VSub(player_->GetPos(), pos_))) <= 250.0f){
 		if (GetRand(1) == 1) {
 
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_B), false);
@@ -244,6 +244,10 @@ void Enemy::ChangeAttack(void)
 
 			attackCFlg_ = true;
 		}
+	}
+	else {
+
+		ChangeState(STATE::MOVE);
 	}
 }
 
@@ -273,7 +277,7 @@ void Enemy::UpdateWait(void)
 		cnt_ = 0;
 		ChangeState(STATE::ATTACK);
 	}
-	else if(GetRand(attackDiff_ - cnt_) >= 180 && VSize(VSub(player_->GetPos(), pos_)) >= 220.0f) {
+	else if(GetRand(attackDiff_) >= 80 && VSize(VSub(player_->GetPos(), pos_)) >= 350.0f) {
 
 		cnt_ = 0;
 		ChangeState(STATE::MOVE);
@@ -294,7 +298,7 @@ void Enemy::UpdateMove(void)
 	pos_.x += moveDir_.x * SPEED;
 	pos_.z += moveDir_.z * SPEED;
 
-	if (fabsf(VSize(VSub(player_->GetPos(), pos_))) <= 300.0f || prevDist <= fabsf(VSize(VSub(player_->GetPos(), pos_)))) {
+	if (fabsf(VSize(VSub(player_->GetPos(), pos_))) <= 250.0f || prevDist <= fabsf(VSize(VSub(player_->GetPos(), pos_)))) {
 
 		ChangeState(STATE::WAIT);
 	}
