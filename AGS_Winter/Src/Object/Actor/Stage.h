@@ -1,5 +1,6 @@
 #pragma once
 #include "ActorBase.h"
+#include <vector>
 
 
 class Stage : public ActorBase
@@ -17,10 +18,19 @@ public:
 	void InitAnim(void) override {};
 	//‚»‚Ì‘¼‚Ì‰Šú‰»
 	void InitOwn(void) override;
+	//ƒ‚ƒfƒ‹‚Ì‰Šú‰»
+	void InitModel(void) const override;
 
 	//XV
 	void Update(void) override {};
 
 	//•`‰æ
-	void Draw(void) const override {};
+	void Draw(void) const override;
+
+	void SetOpacityIndex(std::vector<int> index);
+
+private:
+
+	int opacityModelId_;
+	std::vector<int> opacityIndex;
 };

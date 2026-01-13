@@ -87,6 +87,8 @@ void GameScene::Init(void)
 	hitFlgE_ = false;
 	hitFlgP_ = false;
 
+	opacityIndex.clear();
+
 	shadowMap_ = MakeShadowMap(8192, 8192);
 
 	SetShadowMapLightDirection(shadowMap_, { 0.2f, -0.8f, 0.0f });
@@ -371,6 +373,36 @@ void GameScene::CollisionStage(CollisionData data)
 	MV1CollResultPolyDimTerminate(res);
 }
 
+void GameScene::CollisionCamera(void)
+{
+	Camera* camera = SceneManager::GetInstance().GetCamera();
+	VECTOR cPos = camera->GetCameraPos();
+	VECTOR pPos = VAdd(player_->GetPos(), { 0.0f, 100.0f, 0.0f });
+
+	int prevNum = opacityIndex.size();
+
+	while (prevNum > 0) {
+
+		MV1SetFrameOpacityRate(stage_->GetModelId(), opacityIndex.at(prevNum - 1), 1.0f);
+		prevNum--;
+	}
+	
+	opacityIndex.clear();
+	MV1_COLL_RESULT_POLY_DIM res = MV1CollCheck_Capsule(stage_->GetModelId(), -1, cPos, pPos, 45.0f);
+
+	if (res.HitNum > 0) {
+
+		int num = res.HitNum;
+
+		while (num > 0) {
+
+			opacityIndex.push_back(res.Dim[num - 1].FrameIndex);
+			num--;
+		}
+	}
+	stage_->SetOpacityIndex(opacityIndex);
+}
+
 void GameScene::GameCamera(void)
 {
 	//カメラのインスタンスとプレイヤーの注視点の位置を取る
@@ -531,6 +563,7 @@ void GameScene::GameCamera(void)
 	}
 
 	SetCameraPos(headPos, CAMERA_TO_PLAYER);
+	CollisionCamera();
 }
 
 void GameScene::SetCameraPos(VECTOR targetPos, float diff)
@@ -582,6 +615,7 @@ void GameScene::Draw(void)
 	player_->DrawModel();
 	enemy_->DrawModel();
 	enemy_->Draw();
+	stage_->Draw();
 
 	SetUseShadowMap(0, -1);
 
