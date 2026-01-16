@@ -9,10 +9,11 @@
 #include "../../Manager/SceneManager.h"
 #include "../../Manager/Camera.h"
 #include "../../Manager/Input/Controller.h"
+#include "../Item.h"
 
 
-Player::Player(void): ActorBase(), attackPos1_(), attackPos2_(), autoHealCnt_(0), autoHealHp_(0),
-	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(), knockBackDir_(0.0f),
+Player::Player(Item* itm): ActorBase(), item_(itm), attackPos1_(), attackPos2_(), autoHealCnt_(0), autoHealHp_(0),
+	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(false), knockBackDir_(0.0f),
 	overFlg_(false), power_(0), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),
 	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),	barStaEY_(), barStaSY_(), damage_(BASIC_DAMAGE), goodDodge_(), greatDodge_(), guageEX_(),
 	guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(), powerUp_(), powerUpCnt_(), dodgeBottomPos_(), dodgeTopPos_(), buff_(1.0)
@@ -49,6 +50,7 @@ void Player::InitAnim()
 	animationCtrl_->Add(9, 60.0f, (Application::PATH_ANIMATION + "Hit_Heavy.mv1").c_str());
 	animationCtrl_->Add(10, 200.0f, (Application::PATH_ANIMATION + "Hit_Up.mv1").c_str());
 	animationCtrl_->Add(11, 45.0f, (Application::PATH_ANIMATION + "KO.mv1").c_str());
+	animationCtrl_->Add(12, 330.0f, (Application::PATH_ANIMATION + "Drinking.mv1").c_str());
 }
 
 void Player::InitOwn()
@@ -64,7 +66,7 @@ void Player::InitOwn()
 	hp_ = MAX_HP;
 	moveDir_ = Utility::DIR_F;
 
-	ChangeState(STATE::WAIT);
+	DoChangeState(STATE::WAIT);
 }
 
 void Player::Update(void)
@@ -113,9 +115,15 @@ void Player::Update(void)
 
 		UpdateKO();
 		break;
+
+	case STATE::DRINK:
+
+		UpdateDrink();
+		break;
 	}
 
 	Status();
+	EffectUpdate();
 
 	//モデルの設定
 	MV1SetPosition(modelId_, pos_);
@@ -126,9 +134,12 @@ void Player::Update(void)
 	MV1SetupCollInfo(modelId_);
 }
 
-void Player::ChangeState(STATE state)
+void Player::DoChangeState(STATE state)
 {
 	state_ = state;
+
+	//歩く走るの音を止める
+	StopSE();
 
 	switch (state_)
 	{
@@ -171,54 +182,50 @@ void Player::ChangeState(STATE state)
 
 		ChangeKO();
 		break;
-	}
 
+	case Player::STATE::DRINK:
+
+		ChangeDrink();
+		break;
+	}
 }
 
 void Player::Draw(void) const
 {
-	if (greatDodge_) {
+	if (effectCnt_ >= 0) {
+		
+		SetUseLighting(false);
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 250);
+
 		for (int i = 0; i < 9; i++) {
-			DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0xffff00, 0xffffff, true);
+			switch (effectType_)
+			{
+			case Player::EFFECT::GREAT_DODGE:
+
+				DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0xffff00, 0xffffff, true);
+				break;
+
+			case Player::EFFECT::GOOD_DODGE:
+
+				DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0xffffff, 0xffffff, true);
+				break;
+
+			case Player::EFFECT::HEAL:
+
+				DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0x00ff00, 0x44cc44, true);
+				break;
+
+			case Player::EFFECT::STAMINA:
+
+				DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0xff5500, 0xaa3300, true);
+				break;
+			}
 		}
-	}
-	else if (goodDodge_) {
-		for (int i = 0; i < 9; i++) {
-			DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0xffffff, 0xffffff, true);
-		}
+
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+		SetUseLighting(true);
 	}
 	DrawHpAndPower();
-
-	//デバック
-
-	//DrawFormatString(0, 0, 0x000000, "%f", SceneManager::GetInstance().GetDeltaTime());
-
-	//DrawBoxAA(22.5f, 17.5f, x, 57.5f, 0x222222, true);
-	//DrawBoxAA(25.0f, 20.0f, dx + d3x, 35.0f, 0xff0000, true);
-	//DrawBoxAA(25.0f, 20.0f, dx, 35.0f, 0x00ff00, true);
-	//if (isStaminaMax_) {
-
-	//	DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, GetColor(255, 255, (int)(std::abs(staminaMaxCnt_ % 101 - 50) * 5.1f)), true);
-	//}
-	//else {
-	//	if (stamina_ <= DOGDE_STAMINA) {
-	//		DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, 0xff0000, true);
-	//	}
-	//	else {
-	//		DrawBoxAA(25.0f, 40.0f, d2x, 55.0f, 0xffff00, true);
-	//	}
-	//}
-	/*int i = Controller::GetInstance().GetJPadInputState(Controller::JOYPAD_NO::PAD1).IsTrgDown[4];
-	DrawFormatString(5, 5, 0xffffff, "%d", i);*/
-	//DrawCapsule3D(attackPos1_, attackPos2_, 10.0f, 16, 0x00ffff, 0x00ffff, false);
-	//DrawSphere3D(pos, 25.0f, 16, 0x00ff00, 0x00ff00, true);
-	//Controller& ctrl = Controller::GetInstance();
-	////ゲームパッドの情報を取得
-	//Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadInputState(Controller::JOYPAD_NO::PAD1);
-	//for (int i = 0; i < static_cast<int>(Controller::JOYPAD_BTN::MAX); i++) {
-	//	DrawFormatString(0, 20 * i, 0x000000, "%d", padState.IsTrgDown[i]);
-	//}
-	//DrawFormatString(50, 15, 0xfffff , "%.2f", animationCtrl_->GetTime());
 }
 
 void Player::Release(void) const
@@ -238,11 +245,11 @@ void Player::Damage(int damage, float dir)
 
 	if (damage >= 15) {
 
-		ChangeState(STATE::DAMAGED_HEAVY);
+		DoChangeState(STATE::DAMAGED_HEAVY);
 	}
 	else {
 
-		ChangeState(STATE::DAMAGED_LIGHT);
+		DoChangeState(STATE::DAMAGED_LIGHT);
 	}
 
 	if (hp_ <= 0) {
@@ -250,13 +257,8 @@ void Player::Damage(int damage, float dir)
 		hp_ = 0;
 		autoHealHp_ = 0;
 		SceneManager::GetInstance().SetResultImage();
-		ChangeState(STATE::KO);
+		DoChangeState(STATE::KO);
 	}
-}
-
-bool Player::Healable(void) const
-{
-	return animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::IDLE) || animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::WALK) || animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::RUN);
 }
 
 bool Player::IsAttackMotion(void) const
@@ -287,17 +289,10 @@ void Player::GreatDodge(void)
 {
 	greatDodge_ = true;
 
-	for (int i = 0; i < EFFECT_NUM; i++) {
+	//エフェクトの生成
+	EffectCreate();
+	effectType_ = EFFECT::GOOD_DODGE;
 
-		effectDir_[i].x = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
-		effectDir_[i].y = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
-		effectDir_[i].z = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
-
-		effectDir_[i] = VScale(VNorm(effectDir_[i]), 20.0f);
-
-		dodgeTopPos_[i] = VAdd(VAdd(pos_, { 0.0f, 70.0f, 0.0f }), effectDir_[i]);
-		dodgeBottomPos_[i] = VAdd(pos_, { 0.0f, 70.0f, 0.0f });
-	}
 	if (!powerUp_) {
 
 		power_ += 3;
@@ -309,17 +304,10 @@ void Player::GoodDodge(void)
 {
 	goodDodge_ = true;
 
-	for (int i = 0; i < EFFECT_NUM; i++) {
+	//エフェクトの生成
+	EffectCreate();
+	effectType_ = EFFECT::GREAT_DODGE;
 
-		effectDir_[i].x = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
-		effectDir_[i].y = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
-		effectDir_[i].z = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
-
-		effectDir_[i] = VScale(VNorm(effectDir_[i]), 20.0f);
-
-		dodgeTopPos_[i] = VAdd(VAdd(pos_, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], 30.0f));
-		dodgeBottomPos_[i] = VAdd(pos_, { 0.0f, 70.0f, 0.0f });
-	}
 	if (!powerUp_) {
 
 		power_++;
@@ -337,7 +325,7 @@ void Player::Status(void)
 	//ゲームパッドの情報を取得
 	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
-	if (state_ != STATE::DOGDE && !padState.IsNew[static_cast<int>(Controller::JOYPAD_BTN::R)]) {
+	if (state_ != STATE::DOGDE && animationCtrl_->GetPlayType() != static_cast<int>(ANIM_TYPE::RUN)) {
 		if (stamina_ < MAX_STAMINA) {
 
 			stamina_++;
@@ -358,6 +346,7 @@ void Player::Status(void)
 		}
 		if (healCount_ >= HEAL_COUNT || hp_ >= MAX_HP) {
 
+			hp_ = MAX_HP;
 			isHeal_ = false;
 			healCount_ = 0;
 		}
@@ -372,7 +361,9 @@ void Player::Status(void)
 		}
 		else {
 
+			hp_ = MAX_HP;
 			isHealMax_ = false;
+			healCount_ = 0;
 		}
 	}
 	if (isStaminaMax_) {
@@ -412,12 +403,10 @@ void Player::Status(void)
 			powerUp_ = false;
 		}
 	}
-	if (power_ >= MAX_POWER) {
+	else {
+		if (power_ >= MAX_POWER) {
 
-		power_ = MAX_POWER;
-
-		if (!powerUp_) {
-
+			power_ = MAX_POWER;
 			damage_ = BASIC_DAMAGE * 1.5;
 			powerUp_ = true;
 		}
@@ -583,14 +572,6 @@ void Player::DrawHpAndPower(void) const
 
 void Player::ChangeWait(void) const
 {
-	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
-
-		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
-	}
-	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
-
-		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
-	}
 	//待機モーション
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
 }
@@ -601,42 +582,17 @@ void Player::ChangeMove(void) const
 
 void Player::ChangeAttack(void)
 {
-	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
-
-		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
-	}
-	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
-
-		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
-	}
 	//攻撃モーション
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK), false);
 }
 
 void Player::ChangeCombo(void)
 {
-	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
-
-		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
-	}
-	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
-
-		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
-	}
-	//攻撃モーション
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_1), false);
 }
 
 void Player::ChangeDodge(void)
 {
-	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
-
-		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
-	}
-	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
-
-		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
-	}
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DODGE), false);
 	dodgeCnt_ = 0;
 	dodgeFlg_ = true;
@@ -648,90 +604,32 @@ void Player::ChangeDodge(void)
 
 void Player::ChangeDamagedLight(void) const
 {
-	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
-
-		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
-	}
-	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
-
-		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
-	}
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_LIGHT), false);
 }
 
 void Player::ChangeDamagedHeavy(void) const
 {
-	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
-
-		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
-	}
-	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
-
-		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
-	}
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY), false);
 }
 
 void Player::ChangeKO(void) const
 {
-	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::KO_MOVE), false);
+	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::KO), false);
+}
+
+void Player::ChangeDrink(void) const
+{
+	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DRINK), false);
+	item_->Use();
 }
 
 void Player::UpdateWait(void)
-{
-	if (GetJoypadNum() == 0) {
-		if (CheckHitKey(KEY_INPUT_F) == 1) {
-		
-			//攻撃モーションに移行
-			ChangeState(STATE::ATTACK);
-		}
-		if (CheckHitKey(KEY_INPUT_G) == 1) {
-		
-			//攻撃モーションに移行
-			ChangeState(STATE::COMBO);
-		}
-		if (CheckHitKey(KEY_INPUT_W) == 1 || CheckHitKey(KEY_INPUT_A) == 1 || CheckHitKey(KEY_INPUT_S) == 1 || CheckHitKey(KEY_INPUT_D) == 1) {
-
-			//移動モーションに移行
-			ChangeState(STATE::MOVE);
-		}
-		if (CheckHitKey(KEY_INPUT_SPACE) == 1) {
-			if (stamina_ >= DOGDE_STAMINA) {
-
-				//回避モーションに移行
-				ChangeState(STATE::DOGDE);
-			}
-		}
-	}
-	else {
-
-		Controller& ctrl = Controller::GetInstance();
-		//ゲームパッドの情報を取得
-		Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
-		
-		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP)]) {
-
-			//攻撃モーションに移行
-			ChangeState(STATE::ATTACK);
-		}
-		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
-
-			//攻撃モーションに移行
-			ChangeState(STATE::COMBO);
-		}
-		if (padState.AKeyLX != 0 || padState.AKeyLY != 0) {
-
-			//移動モーションに移行
-			ChangeState(STATE::MOVE);
-		}
-		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
-			if (stamina_ >= DOGDE_STAMINA) {
-
-				//回避モーションに移行
-				ChangeState(STATE::DOGDE);
-			}
-		}
-	}
+{	
+	//状態遷移の判断
+	BoolChangeAttack();
+	BoolChangeCombo();
+	BoolChangeMove();
+	BoolChangeDrink();
 }
 
 void Player::UpdateMove(void)
@@ -745,29 +643,9 @@ void Player::UpdateMove(void)
 	VECTOR dir = { 0.0f, 0.0f, 0.0f };
 
 	//前後左右の移動処理
-	if (GetJoypadNum() == 0) {
-
-		if (CheckHitKey(KEY_INPUT_W) == 1) {
-
-			dir = VAdd(dir, { 0.0f, 0.0f, 1.0f });
-		}
-		if (CheckHitKey(KEY_INPUT_S) == 1) {
-
-			dir = VAdd(dir, { 0.0f, 0.0f, -1.0f });
-		}
-		if (CheckHitKey(KEY_INPUT_D) == 1) {
-
-			dir = VAdd(dir, { 1.0f, 0.0f, 0.0f });
-		}
-		if (CheckHitKey(KEY_INPUT_A) == 1) {
-
-			dir = VAdd(dir, { -1.0f, 0.0f, 0.0f });
-		}
-	}
-	else {
-		//方向の取得
-		dir = ctrl.GetDirectionXZAKey(padState.AKeyLX, padState.AKeyLY);
-	}
+	//方向の取得
+	dir = ctrl.GetDirectionXZAKey(padState.AKeyLX, padState.AKeyLY);
+	
 	if (!VectorUtility::EqualsVZero(dir)) {
 
 		Camera* camera = SceneManager::GetInstance().GetCamera();
@@ -811,14 +689,6 @@ void Player::UpdateMove(void)
 				//移動モーション
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 				
-				if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
-
-					AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
-				}
-				if (!AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
-				
-					AudioManager::GetInstance()->PlaySE(SoundID::SE_WALK);
-				}
 				//移動させる
 				pos_ = VAdd(pos_, VScale(moveDir_, speed_));
 			}
@@ -839,35 +709,18 @@ void Player::UpdateMove(void)
 			//移動させる
 			pos_ = VAdd(pos_, VScale(moveDir_, speed_));
 		}
-		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP)]) {
 
-			//攻撃モーションに移行
-			ChangeState(STATE::ATTACK);
-		}
-		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
+		// 状態遷移の判断
+		BoolChangeAttack();
+		BoolChangeCombo();
+		BoolChangeDodge();
+		BoolChangeDrink();
 
-			//攻撃モーションに移行
-			ChangeState(STATE::COMBO);
-		}
-		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
-			if (stamina_ >= DOGDE_STAMINA) {
-
-				//回避モーションに移行
-				ChangeState(STATE::DOGDE);
-			}
-		}
 		angles_.y = atan2f(moveDir_.x, moveDir_.z);
 	}
 	else {
-		if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
-			AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
-		}
-		if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
-
-			AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
-		}
-		ChangeState(STATE::WAIT);
+		DoChangeState(STATE::WAIT);
 	}
 }
 
@@ -905,7 +758,7 @@ void Player::UpdateAttack(void)
 		buff_ = 1.0;
 		isAttack_ = false;
 		//待機モーションに移行
-		ChangeState(STATE::WAIT);
+		DoChangeState(STATE::WAIT);
 	}
 }
 
@@ -962,7 +815,7 @@ void Player::UpdateCombo(void)
 
 		isAttack_ = false;
 		//待機モーションに移行
-		ChangeState(STATE::WAIT);
+		DoChangeState(STATE::WAIT);
 	}
 }
 
@@ -982,20 +835,11 @@ void Player::UpdateDodge(void)
 			dodgeCnt_ = 0;
 		}
 	}
-	if (goodDodge_ || greatDodge_) {
-		for (int i = 0; i < EFFECT_NUM; i++) {
-
-			effectDir_[i] = VScale(effectDir_[i], 1.05f);
-
-			dodgeTopPos_[i] = VAdd(VAdd(pos_, { 0.0f, 70.0f, 0.0f }), effectDir_[i]);
-			dodgeBottomPos_[i] = VAdd(pos_, { 0.0f, 70.0f, 0.0f });
-		}
-	}
 
 	if (animationCtrl_->IsEnd()) {
 
 		//待機モーションに移行
-		ChangeState(STATE::WAIT);
+		DoChangeState(STATE::WAIT);
 
 		greatDodge_ = goodDodge_ = false;
 	}
@@ -1005,7 +849,7 @@ void Player::UpdateDamagedLight(void)
 {
 	if (animationCtrl_->GetTime() >= 40) {
 
-		ChangeState(STATE::WAIT);
+		DoChangeState(STATE::WAIT);
 	}
 }
 
@@ -1051,7 +895,7 @@ void Player::UpdateDamagedHeavy(void)
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::STAND_UP)) {
 		if (animationCtrl_->GetTime() >= 210) {
 
-			ChangeState(STATE::WAIT);
+			DoChangeState(STATE::WAIT);
 		}
 	}
 }
@@ -1059,4 +903,136 @@ void Player::UpdateDamagedHeavy(void)
 void Player::UpdateKO(void)
 {
 	overFlg_ = true;
+}
+
+void Player::UpdateDrink(void)
+{
+	if (!animationCtrl_->IsEnd()) return;
+
+	switch (item_->GetUseType())
+	{
+	case Item::TYPE::HP:
+
+		isHeal_ = true;
+		effectType_ = EFFECT::HEAL;
+		break;
+
+	case Item::TYPE::HP_MAX:
+	
+		isHealMax_ = true;
+		effectType_ = EFFECT::HEAL;
+		break;
+
+	case Item::TYPE::STAMINA:
+
+		isStaminaMax_ = true;
+		effectType_ = EFFECT::STAMINA;
+		break;
+	}
+	EffectCreate();
+	DoChangeState(STATE::WAIT);
+}
+
+void Player::BoolChangeMove(void)
+{
+	//ゲームパッドの情報を取得
+	Controller::JOYPAD_IN_STATE padState = Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1);
+
+	if (padState.AKeyLX != 0 || padState.AKeyLY != 0) {
+
+		//移動モーションに移行
+		DoChangeState(STATE::MOVE);
+	}
+}
+
+void Player::BoolChangeAttack(void)
+{
+	//ゲームパッドの情報を取得
+	Controller::JOYPAD_IN_STATE padState = Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1);
+
+	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP)]) {
+
+		//攻撃モーションに移行
+		DoChangeState(STATE::ATTACK);
+	}
+}
+
+void Player::BoolChangeCombo(void)
+{
+	//ゲームパッドの情報を取得
+	Controller::JOYPAD_IN_STATE padState = Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1);
+
+	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
+
+		//攻撃モーションに移行
+		DoChangeState(STATE::COMBO);
+	}
+}
+
+void Player::BoolChangeDodge(void)
+{
+	//ゲームパッドの情報を取得
+	Controller::JOYPAD_IN_STATE padState = Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1);
+
+	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
+		if (stamina_ >= DOGDE_STAMINA || isStaminaMax_) {
+
+			//回避モーションに移行
+			DoChangeState(STATE::DOGDE);
+		}
+	}
+}
+
+void Player::BoolChangeDrink(void)
+{
+	//ゲームパッドの情報を取得
+	Controller::JOYPAD_IN_STATE padState = Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1);
+
+	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::LEFT)] || CheckHitKey(KEY_INPUT_0)) {
+
+		//飲むモーションに移行
+		DoChangeState(STATE::DRINK);
+	}
+}
+
+void Player::StopSE(void)
+{
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
+
+		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
+	}
+	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
+				
+		AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
+	}
+}
+
+void Player::EffectCreate(void)
+{
+	effectSize_ = EFFECT_MAX_SIZE / 3;
+
+	for (int i = 0; i < EFFECT_NUM; i++) {
+
+		effectDir_[i].x = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
+		effectDir_[i].y = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
+		effectDir_[i].z = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
+
+		dodgeTopPos_[i] = VAdd(VAdd(pos_, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], effectSize_));
+		dodgeBottomPos_[i] = VAdd(pos_, { 0.0f, 70.0f, 0.0f });
+	}
+	effectCnt_ = 30;
+}
+
+void Player::EffectUpdate(void)
+{
+	if (effectCnt_ < 0) return;
+
+	effectSize_ += (EFFECT_MAX_SIZE - effectSize_) / 8;
+
+	for (int i = 0; i < EFFECT_NUM; i++) {
+
+		dodgeTopPos_[i] = VAdd(VAdd(pos_, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], effectSize_));
+		dodgeBottomPos_[i] = VAdd(pos_, { 0.0f, 70.0f, 0.0f });
+	}
+	effectCnt_--;
 }

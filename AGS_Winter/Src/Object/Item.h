@@ -31,9 +31,10 @@ public:
 	void Release(void);
 
 	//何の種類か
-	TYPE GetType(void) { return type_; }
+	TYPE GetUseType(void) { return useType_; }
 	
 	//使用状況取得
+	void Use(void) { use_ = using_ = true; }
 	bool IsUse(void) { return use_; }
 	void SetUsing(bool use) { using_ = use; }
 
@@ -47,8 +48,10 @@ private:
 
 	//種類
 	TYPE type_;
+	TYPE useType_;
 	
 	//使用状況
+	bool prevUse_;
 	bool use_;
 	bool using_;
 

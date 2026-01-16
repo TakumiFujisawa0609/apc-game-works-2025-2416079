@@ -77,6 +77,10 @@ private:
 	bool cntDown_;
 	int cnt_;
 
+	int shakeCnt_;
+	float shakeWidVer_;
+	float shakeWidSide_;
+
 	bool changeFlg_;
 	int changeCnt_;
 
@@ -90,4 +94,5 @@ private:
 	void GameCamera(void);
 	void SetCameraPos(VECTOR targetPos, float diff);
 	void Effect(MV1_COLL_RESULT_POLY dim);
+	void ShakeCamera(void);
 };

@@ -5,6 +5,7 @@
 
 
 class AnimationController;
+class Item;
 
 class Player : public ActorBase
 {
@@ -21,6 +22,7 @@ public:
 		DAMAGED_LIGHT,
 		DAMAGED_HEAVY,
 		KO,
+		DRINK,
 		END,
 	};
 
@@ -38,8 +40,18 @@ public:
 		DAMAGED_LIGHT,
 		DAMAGED_HEAVY,
 		STAND_UP,
-		KO_MOVE,
 		KO,
+		DRINK,
+		MAX,
+	};
+
+	// エフェクト
+	enum class EFFECT
+	{
+		GREAT_DODGE,
+		GOOD_DODGE,
+		HEAL,
+		STAMINA,
 		MAX,
 	};
 
@@ -54,9 +66,10 @@ public:
 	static constexpr int BASIC_DAMAGE = 10;
 	static constexpr int MAX_POWER = 10;
 	static constexpr int EFFECT_NUM = 9;
+	static constexpr float EFFECT_MAX_SIZE = 100.0f;
 
 	// コンストラクタ
-	Player(void);
+	Player(Item* itm);
 	// デストラクタ
 	~Player(void);
 
@@ -69,7 +82,7 @@ public:
 	// 更新処理
 	void Update(void) override;
 	// 状態遷移
-	void ChangeState(STATE state);
+	void DoChangeState(STATE state);
 	// 描画処理
 	void Draw(void) const  override;
 	// 解放処理
@@ -114,6 +127,8 @@ public:
 	void ResetBuff(void) { buff_ = 1.0; }
 
 protected:
+
+	Item* item_;
 
 	// 状態
 	STATE state_;
@@ -167,6 +182,10 @@ protected:
 	VECTOR dodgeBottomPos_[EFFECT_NUM];
 	VECTOR effectDir_[EFFECT_NUM];
 
+	int effectCnt_;
+	float effectSize_;
+	EFFECT effectType_;
+
 	void Status(void);
 	void KnockBack(void);
 
@@ -182,6 +201,7 @@ protected:
 	void ChangeDamagedLight(void) const;
 	void ChangeDamagedHeavy(void) const;
 	void ChangeKO(void) const;
+	void ChangeDrink(void) const;
 
 	// 状態別更新
 	void UpdateWait(void);
@@ -192,4 +212,17 @@ protected:
 	void UpdateDamagedLight(void);
 	void UpdateDamagedHeavy(void);
 	void UpdateKO(void);
+	void UpdateDrink(void);
+
+	// 状態遷移の判断
+	void BoolChangeMove(void);
+	void BoolChangeAttack(void);
+	void BoolChangeCombo(void);
+	void BoolChangeDodge(void);
+	void BoolChangeDrink(void);
+
+	// 更新処理
+	void StopSE(void);
+	void EffectCreate(void);
+	void EffectUpdate(void);
 };

@@ -21,7 +21,8 @@
 
 
 GameScene::GameScene(void) :enemy_(), hitFlgE_(), hitFlgP_(), isLockon_(false), item_(), pitch_(DEFAULT_TILT), yaw_(DEFAULT_YAW),
-	shadowMap_(), stage_(), player_(), cntDown_(false), cnt_(10), lockOnImg_(), changeCnt_(0), changeFlg_(false), clearCamera_(false)
+	shadowMap_(), stage_(), player_(), cntDown_(false), cnt_(10), lockOnImg_(), changeCnt_(0), changeFlg_(false), clearCamera_(false),
+	shakeCnt_(0)
 {
 }
 
@@ -35,13 +36,13 @@ void GameScene::InitLoad(void)
 	stage_ = new Stage();
 	stage_->InitLoad();
 
-	//プレイヤーのロード
-	player_ = new Player();
-	player_->InitLoad();
-
 	//アイテムのロード
 	item_ = new Item();
 	item_->InitLoad();
+
+	//プレイヤーのロード
+	player_ = new Player(item_);
+	player_->InitLoad();
 
 	//エネミーのロード
 	enemy_ = new Enemy(player_);
@@ -98,47 +99,16 @@ void GameScene::Init(void)
 void GameScene::Update(void)
 {
 	player_->Update();
+	item_->Update();
 	enemy_->Update();
 	GameCamera();
-
-	if (player_->HealUsed() || !player_->Healable()) {
-
-		item_->SetUsing(true);
-	}
-	else {
-
-		item_->SetUsing(false);
-	}
-
-	item_->Update();
-
-	if (item_->IsUse()) {
-		switch (item_->GetType())
-		{
-			case Item::TYPE::HP:
-			
-			player_->Heal();
-			AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAL);
-			break;
-			
-			case Item::TYPE::HP_MAX:
-			
-			player_->HealMax();
-			AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAL);
-			break;
-
-			case Item::TYPE::STAMINA:
-
-			player_->StaminaMax();
-			break;
-		}
-	}
 
 	// ステージの更新
 	stage_->Update();
 
 	Collision();
-	
+	ShakeCamera();
+
 	if (enemy_->ClearFlg()) {
 		if (!changeFlg_) {
 			if (changeCnt_ <= 1) {
@@ -201,6 +171,10 @@ void GameScene::Collision(void)
 
 				hitFlgE_ = true;
 				enemy_->Damage(player_->GetPower() * player_->GetBuff());
+				if (player_->GetPower() * player_->GetBuff() >= 15.0f) {
+
+					shakeCnt_ = 35;
+				}
 				player_->ResetBuff();
 			}
 		}
@@ -408,6 +382,9 @@ void GameScene::GameCamera(void)
 	//カメラのインスタンスとプレイヤーの注視点の位置を取る
 	Camera* camera = SceneManager::GetInstance().GetCamera();
 	VECTOR headPos = VAdd(player_->GetPos(), { 0.0f, 180.0f, 0.0f });
+	headPos.x += shakeWidSide_ * cos(player_->GetAngle().y);
+	headPos.y += shakeWidVer_;
+	headPos.z += shakeWidSide_ * sin(player_->GetAngle().y);
 
 	if (!changeFlg_) {
 		if (enemy_->ClearFlg()) {
@@ -593,6 +570,30 @@ void GameScene::Effect(MV1_COLL_RESULT_POLY dim)
 	SetPosPlayingEffekseer3DEffect(effect, pos.x, pos.y, pos.z);
 	SetScalePlayingEffekseer3DEffect(effect, 15.0f, 15.0f, 15.0f);
 	SetRotationPlayingEffekseer3DEffect(effect, 0.0f, 0.0f, 0.0f);
+}
+
+void GameScene::ShakeCamera(void)
+{
+	if (shakeCnt_ <= 0) return;
+
+	Camera* camera = SceneManager::GetInstance().GetCamera();
+
+	if (shakeCnt_ % 3 == 0) {
+		
+		shakeWidSide_ = (float)GetRand(2);
+		shakeWidSide_ -= 1;
+		shakeWidSide_ *= 5.0;
+
+		shakeWidVer_ = (float)GetRand(2);
+		shakeWidVer_ -= 1;
+		shakeWidVer_ *= 30.0;
+	}
+	shakeCnt_--;
+	
+	if (shakeCnt_ <= 0) {
+
+		shakeWidSide_ = shakeWidVer_ = 0.0f;
+	}
 }
 
 void GameScene::Draw(void)

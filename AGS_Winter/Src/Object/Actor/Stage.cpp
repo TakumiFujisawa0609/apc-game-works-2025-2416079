@@ -46,12 +46,8 @@ void Stage::Draw(void) const
 		MV1SetFrameOpacityRate(opacityModelId_, num - 1, 0.5f);
 
 		num--;
-
-		if (num == 0) {
-
-			MV1DrawModel(opacityModelId_);
-		}
 	}
+	MV1DrawModel(opacityModelId_);
 }
 
 void Stage::SetOpacityIndex(std::vector<int> index)

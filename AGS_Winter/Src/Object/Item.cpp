@@ -44,7 +44,7 @@ void Item::Init(void)
 		}
 	}
 	type_ = TYPE::HP;
-	use_ = true;
+	use_ = prevUse_ = false;
 }
 
 void Item::Update(void)
@@ -102,16 +102,10 @@ void Item::Update(void)
 		type_ = static_cast<TYPE>(itemNo);
 	}
 
-	use_ = false;
+	if (itemNum_[static_cast<int>(type_)] > 0) {
+		if (use_ && !prevUse_) {
 
-	if (using_) {
-
-		return;
-	}
-	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::LEFT)]) {
-		if (itemNum_[static_cast<int>(type_)] > 0) {
-
-			use_ = true;
+			useType_ = type_;
 			itemNum_[static_cast<int>(type_)]--;
 			
 			if (itemNum_[static_cast<int>(type_)] <= 0) {
@@ -141,6 +135,8 @@ void Item::Update(void)
 			}
 		}
 	}
+	prevUse_ = use_;
+	use_ = false;
 }
 
 void Item::Draw(void)
