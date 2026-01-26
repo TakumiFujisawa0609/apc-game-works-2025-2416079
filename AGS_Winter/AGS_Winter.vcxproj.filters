@@ -10,7 +10,6 @@
     <ClInclude Include="Src\Object\Actor\Stage.h" />
     <ClInclude Include="Src\Object\Grid.h" />
     <ClInclude Include="Src\Common\Fader.h" />
-    <ClInclude Include="Src\Common\Quaternion.h" />
     <ClInclude Include="Src\Common\Vector2.h" />
     <ClInclude Include="Src\Manager\Camera.h" />
     <ClInclude Include="Src\Manager\EffectResManager.h" />
@@ -33,6 +32,15 @@
     <ClInclude Include="Src\Scene\Result\GameClear.h" />
     <ClInclude Include="Src\Scene\Result\GameOver.h" />
     <ClInclude Include="Src\Scene\Result\ResultBase.h" />
+    <ClInclude Include="Src\Object\Common\Transform.h" />
+    <ClInclude Include="Src\Common\Quaternion.h" />
+    <ClInclude Include="Src\Object\Collider\ColliderBase.h" />
+    <ClInclude Include="Src\Object\Collider\ColliderCapsule.h" />
+    <ClInclude Include="Src\Object\Collider\ColliderLine.h" />
+    <ClInclude Include="Src\Object\Collider\ColliderModel.h" />
+    <ClInclude Include="Src\Object\Collider\ColliderSphere.h" />
+    <ClInclude Include="Src\Object\Collision\CollisionBase.h" />
+    <ClInclude Include="Src\Object\Collision\CollisionManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\main.cpp" />
@@ -44,7 +52,6 @@
     <ClCompile Include="Src\Object\Actor\Stage.cpp" />
     <ClCompile Include="Src\Object\Grid.cpp" />
     <ClCompile Include="Src\Common\Fader.cpp" />
-    <ClCompile Include="Src\Common\Quaternion.cpp" />
     <ClCompile Include="Src\Common\Vector2.cpp" />
     <ClCompile Include="Src\Manager\Camera.cpp" />
     <ClCompile Include="Src\Manager\EffectResManager.cpp" />
@@ -67,6 +74,15 @@
     <ClCompile Include="Src\Scene\Result\GameClear.cpp" />
     <ClCompile Include="Src\Scene\Result\GameOver.cpp" />
     <ClCompile Include="Src\Scene\Result\ResultBase.cpp" />
+    <ClCompile Include="Src\Object\Common\Transform.cpp" />
+    <ClCompile Include="Src\Common\Quaternion.cpp" />
+    <ClCompile Include="Src\Object\Collider\ColliderBase.cpp" />
+    <ClCompile Include="Src\Object\Collider\ColliderCapsule.cpp" />
+    <ClCompile Include="Src\Object\Collider\ColliderLine.cpp" />
+    <ClCompile Include="Src\Object\Collider\ColliderModel.cpp" />
+    <ClCompile Include="Src\Object\Collider\ColliderSphere.cpp" />
+    <ClCompile Include="Src\Object\Collision\CollisionBase.cpp" />
+    <ClCompile Include="Src\Object\Collision\CollisionManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="x64\Release\icon.rc" />

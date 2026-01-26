@@ -55,18 +55,28 @@ public:
 		MAX,
 	};
 
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, -500.0f };
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, 38.0f, -500.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
-	static constexpr VECTOR SWORD_POS = { 77.5f, 27.5f, -10.0f };
+
 	static constexpr int MAX_HP = 85;
+	
 	static constexpr int HEAL_COUNT = 15;
 	static constexpr float MAX_STAMINA = 1000.0f;
 	static constexpr float DOGDE_STAMINA = 100.0f;
 	static constexpr int STAMINA_MAX_TIME = 180 * 60;
+	
 	static constexpr int BASIC_DAMAGE = 10;
 	static constexpr int MAX_POWER = 10;
+	
 	static constexpr int EFFECT_NUM = 9;
-	static constexpr float EFFECT_MAX_SIZE = 100.0f;
+	static constexpr float EFFECT_MAX_SIZE = 150.0f;
+
+	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 150.0f, 0.0f };
+	static constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 50.0f, 0.0f };
+	static constexpr float COL_CAPSULE_RADIUS = 30.0f;
+
+	static constexpr VECTOR SWORD_POS = { 77.5f, 27.5f, -10.0f };
+	static constexpr float SWORD_RADIUS = 10.0f;
 
 	// コンストラクタ
 	Player(Item* itm);
@@ -77,22 +87,19 @@ public:
 	void InitLoad() override;
 	//アニメーションの初期化
 	void InitAnim() override;
-	//その他の初期化
-	void InitOwn() override;
+	//モデルの初期化
+	void InitTransform() override;
+	// コライダの初期化
+	void InitCollider() override;
 	// 更新処理
 	void Update(void) override;
-	// 状態遷移
-	void DoChangeState(STATE state);
 	// 描画処理
 	void Draw(void) const  override;
 	// 解放処理
 	void Release(void) const  override;
 
-	VECTOR GetAngle(void) const { return angles_; }
-
-	//攻撃座標の取得
-	VECTOR GetAttackStartPos(void) const { return attackPos1_; }
-	VECTOR GetAttackEndPos(void) const { return attackPos2_; }
+	// 状態遷移
+	void DoChangeState(STATE state);
 
 	// ダメージを与える
 	void Damage(int damage, float dir);
@@ -110,7 +117,13 @@ public:
 	
 	bool IsHit(void) const;
 	bool IsAttack(void) const {return isAttack_;}
-	
+
+	// 自身の衝突情報取得
+	const std::map<int, ColliderBase*>& GetSwordColliders(void) const
+	{
+		return swordColliders_;
+	}
+
 	bool IsDodge(void) const { return dodgeFlg_; }
 	int DodgeCount(void) const { return dodgeCnt_; }
 
@@ -128,16 +141,20 @@ public:
 
 protected:
 
+private:
+
 	Item* item_;
 
 	// 状態
 	STATE state_;
 
+	Transform swordTransform_;
+
+	// 剣の衝突情報
+	std::map<int, ColliderBase*> swordColliders_;
+
 	// 移動速度
 	float speed_;
-	//攻撃判定の始点と終点
-	VECTOR attackPos1_;
-	VECTOR attackPos2_;
 
 	float knockBackDir_;
 

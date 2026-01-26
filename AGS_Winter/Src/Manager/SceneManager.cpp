@@ -33,7 +33,7 @@ SceneManager& SceneManager::GetInstance(void)
 void SceneManager::Init(void)
 {
 	sceneId_ = SCENE_ID::NONE;
-	waitSceneId_ = SCENE_ID::NONE;
+	waitSceneId_ = SCENE_ID::TITLE;
 
 	camera_ = new Camera();
 	camera_->Init();
@@ -48,12 +48,14 @@ void SceneManager::Init(void)
 	pause_ = new Pause();
 
 	backGround_ = MV1LoadModel((Application::PATH_MODEL + "Sky.mv1").c_str());
+	loadImg_ = LoadGraph((Application::PATH_IMAGE + "Load.png").c_str());
+	font_ = CreateFontToHandle("アンニャントロマン", 35, 1, DX_FONTTYPE_ANTIALIASING_EDGE_4X4);
 
 	MV1SetPosition(backGround_, Utility::VECTOR_ZERO);
 	MV1SetRotationXYZ(backGround_, Utility::VECTOR_ZERO);
 	MV1SetScale(backGround_, { 7.0f, 7.0f, 7.0f });
 
-	isSceneChanging_ = false;
+	isSceneChanging_ = true;
 	isLoad_ = false;
 	resultImg_ = MakeGraph(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
 
@@ -63,8 +65,7 @@ void SceneManager::Init(void)
 	// 3D描画の初期化
 	Init3D();
 
-	// 初期シーンの設定
-	DoChangeScene(SCENE_ID::TITLE);
+	DoChangeScene(waitSceneId_);
 }
 
 void SceneManager::Update(void)
@@ -73,19 +74,7 @@ void SceneManager::Update(void)
 
 		return;
 	}
-	static bool isFirst = true;
 
-	if (isFirst) {
-		if (isLoad_) {
-
-			// 初期シーンの設定
-			DoChangeScene(SCENE_ID::TITLE);
-		}
-		else {
-			isFirst = false;
-		}
-		return;
-	}
 	// デルタタイム
 	auto nowTime = std::chrono::system_clock::now();
 	deltaTime_ = static_cast<float>( std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - preTime_).count() / 1000000000.0);
@@ -162,7 +151,20 @@ void SceneManager::Draw(void)
 	if (isLoad_) {
 
 		DrawBox(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, 0x000000, true);
-		DrawFormatString(150, 150, 0xffffff, "LOADING");
+		DrawRotaGraph(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 0.95, 0.0, loadImg_, true);
+		DrawFormatStringToHandle(Application::SCREEN_SIZE_X - 270, Application::SCREEN_SIZE_Y - 75, 0xdddddd, font_, "LOADING");
+		if (showFlg_[0]) {
+
+			DrawFormatStringToHandle(Application::SCREEN_SIZE_X - 75, Application::SCREEN_SIZE_Y - 75, 0xdddddd, font_, ".");
+		}
+		if (showFlg_[1]) {
+
+			DrawFormatStringToHandle(Application::SCREEN_SIZE_X - 50, Application::SCREEN_SIZE_Y - 75, 0xdddddd, font_, ".");
+		}
+		if (showFlg_[2]) {
+
+			DrawFormatStringToHandle(Application::SCREEN_SIZE_X - 25, Application::SCREEN_SIZE_Y - 75, 0xdddddd, font_, ".");
+		}
 	}
 //#pragma region Step1 ポイントライト
 //	if (CheckHitKey(KEY_INPUT_T)) { pointLightPos_.z += 3.0f; }
@@ -262,13 +264,34 @@ void SceneManager::ResetDeltaTime(void)
 
 void SceneManager::DoChangeScene(SCENE_ID sceneId)
 {
+	loadCnt_++;
+
+	if (loadCnt_ == 3) {
+
+		showFlg_[0] = true;
+	}
+	if (loadCnt_ == 6) {
+
+		showFlg_[1] = true;
+	}
+	if (loadCnt_ == 9) {
+
+		showFlg_[2] = true;
+	}
+	if (loadCnt_ == 12) {
+
+		showFlg_[0] = false;
+		showFlg_[1] = false;
+		showFlg_[2] = false;
+	}
 	if (sceneId_ != sceneId) {
+
 		// シーンを変更する
 		sceneId_ = sceneId;
-		
+
 		// 現在のシーンを解放
 		if (scene_ != nullptr) {
-
+				
 			scene_->Release();
 			delete scene_;
 		}
@@ -306,6 +329,7 @@ void SceneManager::DoChangeScene(SCENE_ID sceneId)
 	if (GetASyncLoadNum() <= 0) {
 
 		isLoad_ = false;
+		loadCnt_ = 0;
 
 		// 初期化
 		camera_->Init();
@@ -319,7 +343,6 @@ void SceneManager::DoChangeScene(SCENE_ID sceneId)
 
 void SceneManager::Fade(void)
 {
-
 	Fader::STATE fState = fader_->GetState();
 	switch (fState){
 	case Fader::STATE::FADE_IN:
@@ -365,29 +388,6 @@ void SceneManager::Init3D(void)
 	// ライト設定
 	SetUseLighting(true);
 	ChangeLightTypeDir({ 0.00f, -1.00f, 0.00f });
-
-	//#pragma region Step1 ポイントライト
-	//
-	//	pointLightPos_ = { 0.0f, 40.0f, 180.0f };
-	//	ChangeLightTypePoint(pointLightPos_, 400.0f, 0.000f, 0.001f, 0.000f);
-	//	
-	//	// 追加ポイントライト１
-	//	pointLight1Pos_ = { -390.0f, 100.0f, 50.0f };
-	//	pointLight1_ = CreatePointLightHandle(pointLight1Pos_, 100.0f, 0.000f, 0.002f, 0.000f);
-	//
-	//	// 追加ポイントライト２
-	//	pointLight2Pos_ = { 390.0f, 100.0f, 50.0f };
-	//	pointLight2_ = CreatePointLightHandle(pointLight2Pos_, 100.0f, 0.000f, 0.002f, 0.000f);
-	//
-	//#pragma endregion
-
-	//#pragma region Step2 スポットライト
-	//	spotLightPos_ = { 500.0f, 300.0f, 45.0f };
-	//	ChangeLightTypeSpot(spotLightPos_,{ 0.0f, 0.0f, 1.0f }, 360.0f * DX_PI_F / 180.0f, 0.0f * DX_PI_F / 180.0f,	200.0f, 0.000f, 0.001f, 0.000f);
-	//#pragma endregion
-
-	//// ディフューズカラー
-	//SetLightDifColor(GetColorF(0.3f, 0.3f, 0.8f, 1.0f));
 
 	// フォグ設定
 	SetFogEnable(true);

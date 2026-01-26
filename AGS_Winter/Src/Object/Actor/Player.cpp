@@ -3,16 +3,19 @@
 #include "../../Utility/Utility.h"
 #include "../../Utility/VectorUtility.h"
 #include "../../Utility/AngleUtility.h"
-#include "../Common/AnimationController.h"
 #include "../../Manager/Audio/AudioManager.h"
 #include "../../Manager/Audio/SoundTable.h"
 #include "../../Manager/SceneManager.h"
 #include "../../Manager/Camera.h"
 #include "../../Manager/Input/Controller.h"
+#include "../Common/AnimationController.h"
+#include "../Collider/ColliderCapsule.h"
+#include "../Collider/ColliderLine.h"
+#include "../Collider/ColliderModel.h"
 #include "../Item.h"
 
 
-Player::Player(Item* itm): ActorBase(), item_(itm), attackPos1_(), attackPos2_(), autoHealCnt_(0), autoHealHp_(0),
+Player::Player(Item* itm): ActorBase(), item_(itm), autoHealCnt_(0), autoHealHp_(0),
 	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(false), knockBackDir_(0.0f),
 	overFlg_(false), power_(0), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),
 	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),	barStaEY_(), barStaSY_(), damage_(BASIC_DAMAGE), goodDodge_(), greatDodge_(), guageEX_(),
@@ -27,7 +30,7 @@ Player::~Player(void)
 void Player::InitLoad()
 {
 	//モデルのロード
-	modelId_ = MV1LoadModel((Application::PATH_MODEL + "Player.mv1").c_str());
+	transform_.SetModel(MV1LoadModel((Application::PATH_MODEL + "Player.mv1").c_str()));
 	powerGauge_ = LoadSoftImage((Application::PATH_IMAGE + "Power.png").c_str());
 	hpBar_ = LoadSoftImage((Application::PATH_IMAGE + "HpBar.png").c_str());
 }
@@ -35,7 +38,7 @@ void Player::InitLoad()
 void Player::InitAnim()
 {
 	//アニメーションのロード
-	animationCtrl_ = new AnimationController(modelId_);
+	animationCtrl_ = new AnimationController(transform_.modelId);
 
 	animationCtrl_->AddInFbx(0, 60.0f, 0);
 			
@@ -53,15 +56,20 @@ void Player::InitAnim()
 	animationCtrl_->Add(12, 330.0f, (Application::PATH_ANIMATION + "Drinking.mv1").c_str());
 }
 
-void Player::InitOwn()
+void Player::InitTransform()
 {
 	FindHpAndPower();
 
-	pos_ = DEFAULT_POS;
-	angles_ = Utility::VECTOR_ZERO;
-	localAngles_ = DIFF_ANGLES;
-	scales_ = Utility::VECTOR_ONE;
+	transform_.pos = DEFAULT_POS;
+	transform_.prevPos = transform_.pos;
+	transform_.rot = Utility::VECTOR_ZERO;
+	transform_.localRot = VScale(Utility::AXIS_Y, DX_PI_F);
+	transform_.scl = Utility::VECTOR_ONE;
 	
+	swordTransform_.pos = MV1GetFramePosition(transform_.modelId, 58);
+	swordTransform_.matRot = MV1GetFrameLocalWorldMatrix(transform_.modelId, 37);
+	swordTransform_.Update();
+
 	speed_ = 6.0f;
 	hp_ = MAX_HP;
 	moveDir_ = Utility::DIR_F;
@@ -69,9 +77,28 @@ void Player::InitOwn()
 	DoChangeState(STATE::WAIT);
 }
 
+void Player::InitCollider()
+{
+	// モデルコライダ
+	ColliderModel* colModel = new ColliderModel(&transform_);
+	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::MODEL), colModel);
+	
+	// 主に地面との衝突で仕様する線分コライダ
+	ColliderLine* colLine = new ColliderLine(&transform_, COL_LINE_START_LOCAL_POS, COL_LINE_END_LOCAL_POS);
+	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::LINE), colLine);
+
+	// 主に壁や木などの衝突で仕様するカプセルコライダ
+	ColliderCapsule* colCapsule = new ColliderCapsule(&transform_, COL_CAPSULE_TOP_LOCAL_POS, COL_CAPSULE_DOWN_LOCAL_POS, COL_CAPSULE_RADIUS);
+	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::CAPSULE), colCapsule);
+
+	// 武器用のカプセルコライダ
+	colCapsule = new ColliderCapsule(&swordTransform_, SWORD_POS, Utility::VECTOR_ZERO, COL_CAPSULE_RADIUS);
+	swordColliders_.emplace(static_cast<int>(COLLIDER_TYPE::CAPSULE), colCapsule);
+}
+
 void Player::Update(void)
 {
-	prevPos_ = pos_;
+	transform_.prevPos = transform_.pos;
 
 	//状態別更新処理
 	switch (state_) {
@@ -126,12 +153,9 @@ void Player::Update(void)
 	EffectUpdate();
 
 	//モデルの設定
-	MV1SetPosition(modelId_, pos_);
-	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
-	MV1SetScale(modelId_, scales_);
-
+	transform_.Update();
 	animationCtrl_->Update();
-	MV1SetupCollInfo(modelId_);
+	MV1RefreshCollInfo(transform_.modelId);
 }
 
 void Player::DoChangeState(STATE state)
@@ -261,6 +285,11 @@ void Player::Damage(int damage, float dir)
 	}
 }
 
+bool Player::Healable(void) const
+{
+	return false;
+}
+
 bool Player::IsAttackMotion(void) const
 {
 	if (state_ == STATE::ATTACK || state_ == STATE::COMBO) {
@@ -318,8 +347,9 @@ void Player::GoodDodge(void)
 void Player::Status(void)
 {
 	//当たり判定の中心
-	attackPos1_ = MV1GetFramePosition(modelId_, 58);
-	attackPos2_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(modelId_, 37));
+	swordTransform_.pos = MV1GetFramePosition(transform_.modelId, 58);
+	swordTransform_.matRot = MV1GetFrameLocalWorldMatrix(transform_.modelId, 37);
+	swordTransform_.Update();
 
 	Controller& ctrl = Controller::GetInstance();
 	//ゲームパッドの情報を取得
@@ -415,10 +445,10 @@ void Player::Status(void)
 
 void Player::KnockBack()
 {
-	pos_.x += sinf(knockBackDir_) * 2.0f;
-	pos_.z += cosf(knockBackDir_) * 2.0f;
+	transform_.pos.x += sinf(knockBackDir_) * 3.0f;
+	transform_.pos.z += cosf(knockBackDir_) * 3.0f;
 
-	angles_.y = knockBackDir_ - DX_PI_F;
+	transform_.rot.y = knockBackDir_ - DX_PI_F;
 }
 
 void Player::FindHpAndPower(void)
@@ -498,7 +528,6 @@ void Player::FindHpAndPower(void)
 			gx = 0;
 		}
 	}
-
 }
 
 void Player::DrawHpAndPower(void) const
@@ -677,7 +706,7 @@ void Player::UpdateMove(void)
 				}
 
 				//移動させる
-				pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 1.75f));
+				transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 1.75f));
 
 				if (!isStaminaMax_) {
 				
@@ -690,7 +719,7 @@ void Player::UpdateMove(void)
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 				
 				//移動させる
-				pos_ = VAdd(pos_, VScale(moveDir_, speed_));
+				transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_));
 			}
 		}
 		else {
@@ -707,7 +736,7 @@ void Player::UpdateMove(void)
 				AudioManager::GetInstance()->PlaySE(SoundID::SE_WALK);
 			}
 			//移動させる
-			pos_ = VAdd(pos_, VScale(moveDir_, speed_));
+			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_));
 		}
 
 		// 状態遷移の判断
@@ -716,7 +745,7 @@ void Player::UpdateMove(void)
 		BoolChangeDodge();
 		BoolChangeDrink();
 
-		angles_.y = atan2f(moveDir_.x, moveDir_.z);
+		transform_.rot.y = atan2f(moveDir_.x, moveDir_.z);
 	}
 	else {
 
@@ -750,7 +779,7 @@ void Player::UpdateAttack(void)
 	if (animationCtrl_->GetTime() <= 138.0f) {
 	
 		//移動させる
-		pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 0.2f));
+		transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.2f));
 	}
 
 	if (animationCtrl_->IsEnd()) {
@@ -822,7 +851,7 @@ void Player::UpdateCombo(void)
 void Player::UpdateDodge(void)
 {
 	//移動させる
-	pos_ = VAdd(pos_, VScale(moveDir_, speed_ * 1.1f)); 
+	transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 1.1f));
 
 	if (dodgeFlg_) {
 		if (dodgeCnt_ <= 13.0f) {
@@ -890,8 +919,6 @@ void Player::UpdateDamagedHeavy(void)
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::STAND_UP), false);
 		}
 	}
-
-
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::STAND_UP)) {
 		if (animationCtrl_->GetTime() >= 210) {
 
@@ -909,12 +936,14 @@ void Player::UpdateDrink(void)
 {
 	if (!animationCtrl_->IsEnd()) return;
 
+	AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAL);
 	switch (item_->GetUseType())
 	{
 	case Item::TYPE::HP:
 
 		isHeal_ = true;
 		effectType_ = EFFECT::HEAL;
+		
 		break;
 
 	case Item::TYPE::HP_MAX:
@@ -1017,8 +1046,8 @@ void Player::EffectCreate(void)
 		effectDir_[i].y = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
 		effectDir_[i].z = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
 
-		dodgeTopPos_[i] = VAdd(VAdd(pos_, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], effectSize_));
-		dodgeBottomPos_[i] = VAdd(pos_, { 0.0f, 70.0f, 0.0f });
+		dodgeTopPos_[i] = VAdd(VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], effectSize_));
+		dodgeBottomPos_[i] = VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f });
 	}
 	effectCnt_ = 30;
 }
@@ -1031,8 +1060,8 @@ void Player::EffectUpdate(void)
 
 	for (int i = 0; i < EFFECT_NUM; i++) {
 
-		dodgeTopPos_[i] = VAdd(VAdd(pos_, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], effectSize_));
-		dodgeBottomPos_[i] = VAdd(pos_, { 0.0f, 70.0f, 0.0f });
+		dodgeTopPos_[i] = VAdd(VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], effectSize_));
+		dodgeBottomPos_[i] = VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f });
 	}
 	effectCnt_--;
 }

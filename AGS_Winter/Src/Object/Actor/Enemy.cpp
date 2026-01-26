@@ -4,6 +4,10 @@
 #include "../../Utility/AngleUtility.h"
 #include "../Common/AnimationController.h"
 #include "../../Manager/SceneManager.h"
+#include "../Collider/ColliderModel.h"
+#include "../Collider/ColliderSphere.h"
+#include "../Collider/ColliderLine.h"
+#include "../Collider/ColliderCapsule.h"
 #include "Player.h"
 #include "Enemy.h"
 
@@ -20,12 +24,12 @@ Enemy::~Enemy(void)
 
 void Enemy::InitLoad()
 {
-	modelId_ = MV1LoadModel((Application::PATH_MODEL + "Wolf.mv1").c_str());
+	transform_.SetModel(MV1LoadModel((Application::PATH_MODEL + "Wolf.mv1").c_str()));
 }
 
 void Enemy::InitAnim()
 {
-	animationCtrl_ = new AnimationController(modelId_);
+	animationCtrl_ = new AnimationController(transform_.modelId);
 
 	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_A), 45, 0);
 	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_B), 45, 1);
@@ -38,26 +42,59 @@ void Enemy::InitAnim()
 	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::UP), 60, 6);
 }
 
-void Enemy::InitOwn()
+void Enemy::InitTransform()
 {
-	pos_ = DEFAULT_POS;
-	prevPos_ = pos_;
-
+	transform_.pos = DEFAULT_POS;
 	DirectionPlayer();
-	angles_ = targetAngles_;
-	localAngles_ = DIFF_ANGLES;
+	transform_.rot = targetAngles_;
+	transform_.localRot = DIFF_ANGLES;
+	transform_.scl = SCALE;
 
-	scales_ = SCALE;
+	armPos_ = MV1GetFramePosition(transform_.modelId, 59);
+	armTransform_.pos = MV1GetFramePosition(transform_.modelId, 57);
+	armTransform_.Update();
+
+	headPos_ = MV1GetFramePosition(transform_.modelId, 16);
+	headTransform_.pos = MV1GetFramePosition(transform_.modelId, 6);
+	headTransform_.Update();
 
 	moveDir_ = Utility::DIR_B;
 
 	hp_ = MAX_HP;
 }
 
+void Enemy::InitCollider()
+{
+	// モデルコライダ
+	ColliderModel* colModel = new ColliderModel(&transform_);
+	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::MODEL), colModel);
+
+	// 主に地面との衝突で仕様する線分コライダ
+	ColliderLine* colLine = new ColliderLine(&transform_, COL_LINE_START_LOCAL_POS, COL_LINE_END_LOCAL_POS);
+	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::LINE), colLine);
+
+	// 主に壁や木などの衝突で仕様するカプセルコライダ
+	ColliderCapsule* colCapsule = new ColliderCapsule(&transform_,
+		COL_CAPSULE_TOP_LOCAL_POS, COL_CAPSULE_DOWN_LOCAL_POS, COL_CAPSULE_RADIUS);
+	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::CAPSULE), colCapsule);
+
+	// 攻撃用の球体コライダ
+	ColliderSphere* colSphere = new ColliderSphere(&shotTransform_, Utility::VECTOR_ZERO, ATTACK_RADIUS);
+	shotColliders_.emplace(static_cast<int>(COLLIDER_TYPE::SPHERE), colSphere);
+
+	// 攻撃用のカプセルコライダ1
+	colCapsule = new ColliderCapsule(&armTransform_, &armPos_, COL_CAPSULE_RADIUS);
+	armColliders_.emplace(static_cast<int>(COLLIDER_TYPE::CAPSULE), colCapsule);
+
+	// 攻撃用のカプセルコライダ2
+	colCapsule = new ColliderCapsule(&headTransform_, &headPos_, COL_CAPSULE_RADIUS);
+	headColliders_.emplace(static_cast<int>(COLLIDER_TYPE::CAPSULE), colCapsule);
+}
+
 void Enemy::Update(void)
 {
 	//前のステータスを持っておく
-	prevPos_ = pos_;
+	transform_.prevPos = transform_.pos;
 
 	//ステータス別の更新
 	switch (state_)
@@ -90,10 +127,10 @@ void Enemy::Update(void)
 
 	//モデルの更新
 	animationCtrl_->Update();
-	MV1SetPosition(modelId_, pos_);
+	transform_.Update();
 
 	//当たり判定を更新
-	MV1RefreshCollInfo(modelId_);
+	MV1RefreshCollInfo(transform_.modelId);
 }
 
 void Enemy::ChangeState(STATE state)
@@ -132,22 +169,10 @@ void Enemy::ChangeState(STATE state)
 
 void Enemy::Draw(void) const
 {
-	//DrawFormatString(Application::SCREEN_SIZE_X - 100, 20, 0x000000, "%.2f", (300.0f - cnt_) / 60.0f, SetFontSize(25));
-	//DrawFormatString(100, 20, 0x000000, "%.2f", angles_.y, SetFontSize(25));
-
-	if (attackAFlg_ && attackShowFlg_) {
+	if (attackAFlg_) {
 
 		DrawSphere3D(attackPos1_, ATTACK_RADIUS, 16, 0xffaa55, 0xffaa55, true);
-		//DrawCapsule3D(attackPos1_, attackPos2_, 10.0f, 16, 0x00ffff, 0x00ffff, true);
 	}
-	//if (attackBFlg_) {
-
-	//	DrawCapsule3D(attackPos1_, attackPos2_, ATTACK_RADIUS, 16, 0xff0000, 0xff0000, false);
-	//}
-	//if (attackCFlg_) {
-
-	//	DrawCapsule3D(attackPos1_, attackPos2_, ATTACK_RADIUS * 2, 16, 0xff0000, 0xff0000, false);
-	//}
 }
 
 bool Enemy::IsAttack(void) const
@@ -180,17 +205,17 @@ void Enemy::Damage(int damage)
 
 void Enemy::DirectionPlayer(void)
 {
-	VECTOR dir = VSub(player_->GetPos(), pos_);
+	VECTOR dir = VSub(player_->GetTransform().pos, transform_.pos);
 	targetAngles_.y = atan2f(dir.x, dir.z);
 }
 
 bool Enemy::Turn(void)
 {
 	//ターゲットの角度までゆっくり動く
-	angles_.y = AngleUtility::LerpAngle(angles_.y, targetAngles_.y, 0.1f);
-	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(DIFF_ANGLES, angles_));
+	transform_.rot.y = AngleUtility::LerpAngle(transform_.rot.y, targetAngles_.y, 0.1f);
+	MV1SetRotationMatrix(transform_.modelId, AngleUtility::Multiplication(DIFF_ANGLES, transform_.rot));
 
-	if (fabsf(angles_.y - targetAngles_.y) <= 0.0001f || fabsf(angles_.y - targetAngles_.y) >= DX_PI_F * 2 - 0.0002f) {
+	if (fabsf(transform_.rot.y - targetAngles_.y) <= 0.0001f || fabsf(transform_.rot.y - targetAngles_.y) >= DX_PI_F * 2 - 0.0002f) {
 
 		//近似値まで来たので終了
 		return true;
@@ -208,7 +233,7 @@ bool Enemy::Turn(void)
 
 void Enemy::ChangeWait(void)
 {
-	attackDiff_ = GetRand(120) + 60;
+	attackDiff_ = GetRand(120) + 45;
 }
 
 void Enemy::ChangeMove(void)
@@ -223,26 +248,24 @@ void Enemy::ChangeMove(void)
 
 void Enemy::ChangeAttack(void)
 {
-	attackPos1_ = attackPos2_ = { -100000.0f, -10000.0f, -100000.0f };
-
-	if (VSize(VSub(player_->GetPos(), pos_)) >= 400.0f) {
+	if (VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= 300.0f) {
 
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_A), false);
-
-		attackAFlg_ = true;
+		
+		attack_ = ATTACK::SHOT;
 	}
-	else if (fabsf(VSize(VSub(player_->GetPos(), pos_))) <= 250.0f){
+	else if (fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos))) <= 250.0f){
 		if (GetRand(1) == 1) {
 
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_B), false);
 
-			attackBFlg_ = true;
+			attack_ = ATTACK::ARM;
 		}
 		else {
 
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_C), false);
 
-			attackCFlg_ = true;
+			attack_ = ATTACK::HEAD;
 		}
 	}
 	else {
@@ -277,7 +300,7 @@ void Enemy::UpdateWait(void)
 		cnt_ = 0;
 		ChangeState(STATE::ATTACK);
 	}
-	else if(GetRand(attackDiff_) >= 80 && VSize(VSub(player_->GetPos(), pos_)) >= 350.0f) {
+	else if(GetRand(attackDiff_) >= 80 && VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= 550.0f) {
 
 		cnt_ = 0;
 		ChangeState(STATE::MOVE);
@@ -291,14 +314,14 @@ void Enemy::UpdateMove(void)
 		return;
 	}
 
-	float prevDist = fabsf(VSize(VSub(player_->GetPos(), pos_)));
+	float prevDist = fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos)));
 
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
 
-	pos_.x += moveDir_.x * SPEED;
-	pos_.z += moveDir_.z * SPEED;
+	transform_.pos.x += moveDir_.x * SPEED;
+	transform_.pos.z += moveDir_.z * SPEED;
 
-	if (fabsf(VSize(VSub(player_->GetPos(), pos_))) <= 250.0f || prevDist <= fabsf(VSize(VSub(player_->GetPos(), pos_)))) {
+	if (fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos))) <= 250.0f || prevDist <= fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos)))) {
 
 		ChangeState(STATE::WAIT);
 	}
@@ -306,19 +329,24 @@ void Enemy::UpdateMove(void)
 
 void Enemy::UpdateAttack(void)
 {
-	if (attackAFlg_) {
-		
+	switch (attack_)
+	{
+	case Enemy::ATTACK::SHOT:
+	
 		UpdateAttackA();
-	}
-	else if (attackBFlg_) {
-		
+		break;
+
+	case Enemy::ATTACK::ARM:
+	
 		UpdateAttackB();
-	}
-	else if (attackCFlg_) {
-		
+		break;
+
+	case Enemy::ATTACK::HEAD:
+	
 		UpdateAttackC();
+		break;
 	}
-	else {
+	if (animationCtrl_->IsEnd()) {
 
 		ChangeState(STATE::WAIT);
 	}
@@ -326,15 +354,13 @@ void Enemy::UpdateAttack(void)
 
 void Enemy::UpdateAttackA(void)
 {
-	attackPrevPos_ = attackPos1_;
-
 	if (animationCtrl_->GetTime() >= 33) {
 
-		attackPos1_ = VAdd(attackPos1_, VScale(attackDir_, ATTACK_SPEED));
+		shotTransform_.pos = VAdd(shotTransform_.pos, VScale(attackDir_, ATTACK_SPEED));
 
-		if (!attackShowFlg_) {
+		if (!attackAFlg_) {
 
-			attackShowFlg_ = true;
+			attackAFlg_ = true;
 		}
 	}
 	else {
@@ -342,45 +368,42 @@ void Enemy::UpdateAttackA(void)
 		DirectionPlayer();
 		Turn();
 
-		attackPos1_ = VAdd(pos_, VTransform(ATTACK_POS_A, AngleUtility::GetMatrixRotateXYZ(angles_)));
-		attackDir_ = VSub(VAdd(player_->GetPos(), { 0.0f, 80.0f, 0.0f }), attackPos1_);
+		shotTransform_.pos = VAdd(transform_.pos, VTransform(ATTACK_POS_A, AngleUtility::GetMatrixRotateXYZ(transform_.rot)));
+		attackDir_ = VSub(VAdd(player_->GetTransform().pos, { 0.0f, 80.0f, 0.0f }), shotTransform_.pos);
 		attackDir_ = VNorm(attackDir_);
 	}
-	//attackPos1_ = VAdd(pos_, VTransform(ATTACK_POS_A, AngleUtility::GetMatrixRotateXYZ(angles_)));
-	//attackPos2_ = VAdd(attackPos1_, attackDir_);
+	shotTransform_.Update();
 }
 
 void Enemy::UpdateAttackB(void)
 {
+	armPos_ = MV1GetFramePosition(transform_.modelId, 59);
+	armTransform_.pos = MV1GetFramePosition(transform_.modelId, 57);
+	armTransform_.Update();
+
 	if (animationCtrl_->GetTime() >= 50) {
 
-		attackPos1_ = attackPos2_ = { -100000.0f, -10000.0f, -100000.0f };
+		attackBFlg_ = false;
 	}
 	else if (animationCtrl_->GetTime() >= 26) {
-	
-		attackPos1_ = MV1GetFramePosition(modelId_, 57);
-		attackPos2_ = MV1GetFramePosition(modelId_, 59);
-	}
-	if (animationCtrl_->IsEnd()) {
-
-		attackBFlg_ = false;
+		
+		attackBFlg_ = true;
 	}
 }
 
 void Enemy::UpdateAttackC(void)
 {
+	headPos_ = MV1GetFramePosition(transform_.modelId, 16);
+	headTransform_.pos = MV1GetFramePosition(transform_.modelId, 6);
+	headTransform_.Update();
+
 	if (animationCtrl_->GetTime() >= 50) {
 
-		attackPos1_ = attackPos2_ = { -100000.0f, -10000.0f, -100000.0f };
+		attackCFlg_ = false;
 	}
 	else if (animationCtrl_->GetTime() >= 30) {
 
-		attackPos1_ = MV1GetFramePosition(modelId_, 6);
-		attackPos2_ = MV1GetFramePosition(modelId_, 16);
-	}
-	if (animationCtrl_->IsEnd()) {
-
-		attackCFlg_ = false;
+		attackCFlg_ = true;
 	}
 }
 

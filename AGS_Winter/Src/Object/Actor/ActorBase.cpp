@@ -3,7 +3,7 @@
 #include "../Common/AnimationController.h"
 
 
-ActorBase::ActorBase() : angles_(), animationCtrl_(), hp_(), modelId_(), moveDir_(), pos_(), prevPos_()
+ActorBase::ActorBase() : transform_(), animationCtrl_(), hp_(), moveDir_()
 {
 }
 
@@ -20,24 +20,15 @@ void ActorBase::InitAll()
 void ActorBase::Init()
 {
 	InitAnim();
-	InitOwn();
-	InitModel();
-}
-
-void ActorBase::InitModel() const
-{
-	//èÍèäèîÅXÇÃèâä˙âª
-	MV1SetPosition(modelId_, pos_);
-	MV1SetRotationMatrix(modelId_, AngleUtility::Multiplication(localAngles_, angles_));
-	MV1SetScale(modelId_, scales_);
-
-	//ìñÇΩÇËîªíËÇÃèâä˙âª
-	MV1SetupCollInfo(modelId_);
+	InitTransform();
+	transform_.Update();
+	InitCollider();
+	MV1SetupCollInfo(transform_.modelId);
 }
 
 void ActorBase::DrawModel() const
 {
-	MV1DrawModel(modelId_);
+	MV1DrawModel(transform_.modelId);
 }
 
 void ActorBase::Release() const
@@ -48,5 +39,5 @@ void ActorBase::Release() const
 		delete animationCtrl_;
 	}
 
-	MV1DeleteModel(modelId_);
+	MV1DeleteModel(transform_.modelId);
 }

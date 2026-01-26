@@ -25,6 +25,7 @@ public:
 	static const std::string PATH_ANIMATION;
 	static const std::string PATH_EFFECT;
 	static const std::string PATH_SOUND;
+	static const std::string PATH_FONT;
 	//-------------------------------------------
 
 	// インスタンスを明示的に生成

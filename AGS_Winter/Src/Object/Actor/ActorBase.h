@@ -1,11 +1,28 @@
 #pragma once
 #include <DxLib.h>
+#include <vector>
+#include <map>
+#include "../Collider/ColliderBase.h"
+#include "../Common/Transform.h"
 
 
 class AnimationController;
 
 class ActorBase {
 public:
+
+	// 衝突判定種別
+	enum class COLLIDER_TYPE
+	{
+		MODEL,
+		LINE,
+		CAPSULE,
+		SPHERE,
+		MAX,
+	};
+
+	static constexpr VECTOR COL_LINE_START_LOCAL_POS = { 0.0f, 10.0f, 0.0f };
+	static constexpr VECTOR COL_LINE_END_LOCAL_POS = { 0.0f, -50.0f, 0.0f };
 
 	ActorBase();
 	~ActorBase();
@@ -18,10 +35,10 @@ public:
 	virtual void InitLoad() = 0;
 	//アニメーションの初期化
 	virtual void InitAnim() = 0;
-	//各自の初期化
-	virtual void InitOwn() = 0;
 	//モデルの初期化
-	virtual void InitModel() const;
+	virtual void InitTransform() = 0;
+	//コライダの初期化
+	virtual void InitCollider() = 0;
 
 	//更新
 	virtual void Update() = 0;
@@ -34,33 +51,25 @@ public:
 	//解放
 	virtual void Release() const;
 
-	//モデルの取得
-	int GetModelId(void) const { return modelId_; }
+	// トランスフォームの取得
+	Transform& GetTransform(void) { return transform_; }
 
-	// 座標取得
-	VECTOR GetPos(void) const { return pos_; }
-	VECTOR GetPrevPos(void) const { return prevPos_; }
-	void SetPos(VECTOR pos) { pos_ = pos; }
+	// 自身の衝突情報取得
+	const std::map<int, ColliderBase*>& GetOwnColliders(void) const
+	{
+		return ownColliders_;
+	}
 
 protected:
 
 	//アニメーションコントローラー
 	AnimationController* animationCtrl_;
 
-	//モデルのID
-	int modelId_;
+	//モデルの情報
+	Transform transform_;
 
-	//現在の座標
-	VECTOR pos_;
-	//以前の座標
-	VECTOR prevPos_;
-
-	// 大きさ
-	VECTOR scales_;
-
-	//角度
-	VECTOR angles_;
-	VECTOR localAngles_;
+	// 自身の衝突情報
+	std::map<int, ColliderBase*> ownColliders_;
 
 	//移動方向
 	VECTOR moveDir_;

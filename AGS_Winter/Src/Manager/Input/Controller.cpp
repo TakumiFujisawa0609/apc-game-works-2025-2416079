@@ -75,10 +75,6 @@ Controller::JOYPAD_IN_STATE Controller::GetJPadInputState(JOYPAD_NO no)
 		break;
 
 	case Controller::JOYPAD_TYPE::XBOX_360:
-	{
-	}
-	break;
-
 	case Controller::JOYPAD_TYPE::XBOX_ONE:
 	{
 
@@ -150,9 +146,8 @@ Controller::JOYPAD_IN_STATE Controller::GetJPadInputState(JOYPAD_NO no)
 	}
 	break;
 
+	case Controller::JOYPAD_TYPE::DUAL_SHOCK_3:
 	case Controller::JOYPAD_TYPE::DUAL_SHOCK_4:
-		break;
-
 	case Controller::JOYPAD_TYPE::DUAL_SENSE:
 	{
 
@@ -297,7 +292,7 @@ void Controller::SetJPadInState(JOYPAD_NO jpNo)
 	auto stateNew = GetJPadInputState(jpNo);
 	auto& stateNow = padInfos_[no];
 
-	stateNow.AnyoneBotton = stateNow.Anyone = false;
+	stateNow.AnyoneBotton = stateNow.Anyone = stateNow.IsAnyoneDown = false;
 
 	int max = static_cast<int>(JOYPAD_BTN::MAX);
 	for (int i = 0; i < max; i++)
@@ -313,11 +308,13 @@ void Controller::SetJPadInState(JOYPAD_NO jpNo)
 		stateNow.IsTrgUp[i] = !stateNow.IsNew[i] && stateNow.IsOld[i];
 
 		if (!stateNow.AnyoneBotton) {
-			if (stateNow.IsTrgDown[i]) {
 			
-				stateNow.AnyoneBotton = true;
-				stateNow.Anyone = true;
-			}
+			stateNow.AnyoneBotton = stateNow.IsTrgDown[i];
+			stateNow.Anyone = stateNow.IsTrgDown[i];
+		}
+		if (!stateNow.IsAnyoneDown) {
+
+			stateNow.IsAnyoneDown = stateNow.IsNew[i] && !stateNow.IsOld[i];
 		}
 	}
 	stateNow.AKeyLX = stateNew.AKeyLX;

@@ -23,6 +23,7 @@ public:
 		OTHER = 0,
 		XBOX_360,
 		XBOX_ONE,
+		DUAL_SHOCK_3,
 		DUAL_SHOCK_4,
 		DUAL_SENSE,
 		SWITCH_JOY_CON_L,
@@ -67,6 +68,7 @@ public:
 		int AKeyRX;
 		int AKeyRY;
 		bool AnyoneBotton;
+		bool IsAnyoneDown;
 		bool Anyone;
 	};
 

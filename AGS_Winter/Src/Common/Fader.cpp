@@ -25,10 +25,10 @@ void Fader::SetFade(STATE state)
 
 void Fader::Init(void)
 {
-	state_ = STATE::NONE;
+	state_ = STATE::FADE_OUT;
 	alpha_ = 0;
 	isPreEnd_ = true;
-	isEnd_ = true;
+	isEnd_ = false;
 }
 
 void Fader::Update(void)

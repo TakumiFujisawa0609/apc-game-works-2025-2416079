@@ -88,18 +88,15 @@ private:
 	bool isSceneChanging_;
 	bool isLoad_;
 
+	int loadImg_;
+	int loadCnt_;
+	
+	bool showFlg_[3];
+	int font_;
+
 	// デルタタイム
 	std::chrono::system_clock::time_point preTime_;
 	float deltaTime_;
-
-	VECTOR pointLightPos_;
-	VECTOR pointLight1Pos_;
-	VECTOR pointLight2Pos_;
-
-	int pointLight1_;
-	int pointLight2_;
-
-	VECTOR spotLightPos_;
 
 	// デフォルトコンストラクタをprivateにして、
 	// 外部から生成できない様にする

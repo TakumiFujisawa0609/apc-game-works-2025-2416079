@@ -15,6 +15,7 @@ const std::string Application::PATH_MODEL = PATH_DATA + "Model/";
 const std::string Application::PATH_ANIMATION = PATH_DATA + "Animation/";
 const std::string Application::PATH_EFFECT = PATH_DATA + "Effect/";
 const std::string Application::PATH_SOUND = PATH_DATA + "Sounds/";
+const std::string Application::PATH_FONT = PATH_DATA + "Font/";
 
 void Application::CreateInstance(void)
 {
@@ -54,6 +55,7 @@ void Application::Init(void)
 		return;
 	}
 	SetMouseDispFlag(false);
+	AddFontResource((Application::PATH_FONT + "toroman.ttf").c_str());
 
 	InitEffekseer();
 

@@ -13,6 +13,7 @@
 #include "../Manager/Camera.h"
 #include "../Manager/Input/Controller.h"
 #include "../Application.h"
+#include "../Object/Collision/CollisionManager.h"
 #include "../Utility/Utility.h"
 #include "../Utility/AsoUtility.h"
 #include "../Utility/AngleUtility.h"
@@ -69,26 +70,19 @@ void GameScene::Init(void)
 	//エネミーの初期化
 	enemy_->Init();
 
+	CollisionManager::CreateInstance();
+
 	// サウンドの読み込み
 	AudioManager::GetInstance()->PlayBGM(SoundID::BGM_BATTLE);
 	AudioManager::GetInstance()->SetBgmVolume(150);
 
-	CollisionData data = { player_->GetPos(), player_->GetPrevPos(), COLLISION_TYPE::PLAYER };
-	CollisionData datA = { enemy_->GetPos(), enemy_->GetPrevPos(), COLLISION_TYPE::ENEMY };
+	CollisionStage();
 
-	CollisionStage(data);
-	CollisionStage(datA);
-
-	enemy_->InitModel();
-	player_->InitModel();
-
-	VECTOR headPos = VAdd(player_->GetPos(), { 0.0f, 180.0f, 0.0f });
+	VECTOR headPos = VAdd(player_->GetTransform().pos, { 0.0f, 180.0f, 0.0f });
 	SetCameraPos(headPos, CAMERA_TO_PLAYER);
 
 	hitFlgE_ = false;
 	hitFlgP_ = false;
-
-	opacityIndex.clear();
 
 	shadowMap_ = MakeShadowMap(8192, 8192);
 
@@ -157,11 +151,9 @@ void GameScene::Update(void)
 
 void GameScene::Collision(void)
 {
-	MV1_COLL_RESULT_POLY_DIM info{};
-
 	if (player_->IsAttack()) {
-		
-		info = MV1CollCheck_Capsule(enemy_->GetModelId(), -1, player_->GetAttackStartPos(), player_->GetAttackEndPos(), 10.0f);
+
+		auto info = CollisionManager::GetInstance().HitCapsule(enemy_->GetOwnColliders(), player_->GetSwordColliders());
 
 		if (!hitFlgE_) {
 			if (info.HitNum > 0) {
@@ -171,13 +163,15 @@ void GameScene::Collision(void)
 
 				hitFlgE_ = true;
 				enemy_->Damage(player_->GetPower() * player_->GetBuff());
-				if (player_->GetPower() * player_->GetBuff() >= 15.0f) {
+				if (player_->GetPower() * player_->GetBuff() >= 12.0f) {
 
 					shakeCnt_ = 35;
 				}
 				player_->ResetBuff();
 			}
 		}
+		//当たり判定の後処理
+		MV1CollResultPolyDimTerminate(info);
 	}
 	else {
 
@@ -187,15 +181,15 @@ void GameScene::Collision(void)
 		if (player_->IsHit()) {
 			if (enemy_->IsAttackA()) {
 
-				info = MV1CollCheck_Sphere(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), Enemy::ATTACK_RADIUS);
+				auto info = CollisionManager::GetInstance().IsHitSphere(player_->GetOwnColliders(), enemy_->GetShotColliders());
 
-				if (info.HitNum > 0) {
+				if (info) {
 					if (!hitFlgP_) {
 						if (!player_->SuccessDodge()) {
 							if (!player_->IsDodge()) {
 
 								hitFlgP_ = true;
-								player_->Damage(13, enemy_->GetAngle().y);
+								player_->Damage(13, enemy_->GetTransform().rot.y);
 								AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 							}
 							else {
@@ -214,14 +208,15 @@ void GameScene::Collision(void)
 			}
 			if (enemy_->IsAttackB()) {
 
-				info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), Enemy::ATTACK_RADIUS);
+				auto info = CollisionManager::GetInstance().IsHitCapsule(player_->GetOwnColliders(), enemy_->GetArmColliders());
 
-				if (info.HitNum > 0) {
+				if (info) {
 					if (!hitFlgP_) {
 						if (!player_->SuccessDodge()) {
 							if (!player_->IsDodge()) {
+
 								hitFlgP_ = true;
-								player_->Damage(17, enemy_->GetAngle().y);
+								player_->Damage(25, enemy_->GetTransform().rot.y);
 								AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 							}
 							else {
@@ -239,14 +234,15 @@ void GameScene::Collision(void)
 			}
 			if (enemy_->IsAttackC()) {
 
-				info = MV1CollCheck_Capsule(player_->GetModelId(), -1, enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), Enemy::ATTACK_RADIUS * 2);
+				auto info = CollisionManager::GetInstance().IsHitCapsule(player_->GetOwnColliders(), enemy_->GetHeadColliders());
 
-				if (info.HitNum > 0) {
+				if (info) {
 					if (!hitFlgP_) {
 						if (!player_->SuccessDodge()) {
 							if (!player_->IsDodge()) {
+
 								hitFlgP_ = true;
-								player_->Damage(20, enemy_->GetAngle().y);
+								player_->Damage(30, enemy_->GetTransform().rot.y);
 								AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 							}
 							else {
@@ -269,100 +265,25 @@ void GameScene::Collision(void)
 
 		hitFlgP_ = false;
 	}
-	//当たり判定の後処理
-	MV1CollResultPolyDimTerminate(info);
-	
-	//ステージと
-	CollisionData data = { player_->GetPos(), player_->GetPrevPos(), COLLISION_TYPE::PLAYER };
-	CollisionData datA = { enemy_->GetPos(), enemy_->GetPrevPos(), COLLISION_TYPE::ENEMY };
-	if (enemy_->IsAttackA()) {
-		CollisionData daTA = { enemy_->GetAttackStartPos(), enemy_->GetAttackPrevPos(), COLLISION_TYPE::ENEMY_ATTACK };
-		CollisionStage(daTA);
-	}
-	CollisionStage(data);
-	CollisionStage(datA);
+	CollisionStage();
 }
 
-void GameScene::CollisionStage(CollisionData data)
+void GameScene::CollisionStage(void)
 {
-	//上下(線)
-	VECTOR topPos = data.pos;
-	topPos.y += COLLISION_STAGE_DIFF * 2.0f;
-
-	VECTOR downPos = data.pos;
-	downPos.y -= COLLISION_STAGE_DIFF * 2.0f;
-
-	MV1_COLL_RESULT_POLY result = MV1CollCheck_Line(stage_->GetModelId(), -1, topPos, downPos);
-	MV1_COLL_RESULT_POLY_DIM res = {};
-
-	if (result.HitFlag == 1) {
-		switch (data.type) {
-		case COLLISION_TYPE::PLAYER:
-
-			player_->SetPos(result.HitPosition);
-			break;
-
-		case COLLISION_TYPE::ENEMY:
-
-			enemy_->SetPos(result.HitPosition);
-			break;
-		}
-	}
-	//前後左右(球)
-	if (!VectorUtility::Equals(data.pos, data.prev)) {
-		switch (data.type) {
-		case COLLISION_TYPE::PLAYER:
-
-			res = MV1CollCheck_Sphere(stage_->GetModelId(), -1,
-				VAdd(data.pos, { 0.0f, COLLISION_STAGE_DIFF * 2.0f, 0.0f }), COLLISION_STAGE_DIFF);
-
-			if (res.HitNum > 0) {
-
-				player_->SetPos(data.prev);
-			}
-			break;
-
-		case COLLISION_TYPE::ENEMY:
-
-			res = MV1CollCheck_Sphere(stage_->GetModelId(), -1,
-				VAdd(data.pos, { 0.0f, COLLISION_STAGE_DIFF * 3.5f, 0.0f }), COLLISION_STAGE_DIFF);
-
-			if (res.HitNum > 0) {
-
-				enemy_->SetPos(data.prev);
-			}
-			break;
-
-		case COLLISION_TYPE::ENEMY_ATTACK:
-
-			res = MV1CollCheck_Sphere(stage_->GetModelId(), -1, data.pos , Enemy::ATTACK_RADIUS);
-
-			if (res.HitNum > 0) {
-
-				enemy_->DeleteAttackA();
-			}
-			break;
-		}
-	}
-	MV1CollResultPolyDimTerminate(res);
+	CollisionManager::GetInstance().PushBack(stage_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 50.0f, 0.1f);
+	CollisionManager::GetInstance().PushBack(enemy_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 50.0f, 0.1f);
+	CollisionManager::GetInstance().PushBack(stage_->GetOwnColliders(), enemy_->GetOwnColliders(), &enemy_->GetTransform(), 50.0f, 0.1f);
 }
 
 void GameScene::CollisionCamera(void)
 {
 	Camera* camera = SceneManager::GetInstance().GetCamera();
 	VECTOR cPos = camera->GetCameraPos();
-	VECTOR pPos = VAdd(player_->GetPos(), { 0.0f, 100.0f, 0.0f });
-
-	int prevNum = opacityIndex.size();
-
-	while (prevNum > 0) {
-
-		MV1SetFrameOpacityRate(stage_->GetModelId(), opacityIndex.at(prevNum - 1), 1.0f);
-		prevNum--;
-	}
+	VECTOR pPos = VAdd(player_->GetTransform().pos, { 0.0f, 100.0f, 0.0f });
 	
-	opacityIndex.clear();
-	MV1_COLL_RESULT_POLY_DIM res = MV1CollCheck_Capsule(stage_->GetModelId(), -1, cPos, pPos, 45.0f);
+	std::vector<int> opacityIndex = {};
+
+	MV1_COLL_RESULT_POLY_DIM res = MV1CollCheck_Capsule(stage_->GetTransform().modelId, -1, cPos, pPos, 45.0f);
 
 	if (res.HitNum > 0) {
 
@@ -381,14 +302,14 @@ void GameScene::GameCamera(void)
 {
 	//カメラのインスタンスとプレイヤーの注視点の位置を取る
 	Camera* camera = SceneManager::GetInstance().GetCamera();
-	VECTOR headPos = VAdd(player_->GetPos(), { 0.0f, 180.0f, 0.0f });
-	headPos.x += shakeWidSide_ * cos(player_->GetAngle().y);
+	VECTOR headPos = VAdd(player_->GetTransform().pos, { 0.0f, 180.0f, 0.0f });
+	headPos.x += shakeWidSide_ * cos(player_->GetTransform().rot.y);
 	headPos.y += shakeWidVer_;
-	headPos.z += shakeWidSide_ * sin(player_->GetAngle().y);
+	headPos.z += shakeWidSide_ * sin(player_->GetTransform().rot.y);
 
 	if (!changeFlg_) {
 		if (enemy_->ClearFlg()) {
-			VECTOR targetPos = VAdd(enemy_->GetPos(), { 0.0f, 180.0f, 0.0f });
+			VECTOR targetPos = VAdd(enemy_->GetTransform().pos, { 0.0f, 180.0f, 0.0f });
 
 			if (cntDown_) {
 				
@@ -408,7 +329,7 @@ void GameScene::GameCamera(void)
 			}
 			else if (changeCnt_ < 260) {
 
-				yaw_ = enemy_->GetAngle().y - DX_PI_F;
+				yaw_ = enemy_->GetTransform().rot.y - DX_PI_F;
 				pitch_ = DX_PI_F / 2.0f - 0.1f;
 				targetPos.y += changeCnt_ * 2.0f;
 			}
@@ -433,7 +354,7 @@ void GameScene::GameCamera(void)
 			if (changeCnt_ == 0) {
 
 				pitch_ = -DEFAULT_TILT;
-				yaw_ = player_->GetAngle().y - DX_PI_F;
+				yaw_ = player_->GetTransform().rot.y - DX_PI_F;
 			}
 
 			changeCnt_++;
@@ -498,7 +419,7 @@ void GameScene::GameCamera(void)
 	}
 	else {
 
-		VECTOR enemyPos = VAdd(enemy_->GetPos(), { 0.0f, 200.f, 0.0f });
+		VECTOR enemyPos = VAdd(enemy_->GetTransform().pos, { 0.0f, 200.f, 0.0f });
 		VECTOR dir = VSub(enemyPos, headPos);
 
 		float prevPitch = pitch_;
@@ -514,7 +435,7 @@ void GameScene::GameCamera(void)
 		pitch_ = AngleUtility::LerpAngle(prevPitch, pitch_, 0.8f);
 		yaw_ = AngleUtility::LerpAngle(prevYaw, yaw_, 0.8f);
 
-		if ((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f) || VSize(VSub(player_->GetPos(), enemy_->GetPos())) <= 300.0f) {
+		if ((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f) || VSize(VSub(player_->GetTransform().pos, enemy_->GetTransform().pos)) <= 300.0f) {
 
 			isLockon_ = false;
 		}
@@ -543,7 +464,7 @@ void GameScene::GameCamera(void)
 	CollisionCamera();
 }
 
-void GameScene::SetCameraPos(VECTOR targetPos, float diff)
+void GameScene::SetCameraPos(VECTOR targetPos, float diff) const
 {
 	// カメラの位置を計算
 	VECTOR newPos{};
@@ -586,7 +507,7 @@ void GameScene::ShakeCamera(void)
 
 		shakeWidVer_ = (float)GetRand(2);
 		shakeWidVer_ -= 1;
-		shakeWidVer_ *= 30.0;
+		shakeWidVer_ *= 20.0;
 	}
 	shakeCnt_--;
 	
@@ -640,7 +561,7 @@ void GameScene::Draw(void)
 
 	if (cntDown_) {
 
-		VECTOR enemyPos = VAdd(enemy_->GetPos(), { 0.0f, 200.f, 0.0f });
+		VECTOR enemyPos = VAdd(enemy_->GetTransform().pos, { 0.0f, 200.f, 0.0f });
 
 		VECTOR pos = ConvWorldPosToScreenPos(enemyPos);
 		DrawRotaGraph (pos.x, pos.y, cnt_, 0.0, lockOnImg_, true);
@@ -655,7 +576,7 @@ void GameScene::Draw(void)
 	//	if (shot->GetType() == ShotBase::TYPE::BEAM) {
 	//		if (shot->IsCollisionState()) {
 
-	//			DrawCapsule3D(shot->GetPos(), VAdd(shot->GetPos(), VScale(shot->GetDirection(), 500.0f)), shot->GetCollisionRadius(), 16, 0xffffff, 0xffffff, false);
+	//			DrawCapsule3D(shot->GetTransform().pos, VAdd(shot->GetTransform().pos, VScale(shot->GetDirection(), 500.0f)), shot->GetCollisionRadius(), 16, 0xffffff, 0xffffff, false);
 	//		}
 	//	}
 	//}
@@ -665,6 +586,8 @@ void GameScene::Release(void)
 {
 	AudioManager::GetInstance()->DeleteSceneSound(LoadScene::GAME);
 	DeleteShadowMap(shadowMap_);
+
+	CollisionManager::GetInstance().Release();
 
 	stage_->Release();
 	delete stage_;

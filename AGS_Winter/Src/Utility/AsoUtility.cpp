@@ -514,24 +514,3 @@ void AsoUtility::DrawLineDir(const VECTOR& pos, const VECTOR& dir, int color, fl
     DrawLine3D(sPos, ePos, color);
     DrawSphere3D(ePos, 5.0f, 5, color, color, true);
 }
-
-void AsoUtility::DrawLineXYZ(const VECTOR& pos, const Quaternion& rot, float len)
-{
-
-    VECTOR dir;
-
-    // X
-    dir = rot.GetRight();
-    DrawLineDir(pos, dir, 0xff0000, len);
-
-    // Y
-    dir = rot.GetUp();
-    DrawLineDir(pos, dir, 0x00ff00, len);
-
-    // Z
-    dir = rot.GetForward();
-    DrawLineDir(pos, dir, 0x0000ff, len);
-
-}
-
-

@@ -17,9 +17,9 @@ public:
 	//アニメーションの初期化
 	void InitAnim(void) override {};
 	//その他の初期化
-	void InitOwn(void) override;
-	//モデルの初期化
-	void InitModel(void) const override;
+	void InitTransform(void) override;
+	//コライダの初期化
+	void InitCollider(void) override;
 
 	//更新
 	void Update(void) override {};

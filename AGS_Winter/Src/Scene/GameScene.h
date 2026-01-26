@@ -86,13 +86,11 @@ private:
 
 	bool clearCamera_;
 
-	std::vector<int> opacityIndex;
-
 	void Collision(void);
-	void CollisionStage(CollisionData data);
+	void CollisionStage(void);
 	void CollisionCamera(void);
 	void GameCamera(void);
-	void SetCameraPos(VECTOR targetPos, float diff);
+	void SetCameraPos(VECTOR targetPos, float diff) const;
 	void Effect(MV1_COLL_RESULT_POLY dim);
 	void ShakeCamera(void);
 };

@@ -27,7 +27,14 @@ public:
 
 private:
 
+	static constexpr int CHANGE_CNT = 60;
+
 	// ‰æ‘œ
 	int imgTitle_;
 	int imgBg_;
+	int font_;
+	int creatorFont_;
+
+	bool show_;
+	int cnt_;
 };
