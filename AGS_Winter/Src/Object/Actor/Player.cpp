@@ -430,6 +430,7 @@ void Player::Status(void)
 		if (power_ <= 0) {
 
 			power_ = 0;
+			damage_ = BASIC_DAMAGE;
 			powerUp_ = false;
 		}
 	}
@@ -854,7 +855,7 @@ void Player::UpdateDodge(void)
 	transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 1.1f));
 
 	if (dodgeFlg_) {
-		if (dodgeCnt_ <= 13.0f) {
+		if (dodgeCnt_ <= 15.0f) {
 
 			dodgeCnt_++;
 		}

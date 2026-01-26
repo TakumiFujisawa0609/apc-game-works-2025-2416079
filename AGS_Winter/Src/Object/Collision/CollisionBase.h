@@ -19,6 +19,7 @@ protected:
 	const MV1_COLL_RESULT_POLY CollisionLine(const std::map<int, ColliderBase*> model, const std::map<int, ColliderBase*> line);
 	const MV1_COLL_RESULT_POLY_DIM CollisionPolyLine(const std::map<int, ColliderBase*> model, const std::map<int, ColliderBase*> line);
 	const MV1_COLL_RESULT_POLY_DIM CollisionCapsule(const std::map<int, ColliderBase*> model, const std::map<int, ColliderBase*> capsule);
+	const MV1_COLL_RESULT_POLY_DIM CollisionCapsule(const std::map<int, ColliderBase*> model, const VECTOR start, const VECTOR end, const float radius);
 	const MV1_COLL_RESULT_POLY_DIM CollisionSphere(const std::map<int, ColliderBase*> model, const std::map<int, ColliderBase*> sphere);
 
 	const VECTOR GetPosPushBackAlongNormal(const MV1_COLL_RESULT_POLY& hitColPoly, std::map<int, ColliderBase*> capsule, int maxTryCnt, float pushDistance) const;

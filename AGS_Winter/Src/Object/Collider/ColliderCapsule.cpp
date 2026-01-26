@@ -9,11 +9,6 @@ ColliderCapsule::ColliderCapsule(const Transform* follow, const VECTOR& localPos
 {
 }
 
-ColliderCapsule::ColliderCapsule(const Transform* follow, const VECTOR* posDown, float radius)
-	: ColliderBase(SHAPE::CAPSULE, follow),localPosTop_(), localPosDown_(), absPosTop_(follow->pos), absPosDown_(*posDown), radius_(radius)
-{
-}
-
 ColliderCapsule::~ColliderCapsule(void)
 {
 }
@@ -40,12 +35,12 @@ void ColliderCapsule::SetLocalPosDown(const VECTOR& pos)
 
 VECTOR ColliderCapsule::GetPosTop(void) const
 {
-	return VectorUtility::EqualsVZero(localPosTop_) ? absPosTop_ : GetRotPos(localPosTop_);
+	return GetRotPos(localPosTop_);
 }
 
 VECTOR ColliderCapsule::GetPosDown(void) const
 {
-	return VectorUtility::EqualsVZero(localPosDown_) ? absPosDown_ : GetRotPos(localPosDown_);
+	return GetRotPos(localPosDown_);
 }
 
 float ColliderCapsule::GetRadius(void) const

@@ -13,8 +13,6 @@ public:
 
 	// 親からの相対位置を使うコンストラクタ
 	ColliderCapsule(const Transform* follow,const VECTOR& localPosTop, const VECTOR& localPosDown, float radius);
-	// 絶対位置の二点を使うコンストラクタ
-	ColliderCapsule(const Transform* follow, const VECTOR* posDown, float radius);
 	// デストラクタ
 	~ColliderCapsule(void);
 
@@ -51,11 +49,6 @@ private:
 	VECTOR localPosTop_;
 	// 親Transformからの相対位置(下側)
 	VECTOR localPosDown_;
-
-	// 絶対位置の上
-	VECTOR absPosTop_;
-	// 絶対位置の下
-	VECTOR absPosDown_;
 
 	// 半径
 	float radius_;

@@ -193,7 +193,7 @@ void GameScene::Collision(void)
 								AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 							}
 							else {
-								if (player_->DodgeCount() <= 3) {
+								if (player_->DodgeCount() <= 5) {
 
 									player_->GreatDodge();
 								}
@@ -206,53 +206,52 @@ void GameScene::Collision(void)
 					}
 				}
 			}
-			if (enemy_->IsAttackB()) {
+			if (enemy_->IsAttackB() || enemy_->IsAttackC()) {
 
-				auto info = CollisionManager::GetInstance().IsHitCapsule(player_->GetOwnColliders(), enemy_->GetArmColliders());
+				auto info = CollisionManager::GetInstance().IsHitCapsule(player_->GetOwnColliders(), enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), Enemy::ATTACK_RADIUS);
 
-				if (info) {
-					if (!hitFlgP_) {
-						if (!player_->SuccessDodge()) {
-							if (!player_->IsDodge()) {
+				if (enemy_->IsAttackB()) {
+					if (info) {
+						if (!hitFlgP_) {
+							if (!player_->SuccessDodge()) {
+								if (!player_->IsDodge()) {
 
-								hitFlgP_ = true;
-								player_->Damage(25, enemy_->GetTransform().rot.y);
-								AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
-							}
-							else {
-								if (player_->DodgeCount() <= 3) {
-
-									player_->GreatDodge();
+									hitFlgP_ = true;
+									player_->Damage(25, enemy_->GetTransform().rot.y);
+									AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 								}
 								else {
-									player_->GoodDodge();
+									if (player_->DodgeCount() <= 5) {
+
+										player_->GreatDodge();
+									}
+									else {
+										player_->GoodDodge();
+									}
 								}
 							}
 						}
 					}
 				}
-			}
-			if (enemy_->IsAttackC()) {
+				if (enemy_->IsAttackC()) {
+					if (info) {
+						if (!hitFlgP_) {
+							if (!player_->SuccessDodge()) {
+								if (!player_->IsDodge()) {
 
-				auto info = CollisionManager::GetInstance().IsHitCapsule(player_->GetOwnColliders(), enemy_->GetHeadColliders());
-
-				if (info) {
-					if (!hitFlgP_) {
-						if (!player_->SuccessDodge()) {
-							if (!player_->IsDodge()) {
-
-								hitFlgP_ = true;
-								player_->Damage(30, enemy_->GetTransform().rot.y);
-								AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
-							}
-							else {
-								if (player_->DodgeCount() <= 3) {
-
-									player_->GreatDodge();
+									hitFlgP_ = true;
+									player_->Damage(30, enemy_->GetTransform().rot.y);
+									AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 								}
 								else {
+									if (player_->DodgeCount() <= 5) {
 
-									player_->GoodDodge();
+										player_->GreatDodge();
+									}
+									else {
+
+										player_->GoodDodge();
+									}
 								}
 							}
 						}
@@ -273,6 +272,14 @@ void GameScene::CollisionStage(void)
 	CollisionManager::GetInstance().PushBack(stage_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 50.0f, 0.1f);
 	CollisionManager::GetInstance().PushBack(enemy_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 50.0f, 0.1f);
 	CollisionManager::GetInstance().PushBack(stage_->GetOwnColliders(), enemy_->GetOwnColliders(), &enemy_->GetTransform(), 50.0f, 0.1f);
+	
+	if (enemy_->IsAttackA()) {
+		if (CollisionManager::GetInstance().IsHitSphere(stage_->GetOwnColliders(), enemy_->GetShotColliders()) ||
+			enemy_->GetShotColliders().at(static_cast<int>(ActorBase::COLLIDER_TYPE::SPHERE))->GetFollow()->pos.y < 0.0f) {
+
+			enemy_->DeleteShot();
+		}
+	}
 }
 
 void GameScene::CollisionCamera(void)
@@ -283,7 +290,7 @@ void GameScene::CollisionCamera(void)
 	
 	std::vector<int> opacityIndex = {};
 
-	MV1_COLL_RESULT_POLY_DIM res = MV1CollCheck_Capsule(stage_->GetTransform().modelId, -1, cPos, pPos, 45.0f);
+	MV1_COLL_RESULT_POLY_DIM res = CollisionManager::GetInstance().HitCapsule(stage_->GetOwnColliders(), cPos, pPos, Player::COL_CAPSULE_RADIUS);
 
 	if (res.HitNum > 0) {
 

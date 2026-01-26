@@ -51,6 +51,12 @@ bool CollisionManager::IsHitCapsule(std::map<int, ColliderBase*> model, std::map
 	return res.HitNum > 0 ? true : false;
 }
 
+bool CollisionManager::IsHitCapsule(std::map<int, ColliderBase*> model, VECTOR start, VECTOR end, float radius)
+{
+	MV1_COLL_RESULT_POLY_DIM res = CollisionBase::CollisionCapsule(model, start, end, radius);
+	return res.HitNum > 0 ? true : false;
+}
+
 bool CollisionManager::IsHitSphere(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> sphere)
 {
 	MV1_COLL_RESULT_POLY_DIM res = CollisionBase::CollisionSphere(model, sphere);
@@ -60,6 +66,11 @@ bool CollisionManager::IsHitSphere(std::map<int, ColliderBase*> model, std::map<
 MV1_COLL_RESULT_POLY_DIM CollisionManager::HitCapsule(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> capsule)
 {
 	return CollisionBase::CollisionCapsule(model, capsule);
+}
+
+MV1_COLL_RESULT_POLY_DIM CollisionManager::HitCapsule(std::map<int, ColliderBase*> model, VECTOR start, VECTOR end, float radius)
+{
+	return 	CollisionBase::CollisionCapsule(model, start, end, radius);
 }
 
 void CollisionManager::Release(void)

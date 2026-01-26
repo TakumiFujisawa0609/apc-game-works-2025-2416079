@@ -14,7 +14,7 @@
 
 Enemy::Enemy(Player* pl): ActorBase(), attackAFlg_(false), attackBFlg_(false), attackCFlg_(false),
 	attackDiff_(120), attackDir_(), attackPos1_(Utility::VECTOR_ZERO), attackPos2_(Utility::VECTOR_ZERO), attackPrevPos_(Utility::VECTOR_ZERO),
-	attackShowFlg_(false), clearFlg_(false), cnt_(0), coolDown_(0), isCoolDown_(false),	player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0)
+	clearFlg_(false), cnt_(0), coolDown_(0), isCoolDown_(false),	player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0)
 {
 }
 
@@ -50,14 +50,6 @@ void Enemy::InitTransform()
 	transform_.localRot = DIFF_ANGLES;
 	transform_.scl = SCALE;
 
-	armPos_ = MV1GetFramePosition(transform_.modelId, 59);
-	armTransform_.pos = MV1GetFramePosition(transform_.modelId, 57);
-	armTransform_.Update();
-
-	headPos_ = MV1GetFramePosition(transform_.modelId, 16);
-	headTransform_.pos = MV1GetFramePosition(transform_.modelId, 6);
-	headTransform_.Update();
-
 	moveDir_ = Utility::DIR_B;
 
 	hp_ = MAX_HP;
@@ -81,14 +73,6 @@ void Enemy::InitCollider()
 	// 攻撃用の球体コライダ
 	ColliderSphere* colSphere = new ColliderSphere(&shotTransform_, Utility::VECTOR_ZERO, ATTACK_RADIUS);
 	shotColliders_.emplace(static_cast<int>(COLLIDER_TYPE::SPHERE), colSphere);
-
-	// 攻撃用のカプセルコライダ1
-	colCapsule = new ColliderCapsule(&armTransform_, &armPos_, COL_CAPSULE_RADIUS);
-	armColliders_.emplace(static_cast<int>(COLLIDER_TYPE::CAPSULE), colCapsule);
-
-	// 攻撃用のカプセルコライダ2
-	colCapsule = new ColliderCapsule(&headTransform_, &headPos_, COL_CAPSULE_RADIUS);
-	headColliders_.emplace(static_cast<int>(COLLIDER_TYPE::CAPSULE), colCapsule);
 }
 
 void Enemy::Update(void)
@@ -171,7 +155,49 @@ void Enemy::Draw(void) const
 {
 	if (attackAFlg_) {
 
-		DrawSphere3D(attackPos1_, ATTACK_RADIUS, 16, 0xffaa55, 0xffaa55, true);
+		DrawSphere3D(shotTransform_.pos, ATTACK_RADIUS, 16, 0xffaa55, 0xffaa55, true);
+	}
+}
+
+VECTOR Enemy::GetAttackStartPos(void) const
+{
+	switch (attack_)
+	{
+	case Enemy::ATTACK::SHOT:
+		
+		return Utility::VECTOR_ZERO;
+		break;
+
+	case Enemy::ATTACK::ARM:
+
+		return armStartPos_;
+		break;
+
+	case Enemy::ATTACK::HEAD:
+
+		return headStartPos_;
+		break;
+	}
+}
+
+VECTOR Enemy::GetAttackEndPos(void) const
+{
+	switch (attack_)
+	{
+	case Enemy::ATTACK::SHOT:
+
+		return Utility::VECTOR_ZERO;
+		break;
+
+	case Enemy::ATTACK::ARM:
+
+		return armEndPos_;
+		break;
+
+	case Enemy::ATTACK::HEAD:
+
+		return headEndPos_;
+		break;
 	}
 }
 
@@ -377,9 +403,8 @@ void Enemy::UpdateAttackA(void)
 
 void Enemy::UpdateAttackB(void)
 {
-	armPos_ = MV1GetFramePosition(transform_.modelId, 59);
-	armTransform_.pos = MV1GetFramePosition(transform_.modelId, 57);
-	armTransform_.Update();
+	armEndPos_ = MV1GetFramePosition(transform_.modelId, 59);
+	armStartPos_ = MV1GetFramePosition(transform_.modelId, 57);
 
 	if (animationCtrl_->GetTime() >= 50) {
 
@@ -393,9 +418,8 @@ void Enemy::UpdateAttackB(void)
 
 void Enemy::UpdateAttackC(void)
 {
-	headPos_ = MV1GetFramePosition(transform_.modelId, 16);
-	headTransform_.pos = MV1GetFramePosition(transform_.modelId, 6);
-	headTransform_.Update();
+	headEndPos_ = MV1GetFramePosition(transform_.modelId, 16);
+	headStartPos_ = MV1GetFramePosition(transform_.modelId, 6);
 
 	if (animationCtrl_->GetTime() >= 50) {
 

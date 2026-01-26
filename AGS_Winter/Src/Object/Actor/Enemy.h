@@ -60,9 +60,9 @@ public:
 	//体力
 	static constexpr int MAX_HP = 400;
 
-	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 250.0f, 300.0f };
-	static constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 250.0f, -250.0f };
-	static constexpr float COL_CAPSULE_RADIUS = 225.0f;
+	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 200.0f, 65.0f };
+	static constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 200.0f, -125.0f };
+	static constexpr float COL_CAPSULE_RADIUS = 135.0f;
 
 	// コンストラクタ
 	Enemy(Player* pl);
@@ -91,29 +91,16 @@ public:
 		return shotColliders_;
 	}
 
-	// 腕の衝突情報取得
-	const std::map<int, ColliderBase*>& GetArmColliders(void) const
-	{
-		return armColliders_;
-	}
-
-	// 頭の衝突情報取得
-	const std::map<int, ColliderBase*>& GetHeadColliders(void) const
-	{
-		return headColliders_;
-	}
-
 	//攻撃座標の取得
-	VECTOR GetAttackStartPos(void) const { return attackPos1_; }
-	VECTOR GetAttackEndPos(void) const { return attackPos2_; }
-	VECTOR GetAttackPrevPos(void) const { return attackPrevPos_; }
+	VECTOR GetAttackStartPos(void) const;
+	VECTOR GetAttackEndPos(void) const;
 
 	bool IsAttackA(void) const { return attackAFlg_; }
 	bool IsAttackB(void) const { return attackBFlg_; }
 	bool IsAttackC(void) const { return attackCFlg_; }
 	bool IsMove(void) const { return state_ == STATE::MOVE; }
 
-	void DeleteAttackA(void) { attackAFlg_ = attackShowFlg_ = false; }
+	void DeleteShot(void) { attackAFlg_ = false; }
 
 	bool IsAttack(void) const;
 
@@ -136,20 +123,15 @@ private:
 	ATTACK attack_;
 
 	Transform shotTransform_;
-	Transform armTransform_;
-	Transform headTransform_;
 
-	VECTOR armPos_;
-	VECTOR headPos_;
+	VECTOR armStartPos_;
+	VECTOR headStartPos_;
+
+	VECTOR armEndPos_;
+	VECTOR headEndPos_;
 
 	// 弾の衝突情報
 	std::map<int, ColliderBase*> shotColliders_;
-
-	// 腕の衝突情報
-	std::map<int, ColliderBase*> armColliders_;
-
-	// 頭の衝突情報
-	std::map<int, ColliderBase*> headColliders_;
 
 	// 角度
 	VECTOR targetAngles_;
@@ -172,8 +154,6 @@ private:
 	bool attackAFlg_;
 	bool attackBFlg_;
 	bool attackCFlg_;
-
-	bool attackShowFlg_;
 
 	void DirectionPlayer(void);
 	bool Turn(void);

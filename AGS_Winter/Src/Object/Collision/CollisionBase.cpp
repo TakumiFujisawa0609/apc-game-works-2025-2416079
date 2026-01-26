@@ -46,6 +46,15 @@ const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionCapsule(const std::map<in
 	return MV1CollCheck_Capsule(collModel->GetFollow()->modelId, -1, collCapsule->GetPosTop(), collCapsule->GetPosDown(), collCapsule->GetRadius());
 }
 
+const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionCapsule(const std::map<int, ColliderBase*> model, const VECTOR start, const VECTOR end, const float radius)
+{
+	ColliderModel* collModel = SearchType<ColliderModel>(model, ActorBase::COLLIDER_TYPE::MODEL);
+	
+	if (collModel == nullptr) return MV1_COLL_RESULT_POLY_DIM();
+
+	return MV1CollCheck_Capsule(collModel->GetFollow()->modelId, -1, start, end, radius);
+}
+
 const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionSphere(const std::map<int, ColliderBase*> model, const std::map<int, ColliderBase*> sphere)
 {
 	ColliderModel* collModel = SearchType<ColliderModel>(model, ActorBase::COLLIDER_TYPE::MODEL);
