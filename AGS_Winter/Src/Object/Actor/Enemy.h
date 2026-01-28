@@ -49,6 +49,7 @@ public:
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
 	static constexpr VECTOR SCALE = { 6.0f, 6.0f, 6.0f };
 	static constexpr float SPEED = 8.5f;
+	static constexpr int BASE_ATTACK_DIFF = 45;
 
 	//âìãóó£çUåÇÇÃì™ÇÃà íu
 	static constexpr VECTOR ATTACK_POS_A = { 0.0f, 250.0f, 325.0f };
@@ -144,7 +145,9 @@ private:
 
 	bool clearFlg_;
 
+	int baseAttackDiff_;
 	int attackDiff_;
+
 	float cnt_;
 	int downCnt_;
 
@@ -155,6 +158,11 @@ private:
 	bool attackBFlg_;
 	bool attackCFlg_;
 
+	bool angryFlg_;
+
+	float speed_;
+	float attackSpeed_;
+
 	void DirectionPlayer(void);
 	bool Turn(void);
 
@@ -164,6 +172,8 @@ private:
 	void ChangeAttack(void);
 	void ChangeDown(void);
 	void ChangeKO(void);
+	
+	void Anger(void);
 
 	// èÛë‘ï çXêV
 	void UpdateWait(void);

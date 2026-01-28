@@ -14,14 +14,17 @@ GameClear::~GameClear(void)
 {
 }
 
+void GameClear::Init(void)
+{
+	timeHandle = CreateFontToHandle("Monserhunterfonts Xtype", 200, 3, DX_FONTTYPE_ANTIALIASING_EDGE_4X4);
+}
+
 void GameClear::Draw(void)
 {
 	ResultBase::Draw();
 
-	DrawFormatString(100, 100, 0x000000, "GameClear", SetFontSize(30));
-
-	//DrawRotaGraph(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 1.0f, 0.0, imgBg_, true);
-	//DrawRotaGraph( Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2 - 100, 1.0f, 0.0, imgTitle_, true);
+	int time = SceneManager::GetInstance().GetTime() / 1000;
+	DrawFormatStringToHandle(550, 300, 0xffffff, timeHandle, "%d:%02d", time / 60, time % 60);
 }
 
 void GameClear::Release(void)

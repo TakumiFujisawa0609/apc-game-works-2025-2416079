@@ -1,5 +1,7 @@
 #pragma once
 #include <DxLib.h>
+#include <vector>
+#include <string>
 
 
 class Utility
@@ -24,4 +26,7 @@ public:
 
 	// ŽlŽÌŒÜ“ü
 	static int Round(float v);
+
+	// •¶Žš—ñ‚Ì•ªŠ„
+	static std::vector <std::string> Split(std::string& line, char delimiter);
 };

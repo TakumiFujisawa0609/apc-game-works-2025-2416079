@@ -26,6 +26,7 @@ public:
 	static const std::string PATH_EFFECT;
 	static const std::string PATH_SOUND;
 	static const std::string PATH_FONT;
+	static const std::string PATH_CSV;
 	//-------------------------------------------
 
 	// インスタンスを明示的に生成

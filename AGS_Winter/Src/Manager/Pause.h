@@ -28,4 +28,6 @@ private:
 	bool isPause_;
 	PAUSE_STATE state_;
 	int image_;
+
+	VECTOR pos_;
 };

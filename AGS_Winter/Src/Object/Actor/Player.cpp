@@ -19,7 +19,7 @@ Player::Player(Item* itm): ActorBase(), item_(itm), autoHealCnt_(0), autoHealHp_
 	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(false), knockBackDir_(0.0f),
 	overFlg_(false), power_(0), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),
 	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),	barStaEY_(), barStaSY_(), damage_(BASIC_DAMAGE), goodDodge_(), greatDodge_(), guageEX_(),
-	guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(), powerUp_(), powerUpCnt_(), dodgeBottomPos_(), dodgeTopPos_(), buff_(1.0)
+	guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(), powerUp_(), powerUpCnt_(), dodgeBottomPos_(), dodgeTopPos_(), buff_(1.0), effectType_(EFFECT::NON)
 {
 }
 
@@ -267,6 +267,15 @@ void Player::Damage(int damage, float dir)
 	knockBackDir_ = dir;
 	greatDodge_ = goodDodge_ = false;
 
+	if (isHealMax_) {
+
+		isHealMax_ = false;
+	}
+	if (isHeal_) {
+
+		isHeal_ = false;
+	}
+
 	if (damage >= 15) {
 
 		DoChangeState(STATE::DAMAGED_HEAVY);
@@ -280,14 +289,9 @@ void Player::Damage(int damage, float dir)
 
 		hp_ = 0;
 		autoHealHp_ = 0;
-		SceneManager::GetInstance().SetResultImage();
+		SceneManager::GetInstance().SetScreenImage();
 		DoChangeState(STATE::KO);
 	}
-}
-
-bool Player::Healable(void) const
-{
-	return false;
 }
 
 bool Player::IsAttackMotion(void) const
@@ -320,7 +324,7 @@ void Player::GreatDodge(void)
 
 	//エフェクトの生成
 	EffectCreate();
-	effectType_ = EFFECT::GOOD_DODGE;
+	effectType_ = EFFECT::GREAT_DODGE;
 
 	if (!powerUp_) {
 
@@ -366,35 +370,18 @@ void Player::Status(void)
 		stamina_ = 0.0f;
 	}
 	if (isHeal_) {
-		if (hp_ < MAX_HP) {
-			if (autoHealHp_ > 0) {
+		
+		Heal();
 
-				autoHealHp_--;
-			}
-			hp_++;
-			healCount_++;
-		}
-		if (healCount_ >= HEAL_COUNT || hp_ >= MAX_HP) {
+		if (healCount_ >= HEAL_COUNT) {
 
-			hp_ = MAX_HP;
-			isHeal_ = false;
-			healCount_ = 0;
+				isHeal_ = false;
+				healCount_ = 0;
 		}
 	}
 	if (isHealMax_) {
-		if (hp_ < MAX_HP) {
-			if (autoHealHp_ > 0) {
 
-				autoHealHp_--;
-			}
-			hp_++;
-		}
-		else {
-
-			hp_ = MAX_HP;
-			isHealMax_ = false;
-			healCount_ = 0;
-		}
+		Heal();
 	}
 	if (isStaminaMax_) {
 		if (staminaMaxCnt_ > STAMINA_MAX_TIME) {
@@ -444,10 +431,28 @@ void Player::Status(void)
 	}
 }
 
+void Player::Heal(void)
+{
+	if (hp_ < MAX_HP) {
+		if (autoHealHp_ > 0) {
+
+			autoHealHp_--;
+		}
+		hp_++;
+		healCount_++;
+	}
+	else {
+
+		hp_ = MAX_HP;
+		isHeal_ = false;
+		healCount_ = 0;
+	}
+}
+
 void Player::KnockBack()
 {
-	transform_.pos.x += sinf(knockBackDir_) * 3.0f;
-	transform_.pos.z += cosf(knockBackDir_) * 3.0f;
+	transform_.pos.x += sinf(knockBackDir_) * 4.0f;
+	transform_.pos.z += cosf(knockBackDir_) * 4.0f;
 
 	transform_.rot.y = knockBackDir_ - DX_PI_F;
 }
@@ -1019,9 +1024,11 @@ void Player::BoolChangeDrink(void)
 	Controller::JOYPAD_IN_STATE padState = Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1);
 
 	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::LEFT)] || CheckHitKey(KEY_INPUT_0)) {
+		if (!isHeal_ && !isHealMax_) {
 
-		//飲むモーションに移行
-		DoChangeState(STATE::DRINK);
+			//飲むモーションに移行
+			DoChangeState(STATE::DRINK);
+		}
 	}
 }
 

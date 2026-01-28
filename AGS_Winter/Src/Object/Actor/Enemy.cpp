@@ -12,9 +12,10 @@
 #include "Enemy.h"
 
 
-Enemy::Enemy(Player* pl): ActorBase(), attackAFlg_(false), attackBFlg_(false), attackCFlg_(false),
-	attackDiff_(120), attackDir_(), attackPos1_(Utility::VECTOR_ZERO), attackPos2_(Utility::VECTOR_ZERO), attackPrevPos_(Utility::VECTOR_ZERO),
-	clearFlg_(false), cnt_(0), coolDown_(0), isCoolDown_(false),	player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0)
+Enemy::Enemy(Player* pl) : ActorBase(), attackAFlg_(false), attackBFlg_(false), attackCFlg_(false),
+attackDiff_(120), attackDir_(), attackPos1_(Utility::VECTOR_ZERO), attackPos2_(Utility::VECTOR_ZERO), attackPrevPos_(Utility::VECTOR_ZERO), speed_(SPEED),
+clearFlg_(true), cnt_(0), coolDown_(0), isCoolDown_(false), player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0), attackSpeed_(ATTACK_SPEED),
+baseAttackDiff_(BASE_ATTACK_DIFF), angryFlg_(false)
 {
 }
 
@@ -108,7 +109,10 @@ void Enemy::Update(void)
 		UpdateKO();
 		break;
 	}
-
+	if (attackAFlg_) {
+	
+		shotTransform_.pos = VAdd(shotTransform_.pos, VScale(attackDir_, attackSpeed_));
+	}
 	//モデルの更新
 	animationCtrl_->Update();
 	transform_.Update();
@@ -215,17 +219,21 @@ bool Enemy::IsAttack(void) const
 
 void Enemy::Damage(int damage)
 {
-	if (hp_ <= 200 && hp_ >190) {
+	if (hp_ <= 230 && !angryFlg_) {
 
-		ChangeState(STATE::DOWN);
+		Anger();
 	}
 	hp_ -= damage;
 
 	//HPがゼロならクリア
 	if (hp_ <= 0 && !clearFlg_) {
 
+		SceneManager::GetInstance().SetTime();
 		ChangeState(STATE::KO);
-		SceneManager::GetInstance().SetResultImage();
+	}
+	else {
+
+		SceneManager::GetInstance().SetScreenImage();
 	}
 }
 
@@ -259,7 +267,7 @@ bool Enemy::Turn(void)
 
 void Enemy::ChangeWait(void)
 {
-	attackDiff_ = GetRand(120) + 45;
+	attackDiff_ = GetRand(120) + baseAttackDiff_;
 }
 
 void Enemy::ChangeMove(void)
@@ -274,29 +282,32 @@ void Enemy::ChangeMove(void)
 
 void Enemy::ChangeAttack(void)
 {
-	if (VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= 300.0f) {
+	float v = VSize(VSub(player_->GetTransform().pos, transform_.pos));
+	if (v >= 400.0f) {
 
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_A), false);
 		
 		attack_ = ATTACK::SHOT;
 	}
-	else if (fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos))) <= 250.0f){
-		if (GetRand(1) == 1) {
-
-			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_B), false);
-
-			attack_ = ATTACK::ARM;
-		}
-		else {
+	else if (v <= 250) {
+		if (GetRand(2) == 1) {
 
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_C), false);
 
 			attack_ = ATTACK::HEAD;
 		}
+		else {
+
+			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_B), false);
+
+			attack_ = ATTACK::ARM;
+		}
 	}
 	else {
 
-		ChangeState(STATE::MOVE);
+		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_B), false);
+
+		attack_ = ATTACK::ARM;
 	}
 }
 
@@ -308,6 +319,21 @@ void Enemy::ChangeDown(void)
 void Enemy::ChangeKO(void)
 {
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DOWN), false);
+}
+
+void Enemy::Anger(void)
+{
+	ChangeState(STATE::DOWN);
+
+	angryFlg_ = true;
+
+	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_A), 60);
+	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_B), 60);
+	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_C), 60);
+
+	attackSpeed_ = ATTACK_SPEED * 1.5f;
+	speed_ = SPEED * 1.8f;
+	baseAttackDiff_ = BASE_ATTACK_DIFF / 3;
 }
 
 void Enemy::UpdateWait(void)
@@ -326,7 +352,7 @@ void Enemy::UpdateWait(void)
 		cnt_ = 0;
 		ChangeState(STATE::ATTACK);
 	}
-	else if(GetRand(attackDiff_) >= 80 && VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= 550.0f) {
+	else if(GetRand(attackDiff_) >= 80 && VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= 650.0f) {
 
 		cnt_ = 0;
 		ChangeState(STATE::MOVE);
@@ -344,10 +370,10 @@ void Enemy::UpdateMove(void)
 
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
 
-	transform_.pos.x += moveDir_.x * SPEED;
-	transform_.pos.z += moveDir_.z * SPEED;
+	transform_.pos.x += moveDir_.x * speed_;
+	transform_.pos.z += moveDir_.z * speed_;
 
-	if (fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos))) <= 250.0f || prevDist <= fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos)))) {
+	if (fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos))) <= 285.0f || prevDist <= fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos)))) {
 
 		ChangeState(STATE::WAIT);
 	}
@@ -384,7 +410,7 @@ void Enemy::UpdateAttackA(void)
 
 		shotTransform_.pos = VAdd(shotTransform_.pos, VScale(attackDir_, ATTACK_SPEED));
 
-		if (!attackAFlg_) {
+		if (animationCtrl_->GetTime() <= 34) {
 
 			attackAFlg_ = true;
 		}
@@ -418,7 +444,7 @@ void Enemy::UpdateAttackB(void)
 
 void Enemy::UpdateAttackC(void)
 {
-	headEndPos_ = MV1GetFramePosition(transform_.modelId, 16);
+	headEndPos_ = MV1GetFramePosition(transform_.modelId, 17);
 	headStartPos_ = MV1GetFramePosition(transform_.modelId, 6);
 
 	if (animationCtrl_->GetTime() >= 50) {

@@ -75,5 +75,5 @@ MV1_COLL_RESULT_POLY_DIM CollisionManager::HitCapsule(std::map<int, ColliderBase
 
 void CollisionManager::Release(void)
 {
-	delete inst_;
+	inst_ = nullptr;
 }

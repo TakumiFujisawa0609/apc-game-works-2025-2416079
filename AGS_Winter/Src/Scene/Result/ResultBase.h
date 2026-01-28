@@ -9,6 +9,13 @@ class ResultBase : public SceneBase
 
 public:
 
+	enum class STATE {
+
+		CONTINUE = 2,
+		RETURN_TITLE,
+		FINISH,
+	};
+
 	// コンストラクタ
 	ResultBase(void);
 	// デストラクタ
@@ -27,5 +34,7 @@ public:
 
 private:
 
-	int resultImg_;
+	int screenImg_;
+
+	STATE state_;
 };

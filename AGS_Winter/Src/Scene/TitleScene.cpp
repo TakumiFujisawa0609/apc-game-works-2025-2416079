@@ -20,11 +20,11 @@ TitleScene::~TitleScene(void)
 void TitleScene::InitLoad(void)
 {
 	imgTitle_ = LoadGraph((Application::PATH_IMAGE + "Title.png").c_str());
+	imgBg_ = LoadGraph((Application::PATH_IMAGE + "Title.jpg").c_str());
 }
 
 void TitleScene::Init(void)
 {
-	//imgBg_ = LoadGraph((Application::PATH_IMAGE + "Background.png").c_str());
 	AudioManager::GetInstance()->LoadSceneSound(LoadScene::TITLE);
 	AudioManager::GetInstance()->PlayBGM(SoundID::BGM_TITLE);
 	font_ = CreateFontToHandle("アンニャントロマン", 45, 1, DX_FONTTYPE_ANTIALIASING_EDGE_4X4);
@@ -55,7 +55,7 @@ void TitleScene::Update(void)
 void TitleScene::Draw(void)
 {
 	SceneBase::Draw();
-
+	DrawGraph(0, 0, imgBg_, true);
 	int widthA = GetDrawFormatStringWidthToHandle(font_, "Press Any Botton");
 
 	if (show_) {

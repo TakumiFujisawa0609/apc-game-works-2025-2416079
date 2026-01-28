@@ -55,12 +55,23 @@ public:
 	Camera* GetCamera(void) const { return camera_; }
 	SceneBase* GetSceneBase(void) { return scene_; }
 
-	void SetResultImage(void) const;
-	int GetResultImage(void) const { return resultImg_; }
+	void SetScreenImage(void) const;
+	int GetScreenImage(void) const { return screenImg_; }
+
+	void ResetTimer(void) { startTime_ = GetNowCount(); }
+	int GetTime(void) { return endTime_ - time_; }
+	int GetTimer(void) { return timer_; }
+	void SetTime(void) { time_ = startTime_; endTime_ = GetNowCount(); }
 
 private:
 
-	int resultImg_;
+	int screenImg_;
+
+	int startTime_;
+	int timer_;
+	int pauseTime_;
+	int time_;
+	int endTime_;
 
 	// 静的インスタンス
 	static SceneManager* instance_;
@@ -118,4 +129,7 @@ private:
 	void Fade(void);
 
 	void Init3D(void);
+
+	std::vector<int> LoadTime(void);
+	void SaveTime(void);
 };

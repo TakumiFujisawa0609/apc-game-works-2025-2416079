@@ -1,4 +1,6 @@
 #include <EffekseerForDxlib.h>
+#include <iostream>
+#include <fstream>
 #include "Camera.h"
 #include "../Utility/Utility.h"
 #include "../Object/Grid.h"
@@ -57,7 +59,7 @@ void SceneManager::Init(void)
 
 	isSceneChanging_ = true;
 	isLoad_ = false;
-	resultImg_ = MakeGraph(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
+	screenImg_ = MakeGraph(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
 
 	// デルタタイム
 	preTime_ = std::chrono::system_clock::now();
@@ -96,10 +98,17 @@ void SceneManager::Update(void)
 			if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]||
 				CheckHitKey(KEY_INPUT_P)) {
 
-					pause_->Init(sceneId_);
+				pauseTime_ = GetNowCount();
+				pause_->Init(sceneId_);
+			}
+			else if (pauseTime_ > 0) {
+
+				startTime_ += GetNowCount() - pauseTime_;
+				pauseTime_ = 0;
 			}
 			// 各シーンの更新処理
 			scene_->Update();
+			timer_ = (GetNowCount() - startTime_);
 		}
 		else {
 
@@ -182,7 +191,7 @@ void SceneManager::Draw(void)
 //	if (CheckHitKey(KEY_INPUT_R)) { spotLightPos_.y += 3.0f; }
 //	if (CheckHitKey(KEY_INPUT_Y)) { spotLightPos_.y -= 3.0f; }
 //	if (CheckHitKey(KEY_INPUT_H)) { spotLightPos_.x += 3.0f; }
-//	if (CheckHitKey(KEY_INPUT_F)) { spotLightPos_.x -= 3.0f; }
+///	if (CheckHitKey(KEY_INPUT_F)) { spotLightPos_.x -= 3.0f; }
 //	SetLightPosition(spotLightPos_);
 //	DrawSphere3D(spotLightPos_, 20.0f, 10, 0xff0000, 0xff0000, true);
 //#pragma endregion
@@ -209,7 +218,7 @@ void SceneManager::Destroy(void)
 	// インスタンスのメモリ解放
 	delete instance_;
 
-	DeleteGraph(resultImg_);
+	DeleteGraph(screenImg_);
 }
 
 void SceneManager::ChangeScene(SCENE_ID nextId)
@@ -219,6 +228,7 @@ void SceneManager::ChangeScene(SCENE_ID nextId)
 	waitSceneId_ = nextId;
 
 	// フェードアウト(暗転)を開始する
+	startTime_ = GetNowCount();
 	fader_->SetFade(Fader::STATE::FADE_OUT);
 	isSceneChanging_ = true;
 }
@@ -234,9 +244,9 @@ float SceneManager::GetDeltaTime(void) const
 	return deltaTime_;
 }
 
-void SceneManager::SetResultImage(void) const
+void SceneManager::SetScreenImage(void) const
 {
-	GetDrawScreenGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, resultImg_);
+	GetDrawScreenGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, screenImg_);
 }
 
 SceneManager::SceneManager(void)
@@ -315,6 +325,7 @@ void SceneManager::DoChangeScene(SCENE_ID sceneId)
 		case SCENE_ID::CLEAR:
 
 			scene_ = new GameClear();
+			SaveTime();
 			break;
 		}
 	}
@@ -352,6 +363,7 @@ void SceneManager::Fade(void)
 			// 明転が終了したら、フェード処理終了
 			fader_->SetFade(Fader::STATE::NONE);
 			isSceneChanging_ = false;
+			startTime_ = GetNowCount();
 		}
 		break;
 
@@ -395,4 +407,82 @@ void SceneManager::Init3D(void)
 	SetFogColor(200, 200, 200);
 	// フォグを発生させる奥行きの最小、最大距離
 	SetFogStartEnd(12000.0f, 14000.0f);
+}
+
+std::vector<int> SceneManager::LoadTime(void)
+{
+	// ファイルの読込
+	std::ifstream ifs = std::ifstream(Application::PATH_CSV + "Time.csv");
+	std::vector<int> fileTime;
+
+	if (!ifs) {
+
+		// エラーが発生
+		fileTime.push_back(-1);
+		return fileTime;
+	}
+	// ファイルを１行ずつ読み込む
+	std::string line;
+	// 1行の文字情報
+	std::vector<std::string> strSplit;
+
+	getline(ifs, line);
+
+	// １行をカンマ区切りで分割
+	strSplit = Utility::Split(line, ',');
+
+	for (int i = 0; i < strSplit.size(); i++) {
+
+		fileTime.insert(fileTime.begin() + i, atoi(strSplit.at(i).c_str()));
+	}
+	ifs.close();
+	if (fileTime.size() == 11) {
+	
+		fileTime.pop_back();
+	}
+	return fileTime;
+}
+
+void SceneManager::SaveTime(void)
+{
+	std::vector<int> fileTime = LoadTime();
+	std::vector<int> newTime;
+
+	bool change = false;
+		
+	for (int i = 0; i < fileTime.size(); i++) {
+		if (!change) {
+			if (fileTime[i] > GetTime()) {
+
+				newTime.insert(newTime.begin() + (i + 1), newTime.at(i));
+				newTime.insert(newTime.begin() + i, GetTime());
+
+				change = true;
+				continue;
+			}
+			newTime.insert(newTime.begin() + i, fileTime.at(i));
+		}
+		else {
+
+			newTime.insert(newTime.begin() + (i + 1), fileTime.at(i));
+		}
+	}
+	if (fileTime.size() == 0) {
+
+		newTime.push_back(GetTime());
+	}
+	if (newTime.size() == 11) {
+
+		newTime.pop_back();
+	}
+	// ファイルの書き込み
+	std::ofstream ofs = std::ofstream(Application::PATH_CSV + "Time.csv");
+
+	for (int t : newTime) {
+
+		ofs << t;
+		ofs << ",";
+	}
+	
+	ofs.close();
 }

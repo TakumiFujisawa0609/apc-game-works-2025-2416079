@@ -48,6 +48,7 @@ public:
 	// エフェクト
 	enum class EFFECT
 	{
+		NON = -1,
 		GREAT_DODGE,
 		GOOD_DODGE,
 		HEAL,
@@ -71,8 +72,8 @@ public:
 	static constexpr int EFFECT_NUM = 9;
 	static constexpr float EFFECT_MAX_SIZE = 150.0f;
 
-	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 150.0f, 0.0f };
-	static constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 50.0f, 0.0f };
+	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 100.0f, 0.0f };
+	static constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 45.0f, 0.0f };
 	static constexpr float COL_CAPSULE_RADIUS = 30.0f;
 
 	static constexpr VECTOR SWORD_POS = { 77.5f, 27.5f, -10.0f };
@@ -103,12 +104,6 @@ public:
 
 	// ダメージを与える
 	void Damage(int damage, float dir);
-	void Heal(void) { isHeal_ = true; }
-	void HealMax(void) { isHealMax_ = true; }
-	void StaminaMax(void) { isStaminaMax_ = true; staminaMaxCnt_ = 0; }
-
-	bool HealUsed(void) const { return isHeal_ || isHealMax_; }
-	bool Healable(void) const;
 
 	int GetPower(void) const { return damage_; }
 
@@ -204,6 +199,7 @@ private:
 	EFFECT effectType_;
 
 	void Status(void);
+	void Heal(void);
 	void KnockBack(void);
 
 	void FindHpAndPower(void);

@@ -45,6 +45,8 @@ public:
 	void ChangePause(bool p) { isPause_ = p; }
 	bool IsPause(void) { return isPause_; }
 
+	void ChangeSpeed(int type, float speed);
+
 private:
 
 	// アニメーションするモデルのハンドルID

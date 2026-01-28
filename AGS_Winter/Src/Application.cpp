@@ -16,6 +16,7 @@ const std::string Application::PATH_ANIMATION = PATH_DATA + "Animation/";
 const std::string Application::PATH_EFFECT = PATH_DATA + "Effect/";
 const std::string Application::PATH_SOUND = PATH_DATA + "Sounds/";
 const std::string Application::PATH_FONT = PATH_DATA + "Font/";
+const std::string Application::PATH_CSV = PATH_DATA + "Csv/";
 
 void Application::CreateInstance(void)
 {
@@ -56,6 +57,7 @@ void Application::Init(void)
 	}
 	SetMouseDispFlag(false);
 	AddFontResource((Application::PATH_FONT + "toroman.ttf").c_str());
+	AddFontResource((Application::PATH_FONT + "MonserhunterfontsXtype-Regular.ttf").c_str());
 
 	InitEffekseer();
 

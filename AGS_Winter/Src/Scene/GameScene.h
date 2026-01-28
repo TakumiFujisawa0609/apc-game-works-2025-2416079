@@ -60,30 +60,46 @@ private:
 	Player* player_;
 	Item* item_;
 
+	//タイマーのフォント
+	int timerHandle_;
+
+	// リザルトロゴ
 	int failedImg_;
 	int clearImg_;
 
+	//影のマップ
 	int shadowMap_;
 
+	// ヒット判定を一回だけ行うためのもの
 	bool hitFlgP_;
 	bool hitFlgE_;
 
+	// カメラの移動値
 	float yaw_;
 	float pitch_;
-
+		
+	// ロックオンしたか
 	bool isLockon_;
 
+	// ロックオンの時の画像
 	int lockOnImg_;
 	bool cntDown_;
 	int cnt_;
 
+	// 画面揺らし
 	int shakeCnt_;
 	float shakeWidVer_;
 	float shakeWidSide_;
 
+	// ヒットストップ
+	int hitStopCnt_;
+	int hitStopImg_;
+
+	// シーンチェンジフラグ
 	bool changeFlg_;
 	int changeCnt_;
 
+	// クリア時のくるくるカメラ
 	bool clearCamera_;
 
 	void Collision(void);

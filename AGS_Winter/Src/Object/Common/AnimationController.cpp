@@ -156,6 +156,15 @@ bool AnimationController::IsEnd(void) const
 	return false;
 }
 
+void AnimationController::ChangeSpeed(int type, float speed)
+{
+	if (animations_.count(type) == 0) return;
+	
+	Animation& anim = animations_.at(type);
+	anim.speed = speed;
+	animations_.emplace(type, speed);
+}
+
 void AnimationController::Release(void)
 {
 

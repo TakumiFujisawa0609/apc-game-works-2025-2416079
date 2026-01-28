@@ -31,6 +31,7 @@ public:
 	void Release(void);
 
 	//‰½‚Ìí—Ş‚©
+	TYPE GetSelectType(void) { return type_; }
 	TYPE GetUseType(void) { return useType_; }
 	
 	//g—pó‹µæ“¾
