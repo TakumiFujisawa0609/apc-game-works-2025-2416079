@@ -10,7 +10,8 @@
 #include "../Scene/Result/GameOver.h"
 #include "../Scene/Result/GameClear.h"
 #include "../Application.h"
-#include "../Manager/Input/Controller.h"
+#include "Input/Controller.h"
+#include "Audio/AudioManager.h"
 #include "Pause.h"
 #include "SceneManager.h"
 
@@ -64,6 +65,8 @@ void SceneManager::Init(void)
 	// デルタタイム
 	preTime_ = std::chrono::system_clock::now();
 
+	damageNum_ = 0;
+
 	// 3D描画の初期化
 	Init3D();
 
@@ -97,12 +100,19 @@ void SceneManager::Update(void)
 		if (!pause_->IsPause()) {
 			if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]||
 				CheckHitKey(KEY_INPUT_P)) {
+				if (sceneId_ != SCENE_ID::TITLE) {
 
-				pauseTime_ = GetNowCount();
-				pause_->Init(sceneId_);
+					AudioManager::GetInstance()->StopSE();
+					pauseId_ = AudioManager::GetInstance()->PauseBGM();
+					AudioManager::GetInstance()->PlaySE(SoundID::SE_PAUSE);
+					pauseTime_ = GetNowCount();
+					pause_->Init();
+					return;
+				}
 			}
 			else if (pauseTime_ > 0) {
 
+				AudioManager::GetInstance()->PlayBGM(pauseId_);
 				startTime_ += GetNowCount() - pauseTime_;
 				pauseTime_ = 0;
 			}
@@ -119,7 +129,6 @@ void SceneManager::Update(void)
 
 void SceneManager::Draw(void)
 {
-	
 	// 描画先グラフィック領域の指定
 	// (３Ｄ描画で使用するカメラの設定などがリセットされる)
 	SetDrawScreen(DX_SCREEN_BACK);
@@ -129,8 +138,10 @@ void SceneManager::Draw(void)
 
 	// 3D描画の初期化
 	camera_->SetBeforeDraw();
+	if (!pause_->IsPause()) {
 
-	UpdateEffekseer3D();
+		UpdateEffekseer3D();
+	}
 
 	SetUseLighting(false);
 	MV1DrawModel(backGround_);
@@ -146,13 +157,14 @@ void SceneManager::Draw(void)
 
 	// カメラのデバック描画
 	//camera_->Draw();
+	SetUseZBufferFlag(false);
+	DrawEffekseer3D();
+	SetUseZBufferFlag(true);
 
 	if (pause_->IsPause()) {
 
 		pause_->Draw();
 	}
-
-	DrawEffekseer3D();
 
 	// 暗転・明転
 	fader_->Draw();
@@ -295,7 +307,10 @@ void SceneManager::DoChangeScene(SCENE_ID sceneId)
 		showFlg_[2] = false;
 	}
 	if (sceneId_ != sceneId) {
+		if (sceneId_ == SCENE_ID::OVER || sceneId_ == SCENE_ID::CLEAR) {
 
+			AudioManager::GetInstance()->StopBGM();
+		}
 		// シーンを変更する
 		sceneId_ = sceneId;
 
@@ -467,10 +482,7 @@ void SceneManager::SaveTime(void)
 			newTime.insert(newTime.begin() + (i + 1), fileTime.at(i));
 		}
 	}
-	if (fileTime.size() == 0) {
-
-		newTime.push_back(GetTime());
-	}
+	newTime.push_back(GetTime());
 	if (newTime.size() == 11) {
 
 		newTime.pop_back();

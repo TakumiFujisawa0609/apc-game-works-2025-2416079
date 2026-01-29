@@ -53,4 +53,6 @@ void EffectResManager::Load(void)
 {
 	// ヒットエフェクトのロード
 	resourceIds_.emplace(TYPE::ENEMY_HIT, LoadEffekseerEffect((Application::PATH_EFFECT + "Blood.efkproj").c_str()));
+	resourceIds_.emplace(TYPE::SHOT, LoadEffekseerEffect((Application::PATH_EFFECT + "Fire_Shot.efkefc").c_str()));
+	resourceIds_.emplace(TYPE::BURST, LoadEffekseerEffect((Application::PATH_EFFECT + "Shot_Finish.efkefc").c_str()));
 }

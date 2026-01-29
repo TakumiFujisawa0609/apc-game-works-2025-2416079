@@ -9,7 +9,9 @@ public:
 	// エフェクトの種類
 	enum class TYPE
 	{
-		ENEMY_HIT
+		ENEMY_HIT,
+		SHOT,
+		BURST,
 	};
 
 	// インスタンスの生成

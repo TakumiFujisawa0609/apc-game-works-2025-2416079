@@ -76,7 +76,6 @@ void GameScene::Init(void)
 
 	// ƒTƒEƒ“ƒh‚Ì“Ç‚Ýž‚Ý
 	AudioManager::GetInstance()->PlayBGM(SoundID::BGM_BATTLE);
-	AudioManager::GetInstance()->SetBgmVolume(125);
 
 	CollisionStage();
 
@@ -106,11 +105,13 @@ void GameScene::Update(void)
 	ShakeCamera();
 
 	if (enemy_->ClearFlg()) {
+		AudioManager::GetInstance()->StopSE();
+		player_->NoSe();
 		if (!changeFlg_) {
 			if (changeCnt_ <= 1) {
 
 				AudioManager::GetInstance()->PlayBGM(SoundID::BGM_CLEAR);
-				AudioManager::GetInstance()->SetBgmVolume(180);
+				AudioManager::GetInstance()->SetBgmVolume(185);
 			}
 			if (enemy_->GetEnemyAnim()->IsEnd() && clearCamera_) {
 
@@ -123,6 +124,8 @@ void GameScene::Update(void)
 			changeCnt_++;
 
 			if (changeCnt_ >= 90) {
+
+				SceneManager::GetInstance().SetScore(damageNum_, item_->GetItemNum());
 				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
 			}
 		}
@@ -131,7 +134,6 @@ void GameScene::Update(void)
 		if (changeCnt_ <= 1) {
 
 			AudioManager::GetInstance()->PlayBGM(SoundID::BGM_GAMEOVER);
-			AudioManager::GetInstance()->SetBgmVolume(180);
 		}
 		if (!changeFlg_) {
 			if (player_->GetPlayerAnim()->IsEnd()) {
@@ -167,9 +169,16 @@ void GameScene::Collision(void)
 				enemy_->Damage(player_->GetPower() * player_->GetBuff());
 				if (player_->GetPower() * player_->GetBuff() >= 12.0f) {
 
-					shakeCnt_ = 35;
+					shakeCnt_ = 30;
+					SceneManager::GetInstance().SetScreenImage();
 					hitStopImg_ = SceneManager::GetInstance().GetScreenImage();
-					hitStopCnt_ = 5;
+					hitStopCnt_ = 8;
+				}
+				else {
+
+					SceneManager::GetInstance().SetScreenImage();
+					hitStopImg_ = SceneManager::GetInstance().GetScreenImage();
+					hitStopCnt_ = 3;
 				}
 				player_->ResetBuff();
 			}
@@ -194,6 +203,7 @@ void GameScene::Collision(void)
 
 								hitFlgP_ = true;
 								player_->Damage(13, enemy_->GetTransform().rot.y);
+								damageNum_++;
 								AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 							}
 							else {
@@ -224,7 +234,8 @@ void GameScene::Collision(void)
 
 									hitFlgP_ = true;
 									player_->Damage(25, enemy_->GetTransform().rot.y);
-									AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
+									damageNum_++;
+									AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 								}
 								else {
 									if (player_->DodgeCount() <= 3) {
@@ -250,6 +261,7 @@ void GameScene::Collision(void)
 
 									hitFlgP_ = true;
 									player_->Damage(40, enemy_->GetTransform().rot.y);
+									damageNum_++;
 									AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 								}
 								else {
@@ -280,8 +292,8 @@ void GameScene::Collision(void)
 
 void GameScene::CollisionStage(void)
 {
-	CollisionManager::GetInstance().PushBack(stage_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 50.0f, 0.1f);
-	CollisionManager::GetInstance().PushBack(enemy_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 50.0f, 0.1f);
+	CollisionManager::GetInstance().PushBack(stage_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 75.0f, 0.15f);
+	CollisionManager::GetInstance().PushBack(enemy_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 20.0f, 0.1f);
 	CollisionManager::GetInstance().PushBack(stage_->GetOwnColliders(), enemy_->GetOwnColliders(), &enemy_->GetTransform(), 50.0f, 0.1f);
 	
 	if (enemy_->IsAttackA()) {
@@ -520,11 +532,11 @@ void GameScene::ShakeCamera(void)
 		
 		shakeWidSide_ = (float)GetRand(2);
 		shakeWidSide_ -= 1;
-		shakeWidSide_ *= 5.0;
+		shakeWidSide_ *= 2.5;
 
 		shakeWidVer_ = (float)GetRand(2);
 		shakeWidVer_ -= 1;
-		shakeWidVer_ *= 20.0;
+		shakeWidVer_ *= 10.0;
 	}
 	shakeCnt_--;
 	

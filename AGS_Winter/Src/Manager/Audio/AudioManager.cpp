@@ -1,5 +1,4 @@
 #include "AudioManager.h"
-#include <DxLib.h>
 #include <algorithm>
 #include "SoundTable.cpp"
 
@@ -26,9 +25,11 @@ void AudioManager::Init(void)
 	// 現在再生されているBGM
 	currentBgm_ = static_cast<SoundID>(-1);
 
-	bgmVolume_ = 255;		// bgm音量
+	bgmVolume_ = 200;		// bgm音量
 	seVolume_ = 255;		// se音量
-	masterVolume_ = 255;	// master音量
+	masterVolume_ = 100;	// master音量
+
+	LoadSceneSound(LoadScene::SYSTEM);
 }
 
 void AudioManager::LoadSceneSound(LoadScene scene)
@@ -100,8 +101,23 @@ void AudioManager::PlayBGM(SoundID id)
 		return;
 
 	// 現在のBGMが同じならスキップ
-	if (currentBgm_ == id && CheckSoundMem(it->second))
+	if (currentBgm_ == id) {
+		if (isPause_) {
+
+			// 実音量を計算
+			int volume = static_cast<int>(bgmVolume_ * (masterVolume_ / 255.0f));
+
+			// 音量を変更
+			ChangeVolumeSoundMem(volume, it->second);
+
+			// BGMなのでループ再生
+			int i = SetSoundCurrentTime(pauseTime_, it->second);
+			PlaySoundMem(it->second, DX_PLAYTYPE_LOOP, false);
+
+			return;
+		}
 		return;
+	}
 
 	// 別のBGMが再生中なら停止
 	if (currentBgm_ != static_cast<SoundID>(-1))
@@ -200,6 +216,14 @@ void AudioManager::StopSE(SoundID id)
 	currentSe_ = static_cast<SoundID>(-1);
 }
 
+void AudioManager::StopSE(void)
+{
+	for (int i = static_cast<int>(SoundID::SE_WALK); i <= static_cast<int>(SoundID::SE_HEAL); i++) {
+
+		StopSE(static_cast<SoundID>(i));
+	}
+}
+
 void AudioManager::DeleteAll(void)
 {
 	// サウンドが1つも読み込まれてないなら処理しない
@@ -219,6 +243,25 @@ void AudioManager::DeleteAll(void)
 
 	// 配列をクリア
 	handles_.clear();
+}
+
+SoundID AudioManager::PauseBGM(void)
+{	
+	// 再生中のBGMに即時反映
+	if (currentBgm_ != static_cast<SoundID>(-1))
+	{
+		// IDからサウンドハンドルを抽出
+		auto it = handles_.find(currentBgm_);
+
+		// サウンドが読み込まれているか？
+		if (it != handles_.end())
+		{
+			pauseTime_ = GetSoundCurrentTime(it->second);
+			StopSoundMem(it->second);
+			isPause_ = true;
+		}
+	}
+	return currentBgm_;
 }
 
 void AudioManager::SetBgmVolume(int volume)

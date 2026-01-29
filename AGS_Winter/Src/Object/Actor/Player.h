@@ -64,7 +64,7 @@ public:
 	static constexpr int HEAL_COUNT = 15;
 	static constexpr float MAX_STAMINA = 1000.0f;
 	static constexpr float DOGDE_STAMINA = 100.0f;
-	static constexpr int STAMINA_MAX_TIME = 180 * 60;
+	static constexpr int STAMINA_MAX_TIME = 30 * 60;
 	
 	static constexpr int BASIC_DAMAGE = 10;
 	static constexpr int MAX_POWER = 10;
@@ -106,6 +106,7 @@ public:
 	void Damage(int damage, float dir);
 
 	int GetPower(void) const { return damage_; }
+	void NoSe(void) { se_ = false; }
 
 	// è’ìÀîªíËÇ™óLå¯Ç»èÛë‘
 	bool IsAttackMotion(void) const;
@@ -197,6 +198,8 @@ private:
 	int effectCnt_;
 	float effectSize_;
 	EFFECT effectType_;
+
+	bool se_;
 
 	void Status(void);
 	void Heal(void);

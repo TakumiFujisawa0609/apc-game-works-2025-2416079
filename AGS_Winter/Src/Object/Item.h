@@ -39,6 +39,8 @@ public:
 	bool IsUse(void) { return use_; }
 	void SetUsing(bool use) { using_ = use; }
 
+	int GetItemNum(void) { return useNum_; }
+
 private:
 
 	//アイテムのイメージハンドル
@@ -55,6 +57,8 @@ private:
 	bool prevUse_;
 	bool use_;
 	bool using_;
+
+	int useNum_;
 
 	//デバッグ
 	int prevKey_;

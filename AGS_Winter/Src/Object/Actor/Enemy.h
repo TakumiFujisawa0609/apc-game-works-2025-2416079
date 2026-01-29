@@ -101,7 +101,7 @@ public:
 	bool IsAttackC(void) const { return attackCFlg_; }
 	bool IsMove(void) const { return state_ == STATE::MOVE; }
 
-	void DeleteShot(void) { attackAFlg_ = false; }
+	void DeleteShot(void);
 
 	bool IsAttack(void) const;
 
@@ -162,6 +162,10 @@ private:
 
 	float speed_;
 	float attackSpeed_;
+
+	int effectHandle_;
+
+	bool first_;
 
 	void DirectionPlayer(void);
 	bool Turn(void);

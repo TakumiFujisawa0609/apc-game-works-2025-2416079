@@ -22,4 +22,5 @@ public:
 private:
 
 	int timeHandle;
+	int scoreHandle;
 };

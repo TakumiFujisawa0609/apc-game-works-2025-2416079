@@ -4,18 +4,21 @@
 #include "../../Utility/AngleUtility.h"
 #include "../Common/AnimationController.h"
 #include "../../Manager/SceneManager.h"
+#include "../../Manager/Audio/AudioManager.h"
+#include "../../Manager/EffectResManager.h"
 #include "../Collider/ColliderModel.h"
 #include "../Collider/ColliderSphere.h"
 #include "../Collider/ColliderLine.h"
 #include "../Collider/ColliderCapsule.h"
 #include "Player.h"
 #include "Enemy.h"
+#include <EffekseerForDXLib.h>
 
 
 Enemy::Enemy(Player* pl) : ActorBase(), attackAFlg_(false), attackBFlg_(false), attackCFlg_(false),
 attackDiff_(120), attackDir_(), attackPos1_(Utility::VECTOR_ZERO), attackPos2_(Utility::VECTOR_ZERO), attackPrevPos_(Utility::VECTOR_ZERO), speed_(SPEED),
-clearFlg_(true), cnt_(0), coolDown_(0), isCoolDown_(false), player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0), attackSpeed_(ATTACK_SPEED),
-baseAttackDiff_(BASE_ATTACK_DIFF), angryFlg_(false)
+clearFlg_(false), cnt_(0), coolDown_(0), isCoolDown_(false), player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0), attackSpeed_(ATTACK_SPEED),
+baseAttackDiff_(BASE_ATTACK_DIFF), angryFlg_(false), first_(false)
 {
 }
 
@@ -112,6 +115,11 @@ void Enemy::Update(void)
 	if (attackAFlg_) {
 	
 		shotTransform_.pos = VAdd(shotTransform_.pos, VScale(attackDir_, attackSpeed_));
+
+		//位置等々の設定
+		SetPosPlayingEffekseer3DEffect(effectHandle_, shotTransform_.pos.x, shotTransform_.pos.y, shotTransform_.pos.z);
+		SetScalePlayingEffekseer3DEffect(effectHandle_, 25.0f, 25.0f, 25.0f);
+		SetRotationPlayingEffekseer3DEffect(effectHandle_, 0.0f, 0.0f, 0.0f);
 	}
 	//モデルの更新
 	animationCtrl_->Update();
@@ -157,10 +165,6 @@ void Enemy::ChangeState(STATE state)
 
 void Enemy::Draw(void) const
 {
-	if (attackAFlg_) {
-
-		DrawSphere3D(shotTransform_.pos, ATTACK_RADIUS, 16, 0xffaa55, 0xffaa55, true);
-	}
 }
 
 VECTOR Enemy::GetAttackStartPos(void) const
@@ -169,7 +173,6 @@ VECTOR Enemy::GetAttackStartPos(void) const
 	{
 	case Enemy::ATTACK::SHOT:
 		
-		return Utility::VECTOR_ZERO;
 		break;
 
 	case Enemy::ATTACK::ARM:
@@ -182,6 +185,7 @@ VECTOR Enemy::GetAttackStartPos(void) const
 		return headStartPos_;
 		break;
 	}
+	return Utility::VECTOR_ZERO;
 }
 
 VECTOR Enemy::GetAttackEndPos(void) const
@@ -190,7 +194,6 @@ VECTOR Enemy::GetAttackEndPos(void) const
 	{
 	case Enemy::ATTACK::SHOT:
 
-		return Utility::VECTOR_ZERO;
 		break;
 
 	case Enemy::ATTACK::ARM:
@@ -203,6 +206,25 @@ VECTOR Enemy::GetAttackEndPos(void) const
 		return headEndPos_;
 		break;
 	}
+	return Utility::VECTOR_ZERO;
+}
+
+void Enemy::DeleteShot(void)
+{
+	attackAFlg_ = false;
+
+	StopEffekseer3DEffect(effectHandle_);
+
+	//リソースを得る
+	int resource = EffectResManager::GetInstance().GetResourceId(EffectResManager::TYPE::BURST);
+
+	//エフェクトの再生
+	int effect = PlayEffekseer3DEffect(resource);
+
+	//位置等々の設定
+	SetPosPlayingEffekseer3DEffect(effect, shotTransform_.pos.x, shotTransform_.pos.y, shotTransform_.pos.z);
+	SetScalePlayingEffekseer3DEffect(effect, 10.0f, 10.0f, 10.0f);
+	SetRotationPlayingEffekseer3DEffect(effect, 0.0f, 0.0f, 0.0f);
 }
 
 bool Enemy::IsAttack(void) const
@@ -228,12 +250,9 @@ void Enemy::Damage(int damage)
 	//HPがゼロならクリア
 	if (hp_ <= 0 && !clearFlg_) {
 
+		SceneManager::GetInstance().SetScreenImage();
 		SceneManager::GetInstance().SetTime();
 		ChangeState(STATE::KO);
-	}
-	else {
-
-		SceneManager::GetInstance().SetScreenImage();
 	}
 }
 
@@ -260,7 +279,6 @@ bool Enemy::Turn(void)
 			//攻撃中以外軸合わせは歩きモーション使う
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 		}
-
 		return false;
 	}
 }
@@ -282,6 +300,8 @@ void Enemy::ChangeMove(void)
 
 void Enemy::ChangeAttack(void)
 {
+	AudioManager::GetInstance()->PlaySE(SoundID::SE_WOLF_ATTACK);
+
 	float v = VSize(VSub(player_->GetTransform().pos, transform_.pos));
 	if (v >= 400.0f) {
 
@@ -352,7 +372,7 @@ void Enemy::UpdateWait(void)
 		cnt_ = 0;
 		ChangeState(STATE::ATTACK);
 	}
-	else if(GetRand(attackDiff_) >= 80 && VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= 650.0f) {
+	else if(GetRand(attackDiff_) >= 80 && fabsf(VSize(VSub(VNorm(player_->GetTransform().pos), VNorm(transform_.pos)))) >= 650.0f) {
 
 		cnt_ = 0;
 		ChangeState(STATE::MOVE);
@@ -366,15 +386,21 @@ void Enemy::UpdateMove(void)
 		return;
 	}
 
-	float prevDist = fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos)));
+	float prevDist = fabsf(VSize(VSub(VNorm(player_->GetTransform().pos), VNorm(transform_.pos))));
+
+	if (!AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WOLF_RUN)) {
+
+		AudioManager::GetInstance()->PlaySE(SoundID::SE_WOLF_RUN);
+	}
 
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
 
 	transform_.pos.x += moveDir_.x * speed_;
 	transform_.pos.z += moveDir_.z * speed_;
 
-	if (fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos))) <= 285.0f || prevDist <= fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos)))) {
+	if (fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos))) <= 285.0f || prevDist <= fabsf(VSize(VSub(VNorm(player_->GetTransform().pos), VNorm(transform_.pos))))) {
 
+		AudioManager::GetInstance()->StopSE(SoundID::SE_WOLF_RUN);
 		ChangeState(STATE::WAIT);
 	}
 }
@@ -401,18 +427,23 @@ void Enemy::UpdateAttack(void)
 	if (animationCtrl_->IsEnd()) {
 
 		ChangeState(STATE::WAIT);
+		first_ = false;
 	}
 }
 
 void Enemy::UpdateAttackA(void)
 {
-	if (animationCtrl_->GetTime() >= 33) {
-
-		shotTransform_.pos = VAdd(shotTransform_.pos, VScale(attackDir_, ATTACK_SPEED));
-
-		if (animationCtrl_->GetTime() <= 34) {
+	if (animationCtrl_->GetTime() >= 33.1f) {
+		if (!first_) {
 
 			attackAFlg_ = true;
+
+			//リソースを得る
+			int resource = EffectResManager::GetInstance().GetResourceId(EffectResManager::TYPE::SHOT);
+			//エフェクトの再生
+			effectHandle_ = PlayEffekseer3DEffect(resource);
+
+			first_ = true;
 		}
 	}
 	else {

@@ -15,7 +15,7 @@ public:
 	Pause();
 	~Pause();
 
-	void Init(SceneManager::SCENE_ID id);
+	void Init(void);
 	void Update();
 	void Draw();
 	void Release();
@@ -24,10 +24,8 @@ public:
 
 private:
 
-	SceneManager::SCENE_ID prevId_;
 	bool isPause_;
 	PAUSE_STATE state_;
-	int image_;
 
 	VECTOR pos_;
 };

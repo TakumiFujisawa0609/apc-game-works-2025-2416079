@@ -45,6 +45,7 @@ void Item::Init(void)
 	}
 	type_ = TYPE::HP;
 	use_ = prevUse_ = false;
+	useNum_ = 0;
 }
 
 void Item::Update(void)
@@ -107,6 +108,7 @@ void Item::Update(void)
 
 			useType_ = type_;
 			itemNum_[static_cast<int>(type_)]--;
+			useNum_++;
 			
 			if (itemNum_[static_cast<int>(type_)] <= 0) {
 

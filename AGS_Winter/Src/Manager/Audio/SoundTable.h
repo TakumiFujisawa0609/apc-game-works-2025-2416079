@@ -12,10 +12,17 @@ enum class SoundID
 	SE_WALK,
 	SE_RUN,
 	SE_ATTACK,
+	SE_DAMAGE,
 	SE_HEAVY_DAMAGE,
 	SE_LIGHT_DAMAGE,
 	SE_DODGE,
 	SE_HEAL,
+	SE_WOLF_ATTACK,
+	SE_WOLF_RUN,
+	SE_DESIDE,
+	SE_CANCEL,
+	SE_PAUSE,
+	SE_CURSOR
 };
 
 // 読み込むシーン
@@ -24,7 +31,7 @@ enum class LoadScene
 	SYSTEM,		// システム
 	TITLE,		// タイトル
 	GAME,		// ゲーム
-	RESULT,	// リザルト
+	RESULT,		// リザルト
 };
 
 // サウンド属性

@@ -17,6 +17,7 @@ const std::string Application::PATH_EFFECT = PATH_DATA + "Effect/";
 const std::string Application::PATH_SOUND = PATH_DATA + "Sounds/";
 const std::string Application::PATH_FONT = PATH_DATA + "Font/";
 const std::string Application::PATH_CSV = PATH_DATA + "Csv/";
+const std::string Application::PATH_VIDEO = PATH_DATA + "Video/";
 
 void Application::CreateInstance(void)
 {

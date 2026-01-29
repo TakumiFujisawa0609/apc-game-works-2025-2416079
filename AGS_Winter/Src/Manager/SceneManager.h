@@ -1,6 +1,7 @@
 #pragma once
 #include <DxLib.h>
 #include <chrono>
+#include "Audio/SoundTable.h"
 
 
 class SceneBase;
@@ -63,6 +64,12 @@ public:
 	int GetTimer(void) { return timer_; }
 	void SetTime(void) { time_ = startTime_; endTime_ = GetNowCount(); }
 
+	void SetScore(int damage, int item) { damageNum_ = damage; itemNum_ = item; }
+	int GetDamageNum(void) { return damageNum_; }
+	int GetItemNum(void) { return itemNum_; }
+	
+	std::vector<int> LoadTime(void);
+
 private:
 
 	int screenImg_;
@@ -73,11 +80,16 @@ private:
 	int time_;
 	int endTime_;
 
+	int damageNum_;
+	int itemNum_;
+
 	// 静的インスタンス
 	static SceneManager* instance_;
 
 	SCENE_ID sceneId_;
 	SCENE_ID waitSceneId_;
+
+	SoundID pauseId_;
 
 	// カメラ
 	Camera* camera_;
@@ -130,6 +142,5 @@ private:
 
 	void Init3D(void);
 
-	std::vector<int> LoadTime(void);
 	void SaveTime(void);
 };

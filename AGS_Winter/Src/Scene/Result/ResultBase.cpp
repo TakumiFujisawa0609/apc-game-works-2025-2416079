@@ -30,6 +30,9 @@ void ResultBase::Update(void)
 	Controller& ins = Controller::GetInstance();
 	Controller::JOYPAD_IN_STATE state = ins.GetJPadState(Controller::JOYPAD_NO::PAD1);
 	if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP_DPAD)]) {
+		
+		AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
+
 		switch (state_) {
 		case STATE::CONTINUE:
 
@@ -48,6 +51,9 @@ void ResultBase::Update(void)
 		}
 	}
 	else if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN_DPAD)]) {
+		
+		AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
+
 		switch (state_) {
 		case STATE::CONTINUE:
 
@@ -66,8 +72,10 @@ void ResultBase::Update(void)
 		}
 	}
 
-	if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)] ||
-		CheckHitKey(KEY_INPUT_RETURN)) {
+	if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
+		
+		AudioManager::GetInstance()->PlaySE(SoundID::SE_DESIDE);
+
 		switch (state_) {
 		case STATE::CONTINUE:
 
@@ -94,7 +102,7 @@ void ResultBase::Draw(void)
 	DrawGraph(0, 0, screenImg_, false);
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 125);
 	DrawBox(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, 0x000000, true);
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
 	int dx = Application::SCREEN_SIZE_X / 40;
 	int dy = Application::SCREEN_SIZE_Y / 25;

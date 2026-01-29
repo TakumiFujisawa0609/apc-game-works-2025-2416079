@@ -27,6 +27,7 @@ public:
 	static const std::string PATH_SOUND;
 	static const std::string PATH_FONT;
 	static const std::string PATH_CSV;
+	static const std::string PATH_VIDEO;
 	//-------------------------------------------
 
 	// インスタンスを明示的に生成

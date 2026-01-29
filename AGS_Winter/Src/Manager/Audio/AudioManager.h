@@ -1,4 +1,5 @@
 #pragma once
+#include <DxLib.h>
 #include "SoundTable.h"
 
 
@@ -40,8 +41,10 @@ public:
 	void StopBGM(void);				// BGMを止める
 	void PlaySE(SoundID id);		// SEを再生
 	bool IsPlaySE(SoundID id);		// SEが再生中か確認
-	void StopSE(SoundID id);			// 全てのSE停止
+	void StopSE(SoundID id);			// 一部のSE停止
+	void StopSE(void);			// 全てのSE停止
 	void DeleteAll(void);			// 全てのサウンド削除
+	SoundID PauseBGM(void);		//一時停止
 
 	// 音量設定
 	void SetBgmVolume(int volume);		// 0～255
@@ -65,4 +68,7 @@ private:
 	int bgmVolume_;		// bgm音量
 	int seVolume_;		// se音量
 	int masterVolume_;	// master音量
+
+	LONGLONG pauseTime_;
+	bool isPause_;
 };

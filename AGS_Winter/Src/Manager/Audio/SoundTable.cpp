@@ -7,6 +7,10 @@ namespace SoundTable_System
 {
 	static const std::unordered_map<SoundID, std::string> Table = 
 	{
+		{ SoundID::SE_DESIDE, (Application::PATH_SOUND + "Decision.mp3").c_str() },
+		{ SoundID::SE_CANCEL, (Application::PATH_SOUND + "Cancel.mp3").c_str() },
+		{ SoundID::SE_CURSOR,	(Application::PATH_SOUND + "Cursor.mp3").c_str() },
+		{ SoundID::SE_PAUSE, (Application::PATH_SOUND + "Pause.mp3").c_str() },
 	};
 }
 
@@ -28,10 +32,13 @@ namespace SoundTable_Game
 		{ SoundID::SE_WALK, (Application::PATH_SOUND + "Walk.mp3").c_str() },
 		{ SoundID::SE_RUN,	(Application::PATH_SOUND + "Run.mp3").c_str() },
 		{ SoundID::SE_ATTACK, (Application::PATH_SOUND + "Slash.mp3").c_str() },
+		{ SoundID::SE_DAMAGE,	(Application::PATH_SOUND + "Damage.mp3").c_str() },
 		{ SoundID::SE_HEAVY_DAMAGE,	(Application::PATH_SOUND + "HeavyDamage.mp3").c_str() },
 		{ SoundID::SE_LIGHT_DAMAGE, (Application::PATH_SOUND + "LightDamage.mp3").c_str() },
 		{ SoundID::SE_DODGE, (Application::PATH_SOUND + "GreatDodge.mp3").c_str() },
 		{ SoundID::SE_HEAL, (Application::PATH_SOUND + "Heal.mp3").c_str() },
+		{ SoundID::SE_WOLF_ATTACK, (Application::PATH_SOUND + "WolfAttack.mp3").c_str() },
+		{ SoundID::SE_WOLF_RUN, (Application::PATH_SOUND + "WolfRun.mp3").c_str() },
 	};
 }
 

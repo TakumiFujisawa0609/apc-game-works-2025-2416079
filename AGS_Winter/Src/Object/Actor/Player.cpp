@@ -17,7 +17,7 @@
 
 Player::Player(Item* itm): ActorBase(), item_(itm), autoHealCnt_(0), autoHealHp_(0),
 	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(false), knockBackDir_(0.0f),
-	overFlg_(false), power_(0), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),
+	overFlg_(false), power_(0), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),se_(true),
 	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),	barStaEY_(), barStaSY_(), damage_(BASIC_DAMAGE), goodDodge_(), greatDodge_(), guageEX_(),
 	guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(), powerUp_(), powerUpCnt_(), dodgeBottomPos_(), dodgeTopPos_(), buff_(1.0), effectType_(EFFECT::NON)
 {
@@ -226,7 +226,7 @@ void Player::Draw(void) const
 			{
 			case Player::EFFECT::GREAT_DODGE:
 
-				DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0xffff00, 0xffffff, true);
+				DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0xffff00, 0xffff00, true);
 				break;
 
 			case Player::EFFECT::GOOD_DODGE:
@@ -266,6 +266,8 @@ void Player::Damage(int damage, float dir)
 	autoHealHp_ = damage / 3;
 	knockBackDir_ = dir;
 	greatDodge_ = goodDodge_ = false;
+
+	AudioManager::GetInstance()->PlaySE(SoundID::SE_DAMAGE);
 
 	if (isHealMax_) {
 
@@ -339,7 +341,7 @@ void Player::GoodDodge(void)
 
 	//エフェクトの生成
 	EffectCreate();
-	effectType_ = EFFECT::GREAT_DODGE;
+	effectType_ = EFFECT::GOOD_DODGE;
 
 	if (!powerUp_) {
 
@@ -359,7 +361,7 @@ void Player::Status(void)
 	//ゲームパッドの情報を取得
 	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
-	if (state_ != STATE::DOGDE && animationCtrl_->GetPlayType() != static_cast<int>(ANIM_TYPE::RUN)) {
+	if ((state_ != STATE::DOGDE && animationCtrl_->GetPlayType() != static_cast<int>(ANIM_TYPE::RUN)) || isStaminaMax_) {
 		if (stamina_ < MAX_STAMINA) {
 
 			stamina_++;
@@ -445,6 +447,7 @@ void Player::Heal(void)
 
 		hp_ = MAX_HP;
 		isHeal_ = false;
+		isHealMax_ = false;
 		healCount_ = 0;
 	}
 }
@@ -664,6 +667,7 @@ void Player::UpdateWait(void)
 	BoolChangeAttack();
 	BoolChangeCombo();
 	BoolChangeMove();
+	BoolChangeDodge();
 	BoolChangeDrink();
 }
 
@@ -702,13 +706,15 @@ void Player::UpdateMove(void)
 				//移動モーション
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
 				
-				if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
+				if (se_) {
+					if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
 
-					AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
-				}
-				if (!AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
+						AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
+					}
+					if (!AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
-					AudioManager::GetInstance()->PlaySE(SoundID::SE_RUN);
+						AudioManager::GetInstance()->PlaySE(SoundID::SE_RUN);
+					}
 				}
 
 				//移動させる
@@ -733,13 +739,15 @@ void Player::UpdateMove(void)
 			//移動モーション
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 			
-			if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
+			if (se_) {
+				if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
-				AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
-			}
-			if (!AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
-			
-				AudioManager::GetInstance()->PlaySE(SoundID::SE_WALK);
+					AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
+				}
+				if (!AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
+
+					AudioManager::GetInstance()->PlaySE(SoundID::SE_WALK);
+				}
 			}
 			//移動させる
 			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_));

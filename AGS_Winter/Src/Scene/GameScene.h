@@ -95,6 +95,8 @@ private:
 	int hitStopCnt_;
 	int hitStopImg_;
 
+	int damageNum_;
+
 	// シーンチェンジフラグ
 	bool changeFlg_;
 	int changeCnt_;
