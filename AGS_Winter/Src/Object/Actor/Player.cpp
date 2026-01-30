@@ -771,7 +771,7 @@ void Player::UpdateAttack(void)
 {
 	if (animationCtrl_->GetTime() >= 35.0f && animationCtrl_->GetTime() <= 36.0f) {
 		
-		isAttack_ = true;
+		 isAttack_ = true;
 	}
 	if (animationCtrl_->GetTime() >= 61.0f && animationCtrl_->GetTime() <= 62.0f) {
 		
@@ -825,6 +825,10 @@ void Player::UpdateCombo(void)
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_2), false);
 			}
 		}
+		else {
+
+			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.2f));
+		}
 	}
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_2)) {
 		if (animationCtrl_->GetTime() >= 40.0f && animationCtrl_->GetTime() <= 41.0f) {
@@ -841,6 +845,10 @@ void Player::UpdateCombo(void)
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_3), false);
 			}
 		}
+		else {
+
+			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.1f));
+		}
 	}
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_3)) {
 		if (animationCtrl_->GetTime() >= 43.0f && animationCtrl_->GetTime() <= 44.0f) {
@@ -852,6 +860,10 @@ void Player::UpdateCombo(void)
 			
 			buff_ = 1.0;
 			isAttack_ = false;
+		}
+		else {
+
+			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.3f));
 		}
 	}
 	if (animationCtrl_->IsEnd()) {

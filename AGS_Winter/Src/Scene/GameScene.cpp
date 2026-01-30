@@ -233,7 +233,7 @@ void GameScene::Collision(void)
 								if (!player_->IsDodge()) {
 
 									hitFlgP_ = true;
-									player_->Damage(25, enemy_->GetTransform().rot.y);
+									player_->Damage(20, enemy_->GetTransform().rot.y);
 									damageNum_++;
 									AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 								}
@@ -260,7 +260,7 @@ void GameScene::Collision(void)
 								if (!player_->IsDodge()) {
 
 									hitFlgP_ = true;
-									player_->Damage(40, enemy_->GetTransform().rot.y);
+									player_->Damage(30, enemy_->GetTransform().rot.y);
 									damageNum_++;
 									AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 								}

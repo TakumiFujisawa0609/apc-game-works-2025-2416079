@@ -372,7 +372,7 @@ void Enemy::UpdateWait(void)
 		cnt_ = 0;
 		ChangeState(STATE::ATTACK);
 	}
-	else if(GetRand(attackDiff_) >= 80 && fabsf(VSize(VSub(VNorm(player_->GetTransform().pos), VNorm(transform_.pos)))) >= 650.0f) {
+	else if(GetRand(attackDiff_) >= 80 && VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= 650.0f) {
 
 		cnt_ = 0;
 		ChangeState(STATE::MOVE);
@@ -386,7 +386,7 @@ void Enemy::UpdateMove(void)
 		return;
 	}
 
-	float prevDist = fabsf(VSize(VSub(VNorm(player_->GetTransform().pos), VNorm(transform_.pos))));
+	float prevDist = VSize(VSub(player_->GetTransform().pos, transform_.pos));
 
 	if (!AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WOLF_RUN)) {
 
@@ -398,7 +398,7 @@ void Enemy::UpdateMove(void)
 	transform_.pos.x += moveDir_.x * speed_;
 	transform_.pos.z += moveDir_.z * speed_;
 
-	if (fabsf(VSize(VSub(player_->GetTransform().pos, transform_.pos))) <= 285.0f || prevDist <= fabsf(VSize(VSub(VNorm(player_->GetTransform().pos), VNorm(transform_.pos))))) {
+	if (VSize(VSub(player_->GetTransform().pos, transform_.pos)) <= 285.0f || prevDist <= VSize(VSub(player_->GetTransform().pos, transform_.pos))) {
 
 		AudioManager::GetInstance()->StopSE(SoundID::SE_WOLF_RUN);
 		ChangeState(STATE::WAIT);
@@ -502,7 +502,7 @@ void Enemy::UpdateDown(void)
 	
 		downCnt_++;
 	}
-	if (downCnt_ >= 3) {
+	if (downCnt_ >= 5) {
 
 		downCnt_ = 0;
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::UP), false);

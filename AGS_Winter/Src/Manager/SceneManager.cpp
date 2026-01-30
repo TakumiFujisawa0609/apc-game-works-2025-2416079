@@ -98,9 +98,8 @@ void SceneManager::Update(void)
 	}
 	else{
 		if (!pause_->IsPause()) {
-			if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]||
-				CheckHitKey(KEY_INPUT_P)) {
-				if (sceneId_ != SCENE_ID::TITLE) {
+			if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]) {
+				if (sceneId_ == SCENE_ID::GAME) {
 
 					AudioManager::GetInstance()->StopSE();
 					pauseId_ = AudioManager::GetInstance()->PauseBGM();
