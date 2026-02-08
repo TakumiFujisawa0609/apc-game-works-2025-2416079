@@ -54,6 +54,8 @@ private:
 		COLLISION_TYPE type;
 	};
 
+	static constexpr int BLUR_NUM = 8;
+
 	// ステージ
 	Stage* stage_;
 	Enemy* enemy_;
@@ -97,12 +99,20 @@ private:
 
 	int damageNum_;
 
+	// ブラー時のプレイヤー
+	int blurImg_[BLUR_NUM];
+	bool blurFlg_;
+	int blurCnt_;
+
 	// シーンチェンジフラグ
 	bool changeFlg_;
 	int changeCnt_;
 
 	// クリア時のくるくるカメラ
 	bool clearCamera_;
+
+	void SetBlur(void);
+	void Blur(void);
 
 	void Collision(void);
 	void CollisionStage(void);
@@ -111,4 +121,6 @@ private:
 	void SetCameraPos(VECTOR targetPos, float diff) const;
 	void Effect(MV1_COLL_RESULT_POLY dim);
 	void ShakeCamera(void);
+
+	void Dodge(void);
 };

@@ -218,7 +218,7 @@ void AudioManager::StopSE(SoundID id)
 
 void AudioManager::StopSE(void)
 {
-	for (int i = static_cast<int>(SoundID::SE_WALK); i <= static_cast<int>(SoundID::SE_HEAL); i++) {
+	for (int i = static_cast<int>(SoundID::SE_WALK); i <= static_cast<int>(SoundID::SE_WOLF_RUN); i++) {
 
 		StopSE(static_cast<SoundID>(i));
 	}

@@ -59,10 +59,9 @@ public:
 	void SetScreenImage(void) const;
 	int GetScreenImage(void) const { return screenImg_; }
 
-	void ResetTimer(void) { startTime_ = GetNowCount(); }
-	int GetTime(void) { return endTime_ - time_; }
-	int GetTimer(void) { return timer_; }
-	void SetTime(void) { time_ = startTime_; endTime_ = GetNowCount(); }
+	int GetTime(void) { return time_ / 60; }
+	int GetTimer(void) { return timer_ / 60; }
+	void SetTime(void) { time_ = timer_; }
 
 	void SetScore(int damage, int item) { damageNum_ = damage; itemNum_ = item; }
 	int GetDamageNum(void) { return damageNum_; }
@@ -74,11 +73,8 @@ private:
 
 	int screenImg_;
 
-	int startTime_;
 	int timer_;
-	int pauseTime_;
 	int time_;
-	int endTime_;
 
 	int damageNum_;
 	int itemNum_;

@@ -97,31 +97,29 @@ void SceneManager::Update(void)
 		Fade();
 	}
 	else{
-		if (!pause_->IsPause()) {
+		if (pause_->IsPause()) {
+
+			pause_->Update();
+
+			if (!pause_->IsPause()) {
+
+				AudioManager::GetInstance()->PlayBGM(pauseId_);
+			}
+		}
+		else {
 			if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]) {
 				if (sceneId_ == SCENE_ID::GAME) {
 
 					AudioManager::GetInstance()->StopSE();
 					pauseId_ = AudioManager::GetInstance()->PauseBGM();
 					AudioManager::GetInstance()->PlaySE(SoundID::SE_PAUSE);
-					pauseTime_ = GetNowCount();
 					pause_->Init();
 					return;
 				}
 			}
-			else if (pauseTime_ > 0) {
-
-				AudioManager::GetInstance()->PlayBGM(pauseId_);
-				startTime_ += GetNowCount() - pauseTime_;
-				pauseTime_ = 0;
-			}
 			// 各シーンの更新処理
 			scene_->Update();
-			timer_ = (GetNowCount() - startTime_);
-		}
-		else {
-
-			pause_->Update();
+			timer_++;
 		}
 	}
 }
@@ -239,7 +237,7 @@ void SceneManager::ChangeScene(SCENE_ID nextId)
 	waitSceneId_ = nextId;
 
 	// フェードアウト(暗転)を開始する
-	startTime_ = GetNowCount();
+	timer_ = 0;
 	fader_->SetFade(Fader::STATE::FADE_OUT);
 	isSceneChanging_ = true;
 }
@@ -377,7 +375,7 @@ void SceneManager::Fade(void)
 			// 明転が終了したら、フェード処理終了
 			fader_->SetFade(Fader::STATE::NONE);
 			isSceneChanging_ = false;
-			startTime_ = GetNowCount();
+			timer_ = 0;
 		}
 		break;
 

@@ -22,8 +22,8 @@
 
 
 GameScene::GameScene(void) :enemy_(), hitFlgE_(), hitFlgP_(), isLockon_(false), item_(), pitch_(DEFAULT_TILT), yaw_(DEFAULT_YAW),
-	shadowMap_(), stage_(), player_(), cntDown_(false), cnt_(10), lockOnImg_(), changeCnt_(0), changeFlg_(false), clearCamera_(false),
-	shakeCnt_(0)
+shadowMap_(), stage_(), player_(), cntDown_(false), cnt_(10), lockOnImg_(), changeCnt_(0), changeFlg_(false), clearCamera_(false),
+shakeCnt_(0), blurFlg_(false), blurCnt_(0)
 {
 }
 
@@ -89,10 +89,30 @@ void GameScene::Init(void)
 
 	SetShadowMapLightDirection(shadowMap_, { 0.2f, -0.8f, 0.0f });
 	SetShadowMapDrawArea(shadowMap_, { -2500.0f, 0.0f, -2500.0f }, { 2500.0f, 0.0f, 2500.0f });
+
+	for (int i = 0; i < BLUR_NUM; i++) {
+		
+		blurImg_[i] = MakeGraph(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
+	}
 }
 
 void GameScene::Update(void)
 {
+	if (blurFlg_) {
+
+		SetBlur();
+		blurCnt_--;
+
+		if (blurCnt_ <= 0) {
+
+			blurFlg_ = false;
+			for (int i = 0; i < BLUR_NUM; i++) {
+
+				blurImg_[i] = MakeGraph(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
+			}
+		}
+	}
+
 	player_->Update();
 	item_->Update();
 	enemy_->Update();
@@ -153,6 +173,29 @@ void GameScene::Update(void)
 	}
 }
 
+void GameScene::SetBlur(void)
+{
+	SceneManager::GetInstance().SetScreenImage();
+	for (int i = 0; i < BLUR_NUM; i++) {
+		if (blurCnt_ % BLUR_NUM == i) {
+	
+			blurImg_[i] = SceneManager::GetInstance().GetScreenImage();
+			GraphFilter(blurImg_[i], DX_GRAPH_FILTER_LEVEL, 15, 215, 110, 20, 255);
+			break;
+		}
+	}
+}
+
+void GameScene::Blur(void)
+{
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 80);
+	for (int i = 0; i < BLUR_NUM; i++) {
+
+		DrawExtendGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, blurImg_[i], true);
+	}
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+}
+
 void GameScene::Collision(void)
 {
 	if (player_->IsAttack()) {
@@ -172,7 +215,7 @@ void GameScene::Collision(void)
 					shakeCnt_ = 30;
 					SceneManager::GetInstance().SetScreenImage();
 					hitStopImg_ = SceneManager::GetInstance().GetScreenImage();
-					hitStopCnt_ = 8;
+					hitStopCnt_ = 5;
 				}
 				else {
 
@@ -207,16 +250,7 @@ void GameScene::Collision(void)
 								AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 							}
 							else {
-								if (player_->DodgeCount() <= 3) {
-
-									shakeCnt_ = 20;
-									player_->GreatDodge();
-								}
-								else {
-
-									shakeCnt_ = 10;
-									player_->GoodDodge();
-								}
+								Dodge();
 							}
 						}
 					}
@@ -238,16 +272,7 @@ void GameScene::Collision(void)
 									AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 								}
 								else {
-									if (player_->DodgeCount() <= 3) {
-
-										shakeCnt_ = 20;
-										player_->GreatDodge();
-									}
-									else {
-										
-										shakeCnt_ = 10;
-										player_->GoodDodge();
-									}
+									Dodge();
 								}
 							}
 						}
@@ -265,16 +290,7 @@ void GameScene::Collision(void)
 									AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 								}
 								else {
-									if (player_->DodgeCount() <= 3) {
-
-										shakeCnt_ = 20;
-										player_->GreatDodge();
-									}
-									else {
-
-										shakeCnt_ = 10;
-										player_->GoodDodge();
-									}
+									Dodge();
 								}
 							}
 						}
@@ -518,7 +534,7 @@ void GameScene::Effect(MV1_COLL_RESULT_POLY dim)
 	//ˆÊ’u“™X‚ÌÝ’è
 	VECTOR pos = dim.Position[0];
 	SetPosPlayingEffekseer3DEffect(effect, pos.x, pos.y, pos.z);
-	SetScalePlayingEffekseer3DEffect(effect, 15.0f, 15.0f, 15.0f);
+	SetScalePlayingEffekseer3DEffect(effect, 20.0f, 20.0f, 20.0f);
 	SetRotationPlayingEffekseer3DEffect(effect, 0.0f, 0.0f, 0.0f);
 }
 
@@ -564,6 +580,11 @@ void GameScene::Draw(void)
 		SetUseShadowMap(0, shadowMap_);
 
 		stage_->DrawModel();
+		
+		if (blurFlg_) {
+
+			Blur();
+		}
 		player_->DrawModel();
 		enemy_->DrawModel();
 		enemy_->Draw();
@@ -574,7 +595,7 @@ void GameScene::Draw(void)
 		//‰e‚ÉŠÖŒW‚È‚¢‚à‚Ì‚Ì•`‰æ(Œã)
 		player_->Draw();
 		item_->Draw();
-
+		
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 185);
 		DrawBox(10, 25, 210, 80, 0x000000, true);
 		DrawBox(30, 10, 190, 25, 0x000000, true);
@@ -587,12 +608,12 @@ void GameScene::Draw(void)
 	}
 	if (!enemy_->ClearFlg()) {
 	
-		int time = SceneManager::GetInstance().GetTimer() / 1000;
+		int time = SceneManager::GetInstance().GetTimer();
 		DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time / 60, time % 60);
 	}
 	else {
 
-		int time = SceneManager::GetInstance().GetTime() / 1000;
+		int time = SceneManager::GetInstance().GetTime();
 		DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time / 60, time % 60);
 	}
 
@@ -645,6 +666,10 @@ void GameScene::Release(void)
 	AudioManager::GetInstance()->DeleteSceneSound(LoadScene::GAME);
 	DeleteShadowMap(shadowMap_);
 
+	for (int i = BLUR_NUM - 1; i >= 0; i--) {
+	
+		DeleteGraph(blurImg_[i]);
+	}
 	DeleteFontToHandle(timerHandle_);
 
 	CollisionManager::GetInstance().Release();
@@ -660,4 +685,28 @@ void GameScene::Release(void)
 	
 	item_->Release();
 	delete item_;
+}
+
+void GameScene::Dodge(void) {
+
+	if (player_->DodgeCount() <= 3) {
+
+		shakeCnt_ = 20;
+		player_->GreatDodge();
+	}
+	else if (player_->DodgeCount() <= 13) {
+
+		shakeCnt_ = 10;
+		player_->GoodDodge();
+	}
+	else {
+
+		player_->Dodge();
+	}
+
+	if (player_->SuccessDodge()) {
+
+		blurFlg_ = true;
+		blurCnt_ = 25;
+	}
 }

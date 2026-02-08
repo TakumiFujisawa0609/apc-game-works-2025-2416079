@@ -17,7 +17,7 @@
 
 Player::Player(Item* itm): ActorBase(), item_(itm), autoHealCnt_(0), autoHealHp_(0),
 	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(false), knockBackDir_(0.0f),
-	overFlg_(false), power_(0), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),se_(true),
+	overFlg_(false), power_(0), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),se_(true), dodgeStamina_(DODGE_STAMINA),
 	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),	barStaEY_(), barStaSY_(), damage_(BASIC_DAMAGE), goodDodge_(), greatDodge_(), guageEX_(),
 	guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(), powerUp_(), powerUpCnt_(), dodgeBottomPos_(), dodgeTopPos_(), buff_(1.0), effectType_(EFFECT::NON)
 {
@@ -54,6 +54,7 @@ void Player::InitAnim()
 	animationCtrl_->Add(10, 200.0f, (Application::PATH_ANIMATION + "Hit_Up.mv1").c_str());
 	animationCtrl_->Add(11, 45.0f, (Application::PATH_ANIMATION + "KO.mv1").c_str());
 	animationCtrl_->Add(12, 330.0f, (Application::PATH_ANIMATION + "Drinking.mv1").c_str());
+	animationCtrl_->Add(13, 90.0f, (Application::PATH_ANIMATION + "Finish.mv1").c_str());
 }
 
 void Player::InitTransform()
@@ -278,13 +279,15 @@ void Player::Damage(int damage, float dir)
 		isHeal_ = false;
 	}
 
-	if (damage >= 15) {
+	if (!powerUp_) {
+		if (damage >= 15) {
 
-		DoChangeState(STATE::DAMAGED_HEAVY);
-	}
-	else {
+			DoChangeState(STATE::DAMAGED_HEAVY);
+		}
+		else {
 
-		DoChangeState(STATE::DAMAGED_LIGHT);
+			DoChangeState(STATE::DAMAGED_LIGHT);
+		}
 	}
 
 	if (hp_ <= 0) {
@@ -389,6 +392,7 @@ void Player::Status(void)
 		if (staminaMaxCnt_ > STAMINA_MAX_TIME) {
 
 			staminaMaxCnt_ = 0;
+			dodgeStamina_ = DODGE_STAMINA;
 			isStaminaMax_ = false;
 		}
 		else {
@@ -428,6 +432,7 @@ void Player::Status(void)
 
 			power_ = MAX_POWER;
 			damage_ = BASIC_DAMAGE * 1.5;
+			dodgeStamina_ = DODGE_STAMINA / 2;
 			powerUp_ = true;
 		}
 	}
@@ -566,7 +571,7 @@ void Player::DrawHpAndPower(void) const
 		DrawBoxAA(190 + barSX_, barStaSY_, 190 + barSX_ + barNorm, barStaEY_, GetColor(255, 255, (int)(std::abs(staminaMaxCnt_ % 101 - 50) * 5.1f)), true);
 	}
 	else {
-		if (stamina_ <= DOGDE_STAMINA) {
+		if (stamina_ <= DODGE_STAMINA) {
 
 			DrawBoxAA(190 + barSX_, barStaSY_, 190 + barSX_ + barNorm, barStaEY_, 0xff0000, true);
 		}
@@ -620,8 +625,14 @@ void Player::ChangeMove(void) const
 
 void Player::ChangeAttack(void)
 {
-	//攻撃モーション
-	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK), false);
+	if (!powerUp_) {
+		//攻撃モーション
+		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK), false);
+	}
+	else {
+		//攻撃モーション
+		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::FINISH), false);
+	}
 }
 
 void Player::ChangeCombo(void)
@@ -636,7 +647,7 @@ void Player::ChangeDodge(void)
 	dodgeFlg_ = true;
 	if (!isStaminaMax_) {
 	
-		stamina_ -= DOGDE_STAMINA;
+		stamina_ -= DODGE_STAMINA;
 	}
 }
 
@@ -721,8 +732,14 @@ void Player::UpdateMove(void)
 				transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 1.75f));
 
 				if (!isStaminaMax_) {
-				
-					stamina_--;
+					if (!powerUp_) {
+					
+						stamina_ -= 2;
+					}
+					else {
+
+						stamina_--;
+					}
 				}
 			}
 			else {
@@ -769,31 +786,45 @@ void Player::UpdateMove(void)
 
 void Player::UpdateAttack(void)
 {
-	if (animationCtrl_->GetTime() >= 35.0f && animationCtrl_->GetTime() <= 36.0f) {
-		
-		 isAttack_ = true;
-	}
-	if (animationCtrl_->GetTime() >= 61.0f && animationCtrl_->GetTime() <= 62.0f) {
-		
-		isAttack_ = true;
-	}
-	if (animationCtrl_->GetTime() >= 92.0f && animationCtrl_->GetTime() <= 93.0f) {
+	if (!powerUp_) {
+		if (animationCtrl_->GetTime() >= 34.5f && animationCtrl_->GetTime() <= 36.0f) {
 
-		isAttack_ = false;
-	}
-	if (animationCtrl_->GetTime() >= 138.0f && animationCtrl_->GetTime() <= 139.0f) {
+			isAttack_ = true;
+		}
+		if (animationCtrl_->GetTime() >= 60.5f && animationCtrl_->GetTime() <= 62.5f) {
 
-		buff_ = 1.1;
-		isAttack_ = true;
-	}
-	if (animationCtrl_->GetTime() >= 160.0f) {
+			isAttack_ = true;
+		}
+		if (animationCtrl_->GetTime() >= 92.0f && animationCtrl_->GetTime() <= 93.0f) {
 
-		isAttack_ = false;
+			isAttack_ = false;
+		}
+		if (animationCtrl_->GetTime() >= 138.0f && animationCtrl_->GetTime() <= 139.5f) {
+
+			buff_ = 1.2;
+			isAttack_ = true;
+		}
+		if (animationCtrl_->GetTime() >= 160.0f) {
+
+			isAttack_ = false;
+		}
+		if (animationCtrl_->GetTime() <= 138.0f) {
+
+			//移動させる
+			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.2f));
+		}
 	}
-	if (animationCtrl_->GetTime() <= 138.0f) {
-	
-		//移動させる
-		transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.2f));
+	else {
+		if (animationCtrl_->GetTime() >= 90.0f && animationCtrl_->GetTime() <= 91.5f) {
+
+			buff_ = 2.0;
+			isAttack_ = true;
+		}
+		if (animationCtrl_->GetTime() >= 135.0f) {
+
+			isAttack_ = false;
+			power_ = 0;
+		}
 	}
 
 	if (animationCtrl_->IsEnd()) {
@@ -820,6 +851,8 @@ void Player::UpdateCombo(void)
 			
 			isAttack_ = false;
 
+			BoolChangeDodge();
+
 			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_2), false);
@@ -840,6 +873,8 @@ void Player::UpdateCombo(void)
 			
 			isAttack_ = false;
 
+			BoolChangeDodge();
+			
 			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_3), false);
@@ -860,6 +895,8 @@ void Player::UpdateCombo(void)
 			
 			buff_ = 1.0;
 			isAttack_ = false;
+		
+			BoolChangeDodge();
 		}
 		else {
 
@@ -880,7 +917,7 @@ void Player::UpdateDodge(void)
 	transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 1.1f));
 
 	if (dodgeFlg_) {
-		if (dodgeCnt_ <= 15.0f) {
+		if (dodgeCnt_ <= 25.0f) {
 
 			dodgeCnt_++;
 		}
@@ -1030,7 +1067,7 @@ void Player::BoolChangeDodge(void)
 	Controller::JOYPAD_IN_STATE padState = Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1);
 
 	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
-		if (stamina_ >= DOGDE_STAMINA || isStaminaMax_) {
+		if (stamina_ >= dodgeStamina_ || isStaminaMax_) {
 
 			//回避モーションに移行
 			DoChangeState(STATE::DOGDE);
