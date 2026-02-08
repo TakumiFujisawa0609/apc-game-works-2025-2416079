@@ -266,7 +266,7 @@ void Player::Damage(int damage, float dir)
 	hp_ -= damage;
 	autoHealHp_ = damage / 3;
 	knockBackDir_ = dir;
-	greatDodge_ = goodDodge_ = false;
+	greatDodge_ = goodDodge_ = dodge_ = false;
 
 	AudioManager::GetInstance()->PlaySE(SoundID::SE_DAMAGE);
 
@@ -364,7 +364,7 @@ void Player::Status(void)
 	//ゲームパッドの情報を取得
 	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
-	if ((state_ != STATE::DOGDE && animationCtrl_->GetPlayType() != static_cast<int>(ANIM_TYPE::RUN)) || isStaminaMax_) {
+	if ((state_ != STATE::DOGDE && !padState.IsNew[static_cast<int>(Controller::JOYPAD_BTN::R)]) || isStaminaMax_) {
 		if (stamina_ < MAX_STAMINA) {
 
 			stamina_++;
@@ -817,12 +817,16 @@ void Player::UpdateAttack(void)
 	else {
 		if (animationCtrl_->GetTime() >= 90.0f && animationCtrl_->GetTime() <= 91.5f) {
 
+			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.8f));
 			buff_ = 2.0;
 			isAttack_ = true;
 		}
 		if (animationCtrl_->GetTime() >= 135.0f) {
 
 			isAttack_ = false;
+		}
+		if (animationCtrl_->IsEnd()) {
+		
 			power_ = 0;
 		}
 	}
@@ -933,7 +937,7 @@ void Player::UpdateDodge(void)
 		//待機モーションに移行
 		DoChangeState(STATE::WAIT);
 
-		greatDodge_ = goodDodge_ = false;
+		greatDodge_ = goodDodge_ = dodge_ = false;
 	}
 }
 

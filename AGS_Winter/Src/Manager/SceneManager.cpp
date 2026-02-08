@@ -1,6 +1,7 @@
 #include <EffekseerForDxlib.h>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include "Camera.h"
 #include "../Utility/Utility.h"
 #include "../Object/Grid.h"
@@ -465,9 +466,9 @@ void SceneManager::SaveTime(void)
 	for (int i = 0; i < fileTime.size(); i++) {
 		if (!change) {
 			if (fileTime[i] > GetTime()) {
-
-				newTime.insert(newTime.begin() + (i + 1), newTime.at(i));
+				
 				newTime.insert(newTime.begin() + i, GetTime());
+				newTime.insert(newTime.begin() + (i + 1), fileTime.at(i));
 
 				change = true;
 				continue;
@@ -479,11 +480,15 @@ void SceneManager::SaveTime(void)
 			newTime.insert(newTime.begin() + (i + 1), fileTime.at(i));
 		}
 	}
-	newTime.push_back(GetTime());
+	if (!change) {
+
+		newTime.push_back(GetTime());
+	}
 	if (newTime.size() == 11) {
 
 		newTime.pop_back();
 	}
+	sort(newTime.begin(), newTime.end());
 	// ƒtƒ@ƒCƒ‹‚Ì‘‚«‚İ
 	std::ofstream ofs = std::ofstream(Application::PATH_CSV + "Time.csv");
 

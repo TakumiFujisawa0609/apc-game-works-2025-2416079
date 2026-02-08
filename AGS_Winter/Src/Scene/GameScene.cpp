@@ -92,7 +92,7 @@ void GameScene::Init(void)
 
 	for (int i = 0; i < BLUR_NUM; i++) {
 		
-		blurImg_[i] = MakeGraph(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
+		blurImg_[i] = MakeScreen(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, TRUE);
 	}
 }
 
@@ -106,10 +106,6 @@ void GameScene::Update(void)
 		if (blurCnt_ <= 0) {
 
 			blurFlg_ = false;
-			for (int i = 0; i < BLUR_NUM; i++) {
-
-				blurImg_[i] = MakeGraph(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
-			}
 		}
 	}
 
@@ -175,12 +171,19 @@ void GameScene::Update(void)
 
 void GameScene::SetBlur(void)
 {
-	SceneManager::GetInstance().SetScreenImage();
 	for (int i = 0; i < BLUR_NUM; i++) {
 		if (blurCnt_ % BLUR_NUM == i) {
-	
-			blurImg_[i] = SceneManager::GetInstance().GetScreenImage();
-			GraphFilter(blurImg_[i], DX_GRAPH_FILTER_LEVEL, 15, 215, 110, 20, 255);
+			
+			SetDrawScreen(blurImg_[i]);
+
+			ClearDrawScreen();
+
+			SceneManager::GetInstance().GetCamera()->SetBeforeDraw();
+			player_->DrawModel();
+
+			SetDrawScreen(DX_SCREEN_BACK);
+
+			GraphFilter(blurImg_[i], DX_GRAPH_FILTER_HSB, 1, 240, 150, 80);
 			break;
 		}
 	}
@@ -188,12 +191,10 @@ void GameScene::SetBlur(void)
 
 void GameScene::Blur(void)
 {
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 80);
 	for (int i = 0; i < BLUR_NUM; i++) {
 
-		DrawExtendGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, blurImg_[i], true);
+		DrawGraph(0, 0, blurImg_[i], true);
 	}
-	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
 void GameScene::Collision(void)
@@ -209,21 +210,26 @@ void GameScene::Collision(void)
 				Effect(info.Dim[info.HitNum - 1]);
 
 				hitFlgE_ = true;
-				enemy_->Damage(player_->GetPower() * player_->GetBuff());
-				if (player_->GetPower() * player_->GetBuff() >= 12.0f) {
 
-					shakeCnt_ = 30;
-					SceneManager::GetInstance().SetScreenImage();
-					hitStopImg_ = SceneManager::GetInstance().GetScreenImage();
-					hitStopCnt_ = 5;
-				}
-				else {
+				if (!enemy_->ClearFlg()) {
 
-					SceneManager::GetInstance().SetScreenImage();
-					hitStopImg_ = SceneManager::GetInstance().GetScreenImage();
-					hitStopCnt_ = 3;
+					enemy_->Damage(player_->GetPower() * player_->GetBuff());
+
+					if (player_->GetPower() * player_->GetBuff() >= 12.0f) {
+
+						shakeCnt_ = 30;
+						SceneManager::GetInstance().SetScreenImage();
+						hitStopImg_ = SceneManager::GetInstance().GetScreenImage();
+						hitStopCnt_ = 5;
+					}
+					else {
+
+						SceneManager::GetInstance().SetScreenImage();
+						hitStopImg_ = SceneManager::GetInstance().GetScreenImage();
+						hitStopCnt_ = 3;
+					}
+					player_->ResetBuff();
 				}
-				player_->ResetBuff();
 			}
 		}
 		//“–‚½‚è”»’è‚ÌŒãˆ—
@@ -250,6 +256,7 @@ void GameScene::Collision(void)
 								AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 							}
 							else {
+
 								Dodge();
 							}
 						}
@@ -272,6 +279,7 @@ void GameScene::Collision(void)
 									AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 								}
 								else {
+
 									Dodge();
 								}
 							}
@@ -290,6 +298,7 @@ void GameScene::Collision(void)
 									AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 								}
 								else {
+
 									Dodge();
 								}
 							}
@@ -580,7 +589,6 @@ void GameScene::Draw(void)
 		SetUseShadowMap(0, shadowMap_);
 
 		stage_->DrawModel();
-		
 		if (blurFlg_) {
 
 			Blur();
@@ -606,16 +614,16 @@ void GameScene::Draw(void)
 		DrawTriangle(10, 80, 30, 95, 30, 80, 0x000000, true);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
-	if (!enemy_->ClearFlg()) {
-	
-		int time = SceneManager::GetInstance().GetTimer();
-		DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time / 60, time % 60);
-	}
-	else {
+	//if (!enemy_->ClearFlg()) {
+	//
+	//	int time = SceneManager::GetInstance().GetTimer();
+	//	DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time / 60, time % 60);
+	//}
+	//else {
 
-		int time = SceneManager::GetInstance().GetTime();
-		DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time / 60, time % 60);
-	}
+	//	int time = SceneManager::GetInstance().GetTime();
+	//	DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time / 60, time % 60);
+	//}
 
 	if (!changeFlg_) {
 		if (hitStopCnt_ > 0) {

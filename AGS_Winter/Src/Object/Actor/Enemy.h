@@ -59,7 +59,7 @@ public:
 	static constexpr float ATTACK_RADIUS = 35.0f;
 
 	//‘Ì—Í
-	static constexpr int MAX_HP = 400;
+	static constexpr int MAX_HP = 450;
 
 	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 200.0f, 65.0f };
 	static constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 200.0f, -125.0f };

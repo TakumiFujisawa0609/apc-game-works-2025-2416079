@@ -447,7 +447,7 @@ void TitleScene::DrawRanking(void)
 		int time = 0;
 		if (i < times_.size()) {
 		
-			time = times_.at(i) / 1000;
+			time = times_.at(i);
 		}
 		if (i < 5) {
 

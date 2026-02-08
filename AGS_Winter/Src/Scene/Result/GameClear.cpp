@@ -3,6 +3,7 @@
 #include "../../Utility/AsoUtility.h"
 #include "../../Manager/SceneManager.h"
 #include "../../Manager/Input/Controller.h"
+#include "../../Manager/Audio/AudioManager.h"
 #include "GameClear.h"
 
 
@@ -18,6 +19,8 @@ void GameClear::Init(void)
 {
 	timeHandle = CreateFontToHandle("Monserhunterfonts Xtype", 250, 3, DX_FONTTYPE_ANTIALIASING_EDGE_4X4);
 	scoreHandle = CreateFontToHandle("MSPƒSƒVƒbƒN", 80, 3, DX_FONTTYPE_ANTIALIASING_EDGE_4X4);
+
+	AudioManager::GetInstance()->SetBgmVolume(200);
 }
 
 void GameClear::Draw(void)

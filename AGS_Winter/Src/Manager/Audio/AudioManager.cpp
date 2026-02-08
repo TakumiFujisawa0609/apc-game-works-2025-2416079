@@ -25,7 +25,7 @@ void AudioManager::Init(void)
 	// Œ»İÄ¶‚³‚ê‚Ä‚¢‚éBGM
 	currentBgm_ = static_cast<SoundID>(-1);
 
-	bgmVolume_ = 200;		// bgm‰¹—Ê
+	bgmVolume_ = 255;		// bgm‰¹—Ê
 	seVolume_ = 255;		// se‰¹—Ê
 	masterVolume_ = 100;	// master‰¹—Ê
 
