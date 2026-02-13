@@ -54,7 +54,7 @@ private:
 		COLLISION_TYPE type;
 	};
 
-	static constexpr int BLUR_NUM = 8;
+	static constexpr int BLUR_NUM = 3;
 
 	// ステージ
 	Stage* stage_;

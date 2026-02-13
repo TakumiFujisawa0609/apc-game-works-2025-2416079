@@ -449,8 +449,8 @@ std::vector<int> SceneManager::LoadTime(void)
 		fileTime.insert(fileTime.begin() + i, atoi(strSplit.at(i).c_str()));
 	}
 	ifs.close();
-	if (fileTime.size() == 11) {
-	
+	sort(fileTime.begin(), fileTime.end());
+	while (fileTime.size() >= 11) {
 		fileTime.pop_back();
 	}
 	return fileTime;
@@ -488,7 +488,6 @@ void SceneManager::SaveTime(void)
 
 		newTime.pop_back();
 	}
-	sort(newTime.begin(), newTime.end());
 	// ƒtƒ@ƒCƒ‹‚Ì‘‚«‚İ
 	std::ofstream ofs = std::ofstream(Application::PATH_CSV + "Time.csv");
 

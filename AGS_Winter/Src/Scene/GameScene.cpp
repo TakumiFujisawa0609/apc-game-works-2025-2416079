@@ -106,6 +106,13 @@ void GameScene::Update(void)
 		if (blurCnt_ <= 0) {
 
 			blurFlg_ = false;
+
+			for (int i = 0; i < BLUR_NUM; i++) {
+
+				SetDrawScreen(blurImg_[i]);
+				ClearDrawScreen();
+				SetDrawScreen(DX_SCREEN_BACK);
+			}
 		}
 	}
 
@@ -614,16 +621,16 @@ void GameScene::Draw(void)
 		DrawTriangle(10, 80, 30, 95, 30, 80, 0x000000, true);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
-	//if (!enemy_->ClearFlg()) {
-	//
-	//	int time = SceneManager::GetInstance().GetTimer();
-	//	DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time / 60, time % 60);
-	//}
-	//else {
+	if (!enemy_->ClearFlg()) {
+	
+		int time = SceneManager::GetInstance().GetTimer();
+		DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time / 60, time % 60);
+	}
+	else {
 
-	//	int time = SceneManager::GetInstance().GetTime();
-	//	DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time / 60, time % 60);
-	//}
+		int time = SceneManager::GetInstance().GetTime();
+		DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time / 60, time % 60);
+	}
 
 	if (!changeFlg_) {
 		if (hitStopCnt_ > 0) {
