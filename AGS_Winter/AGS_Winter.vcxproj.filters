@@ -3,14 +3,12 @@
   <ItemGroup>
     <ClInclude Include="Src\main.h" />
     <ClInclude Include="Src\Application.h" />
-    <ClInclude Include="Src\Utility\AsoUtility.h" />
     <ClInclude Include="Src\Scene\TitleScene.h" />
     <ClInclude Include="Src\Scene\SceneBase.h" />
     <ClInclude Include="Src\Scene\GameScene.h" />
     <ClInclude Include="Src\Object\Actor\Stage.h" />
     <ClInclude Include="Src\Object\Grid.h" />
     <ClInclude Include="Src\Common\Fader.h" />
-    <ClInclude Include="Src\Common\Vector2.h" />
     <ClInclude Include="Src\Manager\Camera.h" />
     <ClInclude Include="Src\Manager\EffectResManager.h" />
     <ClInclude Include="Src\Manager\SceneManager.h" />
@@ -26,14 +24,13 @@
     <ClInclude Include="Src\Manager\Audio\AudioManager.h" />
     <ClInclude Include="Src\Manager\Audio\SoundTable.h" />
     <ClInclude Include="Src\Manager\Input\Controller.h" />
-    <ClInclude Include="Src\Manager\Input\InputManager.h" />
+    <ClInclude Include="Src\Manager\Input\KeyMouse.h" />
     <ClInclude Include="Src\Manager\Pause.h" />
     <ClInclude Include="Src\Object\Actor\ActorBase.h" />
     <ClInclude Include="Src\Scene\Result\GameClear.h" />
     <ClInclude Include="Src\Scene\Result\GameOver.h" />
     <ClInclude Include="Src\Scene\Result\ResultBase.h" />
     <ClInclude Include="Src\Object\Common\Transform.h" />
-    <ClInclude Include="Src\Common\Quaternion.h" />
     <ClInclude Include="Src\Object\Collider\ColliderBase.h" />
     <ClInclude Include="Src\Object\Collider\ColliderCapsule.h" />
     <ClInclude Include="Src\Object\Collider\ColliderLine.h" />
@@ -45,14 +42,12 @@
   <ItemGroup>
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\Application.cpp" />
-    <ClCompile Include="Src\Utility\AsoUtility.cpp" />
     <ClCompile Include="Src\Scene\TitleScene.cpp" />
     <ClCompile Include="Src\Scene\SceneBase.cpp" />
     <ClCompile Include="Src\Scene\GameScene.cpp" />
     <ClCompile Include="Src\Object\Actor\Stage.cpp" />
     <ClCompile Include="Src\Object\Grid.cpp" />
     <ClCompile Include="Src\Common\Fader.cpp" />
-    <ClCompile Include="Src\Common\Vector2.cpp" />
     <ClCompile Include="Src\Manager\Camera.cpp" />
     <ClCompile Include="Src\Manager\EffectResManager.cpp" />
     <ClCompile Include="Src\Manager\SceneManager.cpp" />
@@ -68,14 +63,13 @@
     <ClCompile Include="Src\Manager\Audio\AudioManager.cpp" />
     <ClCompile Include="Src\Manager\Audio\SoundTable.cpp" />
     <ClCompile Include="Src\Manager\Input\Controller.cpp" />
-    <ClCompile Include="Src\Manager\Input\InputManager.cpp" />
+    <ClCompile Include="Src\Manager\Input\KeyMouse.cpp" />
     <ClCompile Include="Src\Manager\Pause.cpp" />
     <ClCompile Include="Src\Object\Actor\ActorBase.cpp" />
     <ClCompile Include="Src\Scene\Result\GameClear.cpp" />
     <ClCompile Include="Src\Scene\Result\GameOver.cpp" />
     <ClCompile Include="Src\Scene\Result\ResultBase.cpp" />
     <ClCompile Include="Src\Object\Common\Transform.cpp" />
-    <ClCompile Include="Src\Common\Quaternion.cpp" />
     <ClCompile Include="Src\Object\Collider\ColliderBase.cpp" />
     <ClCompile Include="Src\Object\Collider\ColliderCapsule.cpp" />
     <ClCompile Include="Src\Object\Collider\ColliderLine.cpp" />

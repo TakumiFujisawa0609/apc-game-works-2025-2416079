@@ -1,5 +1,5 @@
 #include <EffekseerForDXLib.h>
-#include "Manager/Input/InputManager.h"
+#include "Manager/Input/KeyMouse.h"
 #include "Manager/EffectResManager.h"
 #include "Manager/SceneManager.h"
 #include "Manager/Input/Controller.h"
@@ -74,7 +74,7 @@ void Application::Init(void)
 
 	// 入力制御初期化
 	SetUseDirectInputFlag(true);
-	InputManager::CreateInstance();
+	KeyMouse::CreateInstance();
 
 	// エフェクト管理初期化
 	EffectResManager::CreateInstance();
@@ -94,7 +94,7 @@ void Application::Init(void)
 void Application::Run(void)
 {
 
-	InputManager& inputManager = InputManager::GetInstance();
+	KeyMouse& inputManager = KeyMouse::GetInstance();
 	Controller& controller = Controller::GetInstance();
 	SceneManager& sceneManager = SceneManager::GetInstance();
 
@@ -130,7 +130,7 @@ void Application::Destroy(void)
 	Controller::GetInstance().Destroy();
 
 	// 入力制御解放
-	InputManager::GetInstance().Destroy();
+	KeyMouse::GetInstance().Destroy();
 
 	Effkseer_End();
 

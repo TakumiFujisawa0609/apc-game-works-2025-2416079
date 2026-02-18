@@ -40,20 +40,6 @@ public:
 
 private:
 
-	enum class COLLISION_TYPE {
-
-		PLAYER,
-		ENEMY,
-		ENEMY_ATTACK
-	};
-
-	struct CollisionData {
-
-		VECTOR pos;
-		VECTOR prev;
-		COLLISION_TYPE type;
-	};
-
 	static constexpr int BLUR_NUM = 3;
 
 	// ステージ

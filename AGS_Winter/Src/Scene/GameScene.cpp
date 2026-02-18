@@ -15,7 +15,6 @@
 #include "../Application.h"
 #include "../Object/Collision/CollisionManager.h"
 #include "../Utility/Utility.h"
-#include "../Utility/AsoUtility.h"
 #include "../Utility/AngleUtility.h"
 #include "../Utility/VectorUtility.h"
 #include "GameScene.h"

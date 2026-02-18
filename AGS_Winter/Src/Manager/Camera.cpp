@@ -1,5 +1,4 @@
 #include <EffekseerForDxLib.h>
-#include "../Utility/AsoUtility.h"
 #include "Camera.h"
 
 

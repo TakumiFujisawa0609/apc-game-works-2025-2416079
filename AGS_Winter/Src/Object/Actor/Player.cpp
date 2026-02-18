@@ -703,9 +703,7 @@ void Player::UpdateMove(void)
 		VECTOR angle = camera->GetCameraAngles();
 
 		//‰ñ“]s—ñ‚ğæ‚é
-		//mat = MMult(mat, MGetRotX(angle.x));
 		mat = MMult(mat, MGetRotY(angle.y));
-		//mat = MMult(mat, MGetRotZ(angle.z));
 
 		//i‚ŞŒü‚«‚É‰ñ“]‚³‚¹‚é
 		dir = VNorm(dir);
