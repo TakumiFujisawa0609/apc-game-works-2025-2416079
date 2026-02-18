@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35931.197 d17.13
+VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AGS_Winter", "AGS_Winter.vcxproj", "{15F585CC-70B9-4B11-B047-2B97541D9B46}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ColoHunt", "AGS_Winter.vcxproj", "{15F585CC-70B9-4B11-B047-2B97541D9B46}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

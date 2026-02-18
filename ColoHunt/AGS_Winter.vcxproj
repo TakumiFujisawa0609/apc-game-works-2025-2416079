@@ -97,7 +97,7 @@
     <ClCompile Include="Src\Utility\VectorUtility.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="x64\Release\icon.rc" />
+    <ResourceCompile Include="Data\Icon\icon.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
