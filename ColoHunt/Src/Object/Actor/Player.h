@@ -56,29 +56,8 @@ public:
 		STAMINA,
 		MAX,
 	};
-
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, 38.0f, -500.0f };
-	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
-
-	static constexpr int MAX_HP = 85;
 	
-	static constexpr int HEAL_COUNT = 15;
-	static constexpr float MAX_STAMINA = 1000.0f;
-	static constexpr float DODGE_STAMINA = 200.0f;
-	static constexpr int STAMINA_MAX_TIME = 30 * 60;
-	
-	static constexpr int BASIC_DAMAGE = 10;
-	static constexpr int MAX_POWER = 6;
-	
-	static constexpr int EFFECT_NUM = 9;
-	static constexpr float EFFECT_MAX_SIZE = 150.0f;
-
-	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 100.0f, 0.0f };
-	static constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 45.0f, 0.0f };
 	static constexpr float COL_CAPSULE_RADIUS = 30.0f;
-
-	static constexpr VECTOR SWORD_POS = { 77.5f, 27.5f, -10.0f };
-	static constexpr float SWORD_RADIUS = 10.0f;
 
 	// コンストラクタ
 	Player(Item* itm);
@@ -141,6 +120,28 @@ protected:
 
 private:
 
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, 38.0f, -500.0f };
+	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
+
+	static constexpr int MAX_HP = 85;
+
+	static constexpr int HEAL_COUNT = 15;
+	static constexpr float MAX_STAMINA = 1000.0f;
+	static constexpr float DODGE_STAMINA = 200.0f;
+	static constexpr int STAMINA_MAX_TIME = 30 * 60;
+
+	static constexpr int BASIC_DAMAGE = 10;
+	static constexpr int MAX_POWER = 6;
+
+	static constexpr int EFFECT_NUM = 9;
+	static constexpr float EFFECT_MAX_SIZE = 150.0f;
+
+	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 100.0f, 0.0f };
+	static constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 45.0f, 0.0f };
+
+	static constexpr VECTOR SWORD_POS = { 77.5f, 27.5f, -10.0f };
+	static constexpr float SWORD_RADIUS = 10.0f;
+
 	Item* item_;
 
 	// 状態
@@ -162,6 +163,7 @@ private:
 	int healCount_;
 	int autoHealHp_;
 	int autoHealCnt_;
+	int damaged_;
 
 	//stamina
 	bool isStaminaMax_;

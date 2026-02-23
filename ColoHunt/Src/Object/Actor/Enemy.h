@@ -44,26 +44,8 @@ public:
 		HEAD
 	};
 
-	//初期値
-	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 1000.0f };
-	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
-	static constexpr VECTOR SCALE = { 6.0f, 6.0f, 6.0f };
-	static constexpr float SPEED = 8.5f;
-	static constexpr int BASE_ATTACK_DIFF = 45;
-
-	//遠距離攻撃の頭の位置
-	static constexpr VECTOR ATTACK_POS_A = { 0.0f, 250.0f, 325.0f };
-	//遠距離攻撃の速さ
-	static constexpr float ATTACK_SPEED = 28.0f;
 	//攻撃範囲
 	static constexpr float ATTACK_RADIUS = 35.0f;
-
-	//体力
-	static constexpr int MAX_HP = 450;
-
-	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 200.0f, 65.0f };
-	static constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 200.0f, -125.0f };
-	static constexpr float COL_CAPSULE_RADIUS = 135.0f;
 
 	// コンストラクタ
 	Enemy(Player* pl);
@@ -116,6 +98,25 @@ public:
 	//bool IsAttackA(void);
 
 private:
+
+	//初期値
+	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 1000.0f };
+	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
+	static constexpr VECTOR SCALE = { 6.0f, 6.0f, 6.0f };
+	static constexpr float SPEED = 8.5f;
+	static constexpr int BASE_ATTACK_DIFF = 45;
+
+	//遠距離攻撃の頭の位置
+	static constexpr VECTOR ATTACK_POS_A = { 0.0f, 250.0f, 325.0f };
+	//遠距離攻撃の速さ
+	static constexpr float ATTACK_SPEED = 28.0f;
+
+	//体力
+	static constexpr int MAX_HP = 450;
+
+	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 200.0f, 65.0f };
+	static constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 200.0f, -125.0f };
+	static constexpr float COL_CAPSULE_RADIUS = 135.0f;
 
 	//ゲームシーン
 	Player* player_;

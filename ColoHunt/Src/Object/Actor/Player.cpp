@@ -15,7 +15,7 @@
 #include "../Item.h"
 
 
-Player::Player(Item* itm): ActorBase(), item_(itm), autoHealCnt_(0), autoHealHp_(0),
+Player::Player(Item* itm): ActorBase(), item_(itm), autoHealCnt_(0), autoHealHp_(0), speed_(), effectSize_(), effectCnt_(), dodge_(), damaged_(),
 	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(false), knockBackDir_(0.0f),
 	overFlg_(false), power_(0), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),se_(true), dodgeStamina_(DODGE_STAMINA),
 	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),	barStaEY_(), barStaSY_(), damage_(BASIC_DAMAGE), goodDodge_(), greatDodge_(), guageEX_(),
@@ -263,7 +263,7 @@ void Player::Release(void) const
 
 void Player::Damage(int damage, float dir)
 {
-	hp_ -= damage;
+	damaged_ = damage;
 	autoHealHp_ = damage / 3;
 	knockBackDir_ = dir;
 	greatDodge_ = goodDodge_ = dodge_ = false;
@@ -290,9 +290,8 @@ void Player::Damage(int damage, float dir)
 		}
 	}
 
-	if (hp_ <= 0) {
+	if (hp_ - damaged_ <= 0) {
 
-		hp_ = 0;
 		autoHealHp_ = 0;
 		SceneManager::GetInstance().SetScreenImage();
 		DoChangeState(STATE::KO);
@@ -404,7 +403,7 @@ void Player::Status(void)
 
 		autoHealCnt_++;
 
-		if (autoHealCnt_ >= 65) {
+		if (autoHealCnt_ >= 90) {
 
 			autoHealCnt_ = 0;
 			autoHealHp_--;
@@ -435,6 +434,11 @@ void Player::Status(void)
 			dodgeStamina_ = DODGE_STAMINA / 2;
 			powerUp_ = true;
 		}
+	}
+	if (damaged_ > 0) {
+
+		hp_ -= 1;
+		damaged_ -= 1;
 	}
 }
 
@@ -516,6 +520,15 @@ void Player::FindHpAndPower(void)
 		}
 	}
 	barSize_ = barEX_ - barSX_;
+
+	for (int y = static_cast<int>(barHpSY_); y <= static_cast<int>(barHpEY_); y++) {
+
+		DrawLineSoftImage(hpBar_, static_cast<int>(barSX_), y, static_cast<int>(barEX_) + 1, y, 0, 0, 0, 255);
+	}
+	for (int y = static_cast<int>(barStaSY_); y <= static_cast<int>(barStaEY_); y++) {
+
+		DrawLineSoftImage(hpBar_, static_cast<int>(barSX_), y, static_cast<int>(barEX_) + 1, y, 0, 0, 0, 255);
+	}
 	first = false;
 
 	GetSoftImageSize(powerGauge_, &dx, &dy);
@@ -550,17 +563,9 @@ void Player::DrawHpAndPower(void) const
 	float barNorm = barRate * hp_;
 	float barRed = barRate * autoHealHp_;
 
-	for (int y = static_cast<int>(barHpSY_); y <= static_cast<int>(barHpEY_); y++) {
-	
-		DrawLineSoftImage(hpBar_, static_cast<int>(barSX_), y, static_cast<int>(barEX_) + 1, y, 0, 0, 0, 255);
-	}
-	for (int y = static_cast<int>(barStaSY_); y <= static_cast<int>(barStaEY_); y++) {
-	
-		DrawLineSoftImage(hpBar_, static_cast<int>(barSX_), y, static_cast<int>(barEX_) + 1, y, 0, 0, 0, 255);
-	}
 	DrawSoftImage(190, 0, hpBar_);
 
-	DrawBoxAA(190 + barSX_, barHpSY_, 190 + barSX_ + barNorm + barRed, barHpEY_, 0xff0000, true);
+	DrawBoxAA(190 + barSX_, barHpSY_, 190 + barSX_ + barRate * (hp_ - damaged_) + barRed, barHpEY_, 0xff0000, true);
 	DrawBoxAA(190 + barSX_, barHpSY_, 190 + barSX_ + barNorm, barHpEY_, 0x00ff00, true);
 
 	barRate = barSize_ / static_cast<int>(MAX_STAMINA);
@@ -1083,7 +1088,7 @@ void Player::BoolChangeDrink(void)
 	Controller::JOYPAD_IN_STATE padState = Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1);
 
 	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::LEFT)] || CheckHitKey(KEY_INPUT_0)) {
-		if (!isHeal_ && !isHealMax_) {
+		if (!isHeal_ && !isHealMax_ && damaged_ <= 0) {
 
 			//ˆù‚Þƒ‚[ƒVƒ‡ƒ“‚ÉˆÚs
 			DoChangeState(STATE::DRINK);
