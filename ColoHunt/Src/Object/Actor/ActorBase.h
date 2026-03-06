@@ -29,13 +29,13 @@ public:
 
 	//全初期化
 	virtual void InitAll();
-	//ロード以外
+	//ロード以外の初期化
 	virtual void Init();
 	//ロード
 	virtual void InitLoad() = 0;
 	//アニメーションの初期化
 	virtual void InitAnim() = 0;
-	//モデルの初期化
+	//各自の初期化
 	virtual void InitTransform() = 0;
 	//コライダの初期化
 	virtual void InitCollider() = 0;

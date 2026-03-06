@@ -5,7 +5,7 @@
 
 AudioManager* AudioManager::instance_ = nullptr;
 
-AudioManager::AudioManager(void)
+AudioManager::AudioManager(void) : pauseTime_(0), isPause_(false)
 {
 	currentBgm_ = static_cast<SoundID>(-1);
 	currentSe_ = static_cast<SoundID>(-1);

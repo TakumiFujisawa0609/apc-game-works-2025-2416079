@@ -19,7 +19,7 @@ Player::Player(Item* itm): ActorBase(), item_(itm), autoHealCnt_(0), autoHealHp_
 	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(false), knockBackDir_(0.0f),
 	overFlg_(false), power_(0), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),se_(true), dodgeStamina_(DODGE_STAMINA),
 	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),	barStaEY_(), barStaSY_(), damage_(BASIC_DAMAGE), goodDodge_(), greatDodge_(), guageEX_(),
-	guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(), powerUp_(), powerUpCnt_(), dodgeBottomPos_(), dodgeTopPos_(), buff_(1.0), effectType_(EFFECT::NON)
+	guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(), powerUp_(), powerUpCnt_(), effectBottomPos_(), effectTopPos_(), buff_(1.0), effectType_(EFFECT::NON)
 {
 }
 
@@ -42,12 +42,12 @@ void Player::InitAnim()
 
 	animationCtrl_->AddInFbx(0, 60.0f, 0);
 			
-	animationCtrl_->Add(1, 60.0f, (Application::PATH_ANIMATION + "Walking.mv1").c_str());
-	animationCtrl_->Add(2, 60.0f, (Application::PATH_ANIMATION + "Run.mv1").c_str());
-	animationCtrl_->Add(3, 90.0f, (Application::PATH_ANIMATION + "Slash.mv1").c_str());
-	animationCtrl_->Add(4, 90.0f, (Application::PATH_ANIMATION + "Slash_1.mv1").c_str());
-	animationCtrl_->Add(5, 90.0f, (Application::PATH_ANIMATION + "Slash_2.mv1").c_str());
-	animationCtrl_->Add(6, 90.0f, (Application::PATH_ANIMATION + "Slash_3.mv1").c_str());
+	animationCtrl_->Add(1, 70.0f, (Application::PATH_ANIMATION + "Walking.mv1").c_str());
+	animationCtrl_->Add(2, 70.0f, (Application::PATH_ANIMATION + "Run.mv1").c_str());
+	animationCtrl_->Add(3, 110.0f, (Application::PATH_ANIMATION + "Slash.mv1").c_str());
+	animationCtrl_->Add(4, 110.0f, (Application::PATH_ANIMATION + "Slash_1.mv1").c_str());
+	animationCtrl_->Add(5, 110.0f, (Application::PATH_ANIMATION + "Slash_2.mv1").c_str());
+	animationCtrl_->Add(6, 110.0f, (Application::PATH_ANIMATION + "Slash_3.mv1").c_str());
 	animationCtrl_->Add(7, 100.0f, (Application::PATH_ANIMATION + "Dodge.mv1").c_str());
 	animationCtrl_->Add(8, 90.0f, (Application::PATH_ANIMATION + "Hit_Light.mv1").c_str());
 	animationCtrl_->Add(9, 60.0f, (Application::PATH_ANIMATION + "Hit_Heavy.mv1").c_str());
@@ -66,12 +66,11 @@ void Player::InitTransform()
 	transform_.rot = Utility::VECTOR_ZERO;
 	transform_.localRot = VScale(Utility::AXIS_Y, DX_PI_F);
 	transform_.scl = Utility::VECTOR_ONE;
-	
-	swordTransform_.pos = MV1GetFramePosition(transform_.modelId, 58);
-	swordTransform_.matRot = MV1GetFrameLocalWorldMatrix(transform_.modelId, 37);
-	swordTransform_.Update();
 
-	speed_ = 6.0f;
+	swordPosSta_ = MV1GetFramePosition(transform_.modelId, 58);
+	swordPosEnd_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, 37));
+
+	speed_ = SPEED;
 	hp_ = MAX_HP;
 	moveDir_ = Utility::DIR_F;
 
@@ -91,10 +90,6 @@ void Player::InitCollider()
 	// 主に壁や木などの衝突で仕様するカプセルコライダ
 	ColliderCapsule* colCapsule = new ColliderCapsule(&transform_, COL_CAPSULE_TOP_LOCAL_POS, COL_CAPSULE_DOWN_LOCAL_POS, COL_CAPSULE_RADIUS);
 	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::CAPSULE), colCapsule);
-
-	// 武器用のカプセルコライダ
-	colCapsule = new ColliderCapsule(&swordTransform_, SWORD_POS, Utility::VECTOR_ZERO, COL_CAPSULE_RADIUS);
-	swordColliders_.emplace(static_cast<int>(COLLIDER_TYPE::CAPSULE), colCapsule);
 }
 
 void Player::Update(void)
@@ -155,7 +150,12 @@ void Player::Update(void)
 
 	//モデルの設定
 	transform_.Update();
+	//アニメーションの移動
 	animationCtrl_->Update();
+	//剣の移動
+	swordPosSta_ = MV1GetFramePosition(transform_.modelId, 58);
+	swordPosEnd_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, 37));
+	//当たり判定の更新
 	MV1RefreshCollInfo(transform_.modelId);
 }
 
@@ -217,6 +217,7 @@ void Player::DoChangeState(STATE state)
 
 void Player::Draw(void) const
 {
+	//エフェクトの描画
 	if (effectCnt_ >= 0) {
 		
 		SetUseLighting(false);
@@ -227,22 +228,22 @@ void Player::Draw(void) const
 			{
 			case Player::EFFECT::GREAT_DODGE:
 
-				DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0xffff00, 0xffff00, true);
+				DrawCone3D(effectTopPos_[i], effectBottomPos_[i], 12.0f, 32, 0xffff00, 0xffff00, true);
 				break;
 
 			case Player::EFFECT::GOOD_DODGE:
 
-				DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0xffffff, 0xffffff, true);
+				DrawCone3D(effectTopPos_[i], effectBottomPos_[i], 12.0f, 32, 0xffffff, 0xffffff, true);
 				break;
 
 			case Player::EFFECT::HEAL:
 
-				DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0x00ff00, 0x44cc44, true);
+				DrawCone3D(effectTopPos_[i], effectBottomPos_[i], 12.0f, 32, 0x00ff00, 0x44cc44, true);
 				break;
 
 			case Player::EFFECT::STAMINA:
 
-				DrawCone3D(dodgeTopPos_[i], dodgeBottomPos_[i], 12.0f, 32, 0xff5500, 0xaa3300, true);
+				DrawCone3D(effectTopPos_[i], effectBottomPos_[i], 12.0f, 32, 0xff5500, 0xaa3300, true);
 				break;
 			}
 		}
@@ -250,26 +251,33 @@ void Player::Draw(void) const
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
 		SetUseLighting(true);
 	}
+	//ステータスの描画
 	DrawHpAndPower();
 }
 
 void Player::Release(void) const
 {
+	//モデルの開放
 	ActorBase::Release();
 
+	//画像の開放
 	DeleteSoftImage(hpBar_);
 	DeleteSoftImage(powerGauge_);
 }
 
 void Player::Damage(int damage, float dir)
 {
+	//状態の更新
 	damaged_ = damage;
 	autoHealHp_ = damage / 3;
 	knockBackDir_ = dir;
 	greatDodge_ = goodDodge_ = dodge_ = false;
+	isAttack_ = false;
+	buff_ = 1.0;
 
 	AudioManager::GetInstance()->PlaySE(SoundID::SE_DAMAGE);
 
+	//回復を止める
 	if (isHealMax_) {
 
 		isHealMax_ = false;
@@ -279,6 +287,7 @@ void Player::Damage(int damage, float dir)
 		isHeal_ = false;
 	}
 
+	// パワーアップしていないならモーションをとる
 	if (!powerUp_) {
 		if (damage >= 15) {
 
@@ -290,6 +299,7 @@ void Player::Damage(int damage, float dir)
 		}
 	}
 
+	// HPがゼロなら死ぬ
 	if (hp_ - damaged_ <= 0) {
 
 		autoHealHp_ = 0;
@@ -354,25 +364,23 @@ void Player::GoodDodge(void)
 
 void Player::Status(void)
 {
-	//当たり判定の中心
-	swordTransform_.pos = MV1GetFramePosition(transform_.modelId, 58);
-	swordTransform_.matRot = MV1GetFrameLocalWorldMatrix(transform_.modelId, 37);
-	swordTransform_.Update();
-
 	Controller& ctrl = Controller::GetInstance();
 	//ゲームパッドの情報を取得
 	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
-	if ((state_ != STATE::DOGDE && !padState.IsNew[static_cast<int>(Controller::JOYPAD_BTN::R)]) || isStaminaMax_) {
+	//スタミナ回復の条件
+	if ((state_ != STATE::DOGDE && (!padState.IsNew[static_cast<int>(Controller::JOYPAD_BTN::R)] && state_ != STATE::WAIT)) || isStaminaMax_) {
 		if (stamina_ < MAX_STAMINA) {
 
 			stamina_++;
 		}
 	}
+	//マイナスにならないように
 	if (stamina_ < 0.0f) {
 
 		stamina_ = 0.0f;
 	}
+	//一定数回復する
 	if (isHeal_) {
 		
 		Heal();
@@ -383,10 +391,12 @@ void Player::Status(void)
 				healCount_ = 0;
 		}
 	}
+	//全回復
 	if (isHealMax_) {
 
 		Heal();
 	}
+	//スタミナ無消費
 	if (isStaminaMax_) {
 		if (staminaMaxCnt_ > STAMINA_MAX_TIME) {
 
@@ -399,6 +409,7 @@ void Player::Status(void)
 			staminaMaxCnt_++;
 		}
 	}
+	//自動回復
 	if (autoHealHp_ > 0) {
 
 		autoHealCnt_++;
@@ -410,10 +421,12 @@ void Player::Status(void)
 			hp_++;
 		}
 	}
+	//ゲージマックス時
 	if (powerUp_) {
 
 		powerUpCnt_++;
 
+		//ゲージが減る速度
 		if (powerUpCnt_ >= Application::FPS * 3) {
 		
 			powerUpCnt_ = 0;
@@ -426,6 +439,7 @@ void Player::Status(void)
 			powerUp_ = false;
 		}
 	}
+	//ゲージマックスでない時
 	else {
 		if (power_ >= MAX_POWER) {
 
@@ -435,10 +449,16 @@ void Player::Status(void)
 			powerUp_ = true;
 		}
 	}
+	//シームレスにHPが減る
 	if (damaged_ > 0) {
 
 		hp_ -= 1;
 		damaged_ -= 1;
+
+		if (hp_ <= 0) {
+
+			hp_ = 0;
+		}
 	}
 }
 
@@ -481,13 +501,16 @@ void Player::FindHpAndPower(void)
 
 			GetPixelSoftImage(hpBar_, static_cast<int>(x), static_cast<int>(y), &r, &g, &b, &a);
 
+			//元画像の真っ青のサイズを探す
 			if (r ==0 && g == 0 && b == 255 && a > 0) {
 				if (!first) {
-
+					
+					//バーの最小XとYを出す
 					first = true;
 					barSX_ = x;
 					barHpSY_ = y;
 				}
+				//サイズ更新したら書き換える
 				if (barEX_ < x) {
 
 					barEX_ = x;
@@ -506,9 +529,12 @@ void Player::FindHpAndPower(void)
 
 			GetPixelSoftImage(hpBar_, static_cast<int>(x), static_cast<int>(y), &r, &g, &b, &a);
 
+			//元画像の真っ青のサイズを探す
 			if (r == 0 && g == 0 && b == 255 && a > 0) {
 				if (!first) {
 
+					//HPとXは同じところなので
+					//スタミナはYのみ
 					first = true;
 					barStaSY_ = y;
 				}
@@ -521,6 +547,7 @@ void Player::FindHpAndPower(void)
 	}
 	barSize_ = barEX_ - barSX_;
 
+	//真っ青の部分を黒に染める
 	for (int y = static_cast<int>(barHpSY_); y <= static_cast<int>(barHpEY_); y++) {
 
 		DrawLineSoftImage(hpBar_, static_cast<int>(barSX_), y, static_cast<int>(barEX_) + 1, y, 0, 0, 0, 255);
@@ -540,6 +567,7 @@ void Player::FindHpAndPower(void)
 
 			GetPixelSoftImage(powerGauge_, static_cast<int>(x), static_cast<int>(y), &r, &g, &b, &a);
 
+			//真っ青な部分を探す
 			if (r == 0 && g == 0 && b == 255 && a > 0) {
 				if (!first) {
 
@@ -550,6 +578,7 @@ void Player::FindHpAndPower(void)
 				gx = x;
 			}
 		}
+		//斜めの部分をそれぞれ出す
 		if (gx > 0) {
 			guageEX_.push_back(gx + 1);
 			gx = 0;
@@ -559,16 +588,25 @@ void Player::FindHpAndPower(void)
 
 void Player::DrawHpAndPower(void) const
 {
+	//バー全体をHPの最大値分する
 	float barRate = static_cast<float>(barSize_ / MAX_HP);
+	//現在のHP分かける
 	float barNorm = barRate * hp_;
+	//赤いゲージを出す分かける
 	float barRed = barRate * autoHealHp_;
 
 	DrawSoftImage(190, 0, hpBar_);
 
-	DrawBoxAA(190 + barSX_, barHpSY_, 190 + barSX_ + barRate * (hp_ - damaged_) + barRed, barHpEY_, 0xff0000, true);
+	//死んでないなら赤ゲージをだす
+	if (hp_ - damaged_ > 0) {
+	
+		DrawBoxAA(190 + barSX_, barHpSY_, 190 + barSX_ + barRate * (hp_ - damaged_) + barRed, barHpEY_, 0xff0000, true);
+	}
 	DrawBoxAA(190 + barSX_, barHpSY_, 190 + barSX_ + barNorm, barHpEY_, 0x00ff00, true);
 
+	//バー全体をスタミナの最大値分する
 	barRate = barSize_ / static_cast<int>(MAX_STAMINA);
+	//現在のスタミナ分かける
 	barNorm = barRate * stamina_;
 
 	if (isStaminaMax_) {
@@ -585,6 +623,7 @@ void Player::DrawHpAndPower(void) const
 		}
 	}
 
+	//一番長いサイズをゲージのマックス値分する
 	float powerRate = (guageEX_.front() - guageSX_) / MAX_POWER;
 	float power = guageSX_ + powerRate * power_;
 
@@ -703,9 +742,8 @@ void Player::UpdateMove(void)
 	
 	if (!VectorUtility::EqualsVZero(dir)) {
 
-		Camera* camera = SceneManager::GetInstance().GetCamera();
 		//カメラの角度を得る
-		VECTOR angle = camera->GetCameraAngles();
+		VECTOR angle = Camera::GetInstance()->GetCameraAngles();
 
 		//回転行列を取る
 		mat = MMult(mat, MGetRotY(angle.y));
@@ -789,20 +827,26 @@ void Player::UpdateMove(void)
 
 void Player::UpdateAttack(void)
 {
+	//パワーアップしていないときの連続攻撃
 	if (!powerUp_) {
+		//モーション時間に合わせて攻撃を発生させる
 		if (animationCtrl_->GetTime() >= 34.5f && animationCtrl_->GetTime() <= 36.0f) {
 
 			isAttack_ = true;
+		}
+		if (animationCtrl_->GetTime() >= 58.5f && animationCtrl_->GetTime() <= 60.0f) {
+
+			isAttack_ = false;
 		}
 		if (animationCtrl_->GetTime() >= 60.5f && animationCtrl_->GetTime() <= 62.5f) {
 
 			isAttack_ = true;
 		}
-		if (animationCtrl_->GetTime() >= 92.0f && animationCtrl_->GetTime() <= 93.0f) {
+		if (animationCtrl_->GetTime() >= 92.0f && animationCtrl_->GetTime() <= 94.0f) {
 
 			isAttack_ = false;
 		}
-		if (animationCtrl_->GetTime() >= 138.0f && animationCtrl_->GetTime() <= 139.5f) {
+		if (animationCtrl_->GetTime() >= 138.0f && animationCtrl_->GetTime() <= 140.0f) {
 
 			buff_ = 1.2;
 			isAttack_ = true;
@@ -817,6 +861,7 @@ void Player::UpdateAttack(void)
 			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.2f));
 		}
 	}
+	//パワーアップ時のゲージ全消費攻撃
 	else {
 		if (animationCtrl_->GetTime() >= 90.0f && animationCtrl_->GetTime() <= 91.5f) {
 
@@ -850,64 +895,76 @@ void Player::UpdateCombo(void)
 	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_1)) {
+		//モーション時間に合わせて攻撃を出す
 		if (animationCtrl_->GetTime() >= 32.0f && animationCtrl_->GetTime() <= 34.0f) {
 
 			isAttack_ = true;
 		}
+		//攻撃判定の消失
 		if (animationCtrl_->GetTime() >= 67.5f) {
 			
 			isAttack_ = false;
-
+			//回避キャンセル
 			BoolChangeDodge();
 
+			//同じボタンを押したら二段階目
 			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_2), false);
 			}
 		}
+		//攻撃判定がなくなるまで前進させる
 		else {
 
-			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.2f));
+			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.3f));
 		}
 	}
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_2)) {
-		if (animationCtrl_->GetTime() >= 40.0f && animationCtrl_->GetTime() <= 41.0f) {
+		//モーション時間に合わせて攻撃を出す
+		if (animationCtrl_->GetTime() >= 40.0f && animationCtrl_->GetTime() <= 41.2f) {
 
 			isAttack_ = true;
 
 		}
+		//攻撃判定の消失
 		if (animationCtrl_->GetTime() >= 75.0f) {
 			
 			isAttack_ = false;
-
+			//回避キャンセル
 			BoolChangeDodge();
 			
+			//同じボタンを押したら三段階目
 			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
 
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_3), false);
 			}
 		}
+		//攻撃判定がなくなるまで前進させる
 		else {
 
-			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.1f));
+			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.2f));
 		}
 	}
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_3)) {
-		if (animationCtrl_->GetTime() >= 43.0f && animationCtrl_->GetTime() <= 44.0f) {
+		//モーション時間に合わせて攻撃を出す
+		//最終段なので少しだけ攻撃力上昇
+		if (animationCtrl_->GetTime() >= 42.8f && animationCtrl_->GetTime() <= 44.2f) {
 
 			buff_ = 1.1;
 			isAttack_ = true;
 		}
-		if (animationCtrl_->GetTime() >= 61.0f) {
+		//攻撃判定の消失
+		if (animationCtrl_->GetTime() >= 64.0f) {
 			
 			buff_ = 1.0;
 			isAttack_ = false;
-		
+			//回避キャンセル
 			BoolChangeDodge();
 		}
+		//攻撃判定がなくなるまで前進させる
 		else {
 
-			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.3f));
+			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.4f));
 		}
 	}
 	if (animationCtrl_->IsEnd()) {
@@ -921,7 +978,7 @@ void Player::UpdateCombo(void)
 void Player::UpdateDodge(void)
 {
 	//移動させる
-	transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 1.1f));
+	transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 1.25f));
 
 	if (dodgeFlg_) {
 		if (dodgeCnt_ <= 25.0f) {
@@ -963,6 +1020,8 @@ void Player::UpdateDamagedHeavy(void)
 			KnockBack();
 		}
 		if (!prevPause){
+			//吹っ飛んだあとの起き上がりで
+			//アニメーションを止める
 			if (animationCtrl_->GetTime() >= 130) {
 				
 				prevPause = true;
@@ -977,6 +1036,7 @@ void Player::UpdateDamagedHeavy(void)
 			//ゲームパッドの情報を取得
 			Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
+			//何かキーが押されるか一定時間経つまで起き上がらない
 			if (padState.Anyone || steps >= 90) {
 
 				steps = 0;
@@ -990,6 +1050,7 @@ void Player::UpdateDamagedHeavy(void)
 		}
 	}
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::STAND_UP)) {
+		//起き上がりきるまで無敵
 		if (animationCtrl_->GetTime() >= 210) {
 
 			DoChangeState(STATE::WAIT);
@@ -1004,6 +1065,7 @@ void Player::UpdateKO(void)
 
 void Player::UpdateDrink(void)
 {
+	//飲むモーションが終わるまで回復せず数も減らない
 	if (!animationCtrl_->IsEnd()) return;
 
 	AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAL);
@@ -1028,6 +1090,7 @@ void Player::UpdateDrink(void)
 		effectType_ = EFFECT::STAMINA;
 		break;
 	}
+	//エフェクト生成
 	EffectCreate();
 	DoChangeState(STATE::WAIT);
 }
@@ -1112,14 +1175,16 @@ void Player::EffectCreate(void)
 {
 	effectSize_ = EFFECT_MAX_SIZE / 3;
 
+	//エフェクトの数まで四方八方に生成する
+	//(頂点シェーダを使いたかった)
 	for (int i = 0; i < EFFECT_NUM; i++) {
 
 		effectDir_[i].x = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
 		effectDir_[i].y = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
 		effectDir_[i].z = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
 
-		dodgeTopPos_[i] = VAdd(VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], effectSize_));
-		dodgeBottomPos_[i] = VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f });
+		effectTopPos_[i] = VAdd(VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], effectSize_));
+		effectBottomPos_[i] = VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f });
 	}
 	effectCnt_ = 30;
 }
@@ -1128,12 +1193,14 @@ void Player::EffectUpdate(void)
 {
 	if (effectCnt_ < 0) return;
 
+	//サイズの更新
 	effectSize_ += (EFFECT_MAX_SIZE - effectSize_) / 8;
 
+	//場所の更新
 	for (int i = 0; i < EFFECT_NUM; i++) {
 
-		dodgeTopPos_[i] = VAdd(VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], effectSize_));
-		dodgeBottomPos_[i] = VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f });
+		effectTopPos_[i] = VAdd(VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], effectSize_));
+		effectBottomPos_[i] = VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f });
 	}
 	effectCnt_--;
 }

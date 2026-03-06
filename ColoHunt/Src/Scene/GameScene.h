@@ -13,14 +13,6 @@ class Item;
 class GameScene : public SceneBase
 {
 public:
-	//カメラとプレイヤーの距離
-	static constexpr float CAMERA_TO_PLAYER = 350.0f;
-
-	static constexpr float COLLISION_STAGE_DIFF = 25.0f;
-	static constexpr float COLLISION_CAMERA_DIFF = 3.0f;
-
-	static constexpr float DEFAULT_TILT = 0.3f;
-	static constexpr float DEFAULT_YAW = 0.0f;
 
 	// コンストラクタ
 	GameScene(void);
@@ -39,7 +31,17 @@ public:
 	void Release(void) override;
 
 private:
+	
+	//カメラとプレイヤーの距離
+	static constexpr float CAMERA_TO_PLAYER = 350.0f;
 
+	static constexpr float COLLISION_STAGE_DIFF = 25.0f;
+	static constexpr float COLLISION_CAMERA_DIFF = 3.0f;
+
+	static constexpr float DEFAULT_TILT = 0.3f;
+	static constexpr float DEFAULT_YAW = 0.0f;
+
+	// ブラーの数
 	static constexpr int BLUR_NUM = 3;
 
 	// ステージ
@@ -54,6 +56,9 @@ private:
 	// リザルトロゴ
 	int failedImg_;
 	int clearImg_;
+
+	//描画用のイメージハンドル
+	int drawHandle_;
 
 	//影のマップ
 	int shadowMap_;
@@ -81,14 +86,20 @@ private:
 
 	// ヒットストップ
 	int hitStopCnt_;
-	int hitStopImg_;
 
+	//被弾回数
 	int damageNum_;
 
 	// ブラー時のプレイヤー
 	int blurImg_[BLUR_NUM];
 	bool blurFlg_;
 	int blurCnt_;
+
+	//シェーダー
+	int shader_;
+	int shaderConstBuff_;
+	VERTEX2DSHADER mVertex_[4];
+	WORD mIndex_[6];
 
 	// シーンチェンジフラグ
 	bool changeFlg_;
@@ -97,16 +108,25 @@ private:
 	// クリア時のくるくるカメラ
 	bool clearCamera_;
 
+	//ブラー用
 	void SetBlur(void);
 	void Blur(void);
 
+	//シェーダー用
+	void MakeSquereVertex(void);
+
+	//当たり判定用
 	void Collision(void);
 	void CollisionStage(void);
 	void CollisionCamera(void);
+	// 回避判定
+	void Dodge(void);
+
+	//カメラの操作
 	void GameCamera(void);
 	void SetCameraPos(VECTOR targetPos, float diff) const;
-	void Effect(MV1_COLL_RESULT_POLY dim);
 	void ShakeCamera(void);
 
-	void Dodge(void);
+	//エフェクト
+	void Effect(MV1_COLL_RESULT_POLY dim);
 };

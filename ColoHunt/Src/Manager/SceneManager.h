@@ -6,7 +6,6 @@
 
 class SceneBase;
 class Fader;
-class Camera;
 class Grid;
 class Pause;
 
@@ -53,42 +52,55 @@ public:
 	// デルタタイムの取得
 	float GetDeltaTime(void) const;
 
-	Camera* GetCamera(void) const { return camera_; }
+	//親クラスの取得
 	SceneBase* GetSceneBase(void) { return scene_; }
 
+	//現在の画面の保存/呼び出し
 	void SetScreenImage(void) const;
 	int GetScreenImage(void) const { return screenImg_; }
 
+	//時間の取得
 	int GetTime(void) { return time_ / 60; }
 	int GetTimer(void) { return timer_ / 60; }
+	//クリアタイムの一時保存
 	void SetTime(void) { time_ = timer_; }
 
+	//被弾回数・アイテム使用回数の取得
 	void SetScore(int damage, int item) { damageNum_ = damage; itemNum_ = item; }
 	int GetDamageNum(void) { return damageNum_; }
 	int GetItemNum(void) { return itemNum_; }
 	
+	//時間の呼び出し
 	std::vector<int> LoadTime(void);
 
 private:
 
+	//背景の大きさ
+	static constexpr VECTOR BACKGROUND_SCR = { 7.0f, 7.0f, 7.0f };
+
+	//現在の画面を保存するハンドル
 	int screenImg_;
 
+	//時間
 	int timer_;
+	//クリア時間
 	int time_;
 
+	//被弾回数
 	int damageNum_;
+	//アイテム使用回数
 	int itemNum_;
 
 	// 静的インスタンス
 	static SceneManager* instance_;
 
+	//現在のシーンID
 	SCENE_ID sceneId_;
+	//更新待ちのシーンID
 	SCENE_ID waitSceneId_;
 
+	//現在止めてる音のID
 	SoundID pauseId_;
-
-	// カメラ
-	Camera* camera_;
 
 	// グリッド
 	Grid* grid_;

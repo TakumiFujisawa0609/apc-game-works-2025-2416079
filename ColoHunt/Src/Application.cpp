@@ -4,6 +4,7 @@
 #include "Manager/SceneManager.h"
 #include "Manager/Input/Controller.h"
 #include "Manager/FpsControll.h"
+#include "Manager/Camera.h"
 #include "Manager/Audio/AudioManager.h"
 #include "Application.h"
 
@@ -18,6 +19,7 @@ const std::string Application::PATH_SOUND = PATH_DATA + "Sounds/";
 const std::string Application::PATH_FONT = PATH_DATA + "Font/";
 const std::string Application::PATH_CSV = PATH_DATA + "Csv/";
 const std::string Application::PATH_VIDEO = PATH_DATA + "Video/";
+const std::string Application::PATH_SHADER = PATH_DATA + "Shader/";
 
 void Application::CreateInstance(void)
 {
@@ -75,6 +77,7 @@ void Application::Init(void)
 	// 入力制御初期化
 	SetUseDirectInputFlag(true);
 	KeyMouse::CreateInstance();
+	Controller::CreateInstance();
 
 	// エフェクト管理初期化
 	EffectResManager::CreateInstance();
@@ -82,6 +85,9 @@ void Application::Init(void)
 	//オーディオ管理初期化
 	AudioManager::CreateInstance();
 	AudioManager::GetInstance()->Init();
+
+	//カメラの初期化
+	Camera::CreateInstance();
 
 	// シーン管理初期化
 	SceneManager::CreateInstance();
@@ -99,7 +105,7 @@ void Application::Run(void)
 	SceneManager& sceneManager = SceneManager::GetInstance();
 
 	// ゲームループ
-	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0 && !isFinish_)
+	while (ProcessMessage() == 0 && !isFinish_)
 	{
 
 		inputManager.Update();
@@ -132,6 +138,9 @@ void Application::Destroy(void)
 	// 入力制御解放
 	KeyMouse::GetInstance().Destroy();
 
+	//カメラの開放
+	Camera::DeleteInstance();
+
 	Effkseer_End();
 
 	// DxLib終了
@@ -155,10 +164,8 @@ bool Application::IsReleaseFail(void) const
 	return isReleaseFail_;
 }
 
-Application::Application(void)
+Application::Application(void):isFinish_(false), isInitFail_(false), isReleaseFail_(false), fpsControll_(nullptr)
 {
-	isInitFail_ = false;
-	isReleaseFail_ = false;
 }
 
 void Application::InitEffekseer(void)

@@ -81,4 +81,7 @@
   <ItemGroup>
     <ResourceCompile Include="Data\Icon\icon.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Src\Common\Shader\PixelShader.hlsl" />
+  </ItemGroup>
 </Project>

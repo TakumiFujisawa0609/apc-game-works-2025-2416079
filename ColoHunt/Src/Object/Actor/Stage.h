@@ -24,13 +24,16 @@ public:
 	//更新
 	void Update(void) override {};
 
-	//描画
+	//透明モデルの描画
 	void Draw(void) const override;
+	//不透明モデルの描画
+	void DrawModel(void) const override;
 
+	//半透明のフレームインデックスの設定
 	void SetOpacityIndex(std::vector<int> index);
 
 private:
 
-	int opacityModelId_;
+	//半透明のフレームインデックス
 	std::vector<int> opacityIndex;
 };

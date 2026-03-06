@@ -21,6 +21,7 @@ public:
 
 private:
 
+	//フォントハンドル
 	int timeHandle;
 	int scoreHandle;
 };

@@ -9,13 +9,6 @@ class ResultBase : public SceneBase
 
 public:
 
-	enum class STATE {
-
-		CONTINUE = 2,
-		RETURN_TITLE,
-		FINISH,
-	};
-
 	// コンストラクタ
 	ResultBase(void);
 	// デストラクタ
@@ -34,7 +27,17 @@ public:
 
 private:
 
+	//選択状態
+	enum class STATE {
+
+		CONTINUE = 2,
+		RETURN_TITLE,
+		FINISH,
+	};
+
+	//背景画像
 	int screenImg_;
 
+	//現在の選択状態
 	STATE state_;
 };

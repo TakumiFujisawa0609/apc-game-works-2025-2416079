@@ -2,7 +2,9 @@
 #include "Camera.h"
 
 
-Camera::Camera(void)
+Camera* Camera::inst_ = nullptr;
+
+Camera::Camera(void) : pos_(), angles_()
 {
 	// DxLibの初期設定では、
 	// カメラの位置が x = 320.0f, y = 240.0f, z = (画面のサイズによって変化)、

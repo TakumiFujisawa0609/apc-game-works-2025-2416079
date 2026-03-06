@@ -35,16 +35,25 @@ public:
 	void Update(void);
 	void Release(void);
 
+	//現在のアニメーションタイプ
 	int GetPlayType(void) const { return playType_; }
+
+	//終了しているかどうか
 	bool IsEnd(void) const;
+	//ループするかどうか
 	bool IsLoop(void) const { return isLoop_; }
 
+	//アニメーション全体の時間
 	float GetTotalTime(void) { return playAnim_.totalTime; }
+	//アニメーション現在の時間
 	float GetTime(void) { return playAnim_.step; }
 
+	//ポーズ状態を変更する
 	void ChangePause(bool p) { isPause_ = p; }
+	//ポーズしているかどうか
 	bool IsPause(void) { return isPause_; }
 
+	//速度を変える
 	void ChangeSpeed(int type, float speed);
 
 private:
@@ -60,10 +69,14 @@ private:
 	Animation playAnim_;
 	Animation prevAnim_;
 
+	//アニメーションブレンドの割合
 	float blendRate_;
 
+	//デタッチできているか
 	int isDetach_;
+	//アニメーションループさせるか
 	bool isLoop_;
+	//一時停止しているか
 	bool isPause_;
 
 	// アニメーション追加の共通処理

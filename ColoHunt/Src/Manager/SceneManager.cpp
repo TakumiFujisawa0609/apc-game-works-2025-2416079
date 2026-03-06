@@ -34,13 +34,14 @@ SceneManager& SceneManager::GetInstance(void)
 	return *instance_;
 }
 
+SceneManager::SceneManager(void):timer_(0), waitSceneId_(SCENE_ID::NONE), time_(0), showFlg_(false), screenImg_(-1)
+{
+}
+
 void SceneManager::Init(void)
 {
 	sceneId_ = SCENE_ID::NONE;
 	waitSceneId_ = SCENE_ID::TITLE;
-
-	camera_ = new Camera();
-	camera_->Init();
 
 	grid_ = new Grid();
 	grid_->Init();
@@ -48,6 +49,8 @@ void SceneManager::Init(void)
 	// フェード機能の初期化
 	fader_ = new Fader();
 	fader_->Init();
+	
+	Camera::GetInstance()->Init();
 
 	pause_ = new Pause();
 
@@ -57,7 +60,7 @@ void SceneManager::Init(void)
 
 	MV1SetPosition(backGround_, Utility::VECTOR_ZERO);
 	MV1SetRotationXYZ(backGround_, Utility::VECTOR_ZERO);
-	MV1SetScale(backGround_, { 7.0f, 7.0f, 7.0f });
+	MV1SetScale(backGround_, BACKGROUND_SCR);
 
 	isSceneChanging_ = true;
 	isLoad_ = false;
@@ -88,9 +91,6 @@ void SceneManager::Update(void)
 
 	// フェード機能の更新
 	fader_->Update();
-
-	// カメラの更新
-	camera_->Update();
 
 	if (isSceneChanging_){
 		
@@ -135,7 +135,8 @@ void SceneManager::Draw(void)
 	ClearDrawScreen();
 
 	// 3D描画の初期化
-	camera_->SetBeforeDraw();
+	Camera::GetInstance()->SetBeforeDraw();
+
 	if (!pause_->IsPause()) {
 
 		UpdateEffekseer3D();
@@ -150,14 +151,6 @@ void SceneManager::Draw(void)
 
 		scene_->Draw();
 	}
-	// グリッドの描画
-	//grid_->Draw();
-
-	// カメラのデバック描画
-	//camera_->Draw();
-	SetUseZBufferFlag(false);
-	DrawEffekseer3D();
-	SetUseZBufferFlag(true);
 
 	if (pause_->IsPause()) {
 
@@ -185,33 +178,10 @@ void SceneManager::Draw(void)
 			DrawFormatStringToHandle(Application::SCREEN_SIZE_X - 25, Application::SCREEN_SIZE_Y - 75, 0xdddddd, font_, ".");
 		}
 	}
-//#pragma region Step1 ポイントライト
-//	if (CheckHitKey(KEY_INPUT_T)) { pointLightPos_.z += 3.0f; }
-//	if (CheckHitKey(KEY_INPUT_G)) { pointLightPos_.z -= 3.0f; }
-//	if (CheckHitKey(KEY_INPUT_R)) { pointLightPos_.y += 3.0f; }
-//	if (CheckHitKey(KEY_INPUT_Y)) { pointLightPos_.y -= 3.0f; }
-//	if (CheckHitKey(KEY_INPUT_H)) { pointLightPos_.x += 3.0f; }
-//	if (CheckHitKey(KEY_INPUT_F)) { pointLightPos_.x -= 3.0f; }
-//	SetLightPosition(pointLightPos_);
-//#pragma endregion
-
-//#pragma region Step2 スポットライト
-//	if (CheckHitKey(KEY_INPUT_T)) { spotLightPos_.z += 3.0f; }
-//	if (CheckHitKey(KEY_INPUT_G)) { spotLightPos_.z -= 3.0f; }
-//	if (CheckHitKey(KEY_INPUT_R)) { spotLightPos_.y += 3.0f; }
-//	if (CheckHitKey(KEY_INPUT_Y)) { spotLightPos_.y -= 3.0f; }
-//	if (CheckHitKey(KEY_INPUT_H)) { spotLightPos_.x += 3.0f; }
-///	if (CheckHitKey(KEY_INPUT_F)) { spotLightPos_.x -= 3.0f; }
-//	SetLightPosition(spotLightPos_);
-//	DrawSphere3D(spotLightPos_, 20.0f, 10, 0xff0000, 0xff0000, true);
-//#pragma endregion
 }
 
 void SceneManager::Destroy(void)
 {
-	camera_->Release();
-	delete camera_;
-
 	grid_->Release();
 	delete grid_;
 
@@ -257,23 +227,6 @@ float SceneManager::GetDeltaTime(void) const
 void SceneManager::SetScreenImage(void) const
 {
 	GetDrawScreenGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, screenImg_);
-}
-
-SceneManager::SceneManager(void)
-{
-
-	sceneId_ = SCENE_ID::NONE;
-	waitSceneId_ = SCENE_ID::NONE;
-
-	scene_ = nullptr;
-	fader_ = nullptr;
-
-	isSceneChanging_ = false;
-	isLoad_ = false;
-
-	// デルタタイム
-	deltaTime_ = 1.0f / Application::FPS;
-
 }
 
 void SceneManager::ResetDeltaTime(void)
@@ -356,7 +309,7 @@ void SceneManager::DoChangeScene(SCENE_ID sceneId)
 		loadCnt_ = 0;
 
 		// 初期化
-		camera_->Init();
+		Camera::GetInstance()->Init();
 		scene_->Init();
 
 		ResetDeltaTime();
@@ -449,41 +402,30 @@ std::vector<int> SceneManager::LoadTime(void)
 		fileTime.insert(fileTime.begin() + i, atoi(strSplit.at(i).c_str()));
 	}
 	ifs.close();
+
+	//昇順にソート
 	sort(fileTime.begin(), fileTime.end());
+
+	//サイズオーバーしてるなら最後の数値を消す
+	//(例外処理)
 	while (fileTime.size() >= 11) {
 		fileTime.pop_back();
 	}
+
 	return fileTime;
 }
 
 void SceneManager::SaveTime(void)
 {
+	//既存のファイルを開く
 	std::vector<int> fileTime = LoadTime();
 	std::vector<int> newTime;
 
-	bool change = false;
-		
-	for (int i = 0; i < fileTime.size(); i++) {
-		if (!change) {
-			if (fileTime[i] > GetTime()) {
-				
-				newTime.insert(newTime.begin() + i, GetTime());
-				newTime.insert(newTime.begin() + (i + 1), fileTime.at(i));
+	//新しいタイムを入れてソートする
+	newTime.push_back(GetTime());
+	sort(newTime.begin(), newTime.end());
 
-				change = true;
-				continue;
-			}
-			newTime.insert(newTime.begin() + i, fileTime.at(i));
-		}
-		else {
-
-			newTime.insert(newTime.begin() + (i + 1), fileTime.at(i));
-		}
-	}
-	if (!change) {
-
-		newTime.push_back(GetTime());
-	}
+	//サイズオーバーしてたら最後を消す
 	if (newTime.size() == 11) {
 
 		newTime.pop_back();
@@ -491,6 +433,7 @@ void SceneManager::SaveTime(void)
 	// ファイルの書き込み
 	std::ofstream ofs = std::ofstream(Application::PATH_CSV + "Time.csv");
 
+	//カンマ区切りで書き込み
 	for (int t : newTime) {
 
 		ofs << t;

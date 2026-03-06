@@ -16,9 +16,9 @@
 
 
 Enemy::Enemy(Player* pl) : ActorBase(), attackAFlg_(false), attackBFlg_(false), attackCFlg_(false),
-attackDiff_(120), attackDir_(), attackPos1_(Utility::VECTOR_ZERO), attackPos2_(Utility::VECTOR_ZERO), attackPrevPos_(Utility::VECTOR_ZERO), speed_(SPEED),
-clearFlg_(false), cnt_(0), coolDown_(0), isCoolDown_(false), player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0), attackSpeed_(ATTACK_SPEED),
-baseAttackDiff_(BASE_ATTACK_DIFF), angryFlg_(false), first_(false)
+	attackDiff_(0), attackDir_(), attackPos1_(Utility::VECTOR_ZERO), attackPos2_(Utility::VECTOR_ZERO), attackPrevPos_(Utility::VECTOR_ZERO), speed_(SPEED),
+	clearFlg_(false), cnt_(0), player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0), attackSpeed_(ATTACK_SPEED),
+	baseAttackDiff_(BASE_ATTACK_DIFF), angryFlg_(false), first_(false)
 {
 }
 
@@ -353,7 +353,7 @@ void Enemy::Anger(void)
 
 	attackSpeed_ = ATTACK_SPEED * 1.5f;
 	speed_ = SPEED * 1.8f;
-	baseAttackDiff_ = BASE_ATTACK_DIFF / 3;
+	baseAttackDiff_ = BASE_ATTACK_DIFF / 2;
 }
 
 void Enemy::UpdateWait(void)

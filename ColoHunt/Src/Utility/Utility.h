@@ -10,6 +10,7 @@ public:
 
 	static constexpr VECTOR VECTOR_ZERO = { 0.0f, 0.0f, 0.0f };
 	static constexpr VECTOR VECTOR_ONE = { 1.0f, 1.0f, 1.0f };
+	static constexpr float ONE_CIRCLE = 2.0f * DX_PI_F;
 
 	// ‰ñ“]Ž²
 	static constexpr VECTOR AXIS_X = { 1.0f, 0.0f, 0.0f };

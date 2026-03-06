@@ -6,7 +6,7 @@
 Transform::Transform(void)
 	:
 	modelId(-1),
-	scl(Utility::VECTOR_ONE),
+	scl(Utility::VECTOR_ZERO),
 	rot(Utility::VECTOR_ZERO),
 	pos(Utility::VECTOR_ZERO),
 	prevPos(Utility::VECTOR_ZERO),

@@ -27,7 +27,6 @@ public:
 	// 行列
 	MATRIX matScl;
 	MATRIX matRot;
-	MATRIX matLocalRot;
 	MATRIX matPos;
 
 	// コンストラクタ

@@ -18,7 +18,6 @@ void Stage::InitLoad(void)
 {
 	// 外部ファイルの３Ｄモデルをロード
 	transform_.SetModel(MV1LoadModel((Application::PATH_MODEL + "Stage.mv1").c_str()));
-	opacityModelId_ = MV1DuplicateModel(transform_.modelId);
 }
 
 void Stage::InitTransform(void)
@@ -26,14 +25,6 @@ void Stage::InitTransform(void)
 	transform_.pos = { 0.0f, -180.0f, 0.0f };
 	transform_.rot = transform_.localRot = Utility::VECTOR_ZERO;
 	transform_.scl = VScale(Utility::VECTOR_ONE, 2.0f);
-
-	MATRIX mat = MGetIdent();
-	mat = MMult(mat, AngleUtility::Multiplication(transform_.localRot, transform_.rot));
-	mat = MMult(mat, MGetScale(transform_.scl));
-	mat = MMult(mat, MGetTranslate(transform_.pos));
-
-	MV1SetMatrix(opacityModelId_, mat);
-	MV1SetOpacityRate(opacityModelId_, 0.5f);
 }
 
 void Stage::InitCollider(void)
@@ -45,25 +36,70 @@ void Stage::InitCollider(void)
 
 void Stage::Draw(void) const
 {
-	MV1DrawModel(opacityModelId_);
+	//裏側が見えるためバックカリングを有効に
+	SetUseBackCulling(false);
+	//透明モデルをフレームごとに描画
+	for (int i = 0; i < MV1GetFrameNum(transform_.modelId); i++) {
+		if (opacityIndex.size() == 0) {
+		
+			break;
+		}
+		else {
+			for (int j : opacityIndex) {
+				if (i == j) {
+
+					MV1DrawFrame(transform_.modelId, i);
+					break;
+				}
+			}
+		}
+	}
+	SetUseBackCulling(true);
+}
+
+void Stage::DrawModel(void) const
+{
+	//不透明モデルをフレームごとに描画
+	for (int i = 0; i < MV1GetFrameNum(transform_.modelId); i++) {
+		if (opacityIndex.size() == 0) {
+
+			MV1DrawFrame(transform_.modelId, i);
+		}
+		else {
+			bool opaFlg = false;
+			for (int j : opacityIndex) {
+				if (i == j) {
+
+					opaFlg = true;
+					break;
+				}
+			}
+			if (opaFlg == false) {
+
+				MV1DrawFrame(transform_.modelId, i);
+			}
+		}
+	}
 }
 
 void Stage::SetOpacityIndex(std::vector<int> index)
 {
 	int num = opacityIndex.size();
 
+	//透明フレームを不透明に
 	if (num > 0) {
 
-		MV1SetFrameVisible(transform_.modelId, opacityIndex.at(num - 1), true);
+		MV1SetFrameOpacityRate(transform_.modelId, opacityIndex.at(num - 1), 1.0f);
 		num--;
 	}
 
 	opacityIndex = index;
 	num = opacityIndex.size();
-	
-	if (num > 0) {
 
-		MV1SetFrameVisible(transform_.modelId, opacityIndex.at(num - 1), false);
+	//不透明フレームを透明に
+	if (num > 0) {
+		
+		MV1SetFrameOpacityRate(transform_.modelId, opacityIndex.at(num - 1), 0.5f);
 		num--;
 	}
 }

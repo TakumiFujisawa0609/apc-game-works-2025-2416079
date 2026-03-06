@@ -343,12 +343,15 @@ void TitleScene::DrawLogo(void)
 
 void TitleScene::DrawSelect(void)
 {
+	//背景
 	DrawGraph(0, 0, imgBg_, true);
 
+	//黒背景
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 125);
 	DrawBox(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, 0x000000, true);
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
 	
+	//描画
 	DrawRotaGraph(1400, 300, 0.6, 0.0, imgTitle_, true);
 
 	int dx = Application::SCREEN_SIZE_X / 50;
@@ -418,6 +421,35 @@ void TitleScene::DrawSelect(void)
 		DrawFormatStringToHandle(dx - width, dy, 0xffffff, selectFont_, "ゲームを終了します");
 		break;
 	}
+
+	//文字サイズを得る
+	int fontSize = GetFontSize();
+	//サイズをあげる
+	SetFontSize(20);
+
+	//表示
+	DrawBox(0, Application::SCREEN_SIZE_Y - 50, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_X, 0x000000, true);
+	DrawString(100, Application::SCREEN_SIZE_Y - 40, "↑↓　選択", 0xffffff);
+
+	//コントローラータイプに応じて表示を変える
+	if (Controller::GetInstance().GetJPadType(Controller::JOYPAD_NO::PAD1) <= Controller::JOYPAD_TYPE::XBOX_ONE) {
+
+		DrawString(250, Application::SCREEN_SIZE_Y - 40, "Ａ　決定", 0xffffff);
+		DrawString(400, Application::SCREEN_SIZE_Y - 40, "Ｂ　戻る", 0xffffff);
+	}
+	else if (Controller::GetInstance().GetJPadType(Controller::JOYPAD_NO::PAD1) <= Controller::JOYPAD_TYPE::DUAL_SENSE) {
+
+		DrawString(250, Application::SCREEN_SIZE_Y - 40, "×　決定", 0xffffff);
+		DrawString(400, Application::SCREEN_SIZE_Y - 40, "○　戻る", 0xffffff);
+	}
+	else{
+
+		DrawString(250, Application::SCREEN_SIZE_Y - 40, "Ｂ　決定", 0xffffff);
+		DrawString(400, Application::SCREEN_SIZE_Y - 40, "Ａ　戻る", 0xffffff);
+	}
+
+	//サイズを戻す
+	SetFontSize(fontSize);
 }
 
 void TitleScene::DrawRanking(void)
@@ -468,6 +500,18 @@ void TitleScene::DrawRanking(void)
 			DrawFormatStringToHandle(dx + 70, dy, 0xffffff, timeFont_, "--:--");
 		}
 	}
+
+	//文字サイズを得る
+	int fontSize = GetFontSize();
+	//サイズをあげる
+	SetFontSize(20);
+
+	//表示
+	DrawBox(0, Application::SCREEN_SIZE_Y - 50, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_X, 0x000000, true);
+	DrawString(100, Application::SCREEN_SIZE_Y - 40, "ANY BUTTON　戻る", 0xffffff);
+	
+	//サイズを戻す
+	SetFontSize(fontSize);
 }
 
 void TitleScene::DrawPv(void)
@@ -479,11 +523,11 @@ void TitleScene::DrawPv(void)
 	else {
 		
 		DrawGraph(0, 0, imgBg_, false);
-		int widthA = GetDrawFormatStringWidthToHandle(font_, "Press Any Botton");
+		int widthA = GetDrawFormatStringWidthToHandle(font_, "Press Any Button");
 
 		if (show_) {
 
-			DrawFormatStringToHandle((Application::SCREEN_SIZE_X - widthA) / 2, Application::SCREEN_SIZE_Y - 175, 0xdd2d2d, font_, "Press Any Botton");
+			DrawFormatStringToHandle((Application::SCREEN_SIZE_X - widthA) / 2, Application::SCREEN_SIZE_Y - 175, 0xdd2d2d, font_, "Press Any Button");
 		}
 
 		int widthB = GetDrawFormatStringWidthToHandle(creatorFont_, "HIRO 2025,2026 CREATED");

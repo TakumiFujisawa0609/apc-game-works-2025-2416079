@@ -39,6 +39,7 @@ public:
 	bool IsUse(void) { return use_; }
 	void SetUsing(bool use) { using_ = use; }
 
+	//アイテムの数
 	int GetItemNum(void) { return useNum_; }
 
 private:
@@ -57,7 +58,6 @@ private:
 	bool prevUse_;
 	bool use_;
 	bool using_;
-
 	int useNum_;
 
 	//デバッグ

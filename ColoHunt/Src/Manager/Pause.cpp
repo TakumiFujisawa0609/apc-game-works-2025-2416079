@@ -25,7 +25,7 @@ void Pause::Update()
 {
 	if (pos_.y > 0) {
 
-		pos_.y -= 95;
+		pos_.y -= DOWN;
 
 		if (pos_.y <= 0) {
 
@@ -177,6 +177,36 @@ void Pause::Draw()
 
 		DrawTriangle(dx - 65, dy + 15, dx - 90, dy, dx - 90, dy + 30, 0xffffff, true);
 	}
+
+
+	//文字サイズを得る
+	int fontSize = GetFontSize();
+	//サイズをあげる
+	SetFontSize(20);
+
+	//表示
+	DrawBox(0, Application::SCREEN_SIZE_Y - 50, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_X, 0x000000, true);
+	DrawString(100, Application::SCREEN_SIZE_Y - 40, "↑↓　選択", 0xffffff);
+
+	//コントローラータイプに応じて表示を変える
+	if (Controller::GetInstance().GetJPadType(Controller::JOYPAD_NO::PAD1) <= Controller::JOYPAD_TYPE::XBOX_ONE) {
+
+		DrawString(250, Application::SCREEN_SIZE_Y - 40, "Ａ　決定", 0xffffff);
+		DrawString(400, Application::SCREEN_SIZE_Y - 40, "Ｂ　戻る", 0xffffff);
+	}
+	else if (Controller::GetInstance().GetJPadType(Controller::JOYPAD_NO::PAD1) <= Controller::JOYPAD_TYPE::DUAL_SENSE) {
+
+		DrawString(250, Application::SCREEN_SIZE_Y - 40, "×　決定", 0xffffff);
+		DrawString(400, Application::SCREEN_SIZE_Y - 40, "○　戻る", 0xffffff);
+	}
+	else {
+
+		DrawString(250, Application::SCREEN_SIZE_Y - 40, "Ｂ　決定", 0xffffff);
+		DrawString(400, Application::SCREEN_SIZE_Y - 40, "Ａ　戻る", 0xffffff);
+	}
+
+	//サイズを戻す
+	SetFontSize(fontSize);
 }
 
 void Pause::Release()

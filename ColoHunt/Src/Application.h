@@ -15,8 +15,6 @@ public:
 	static constexpr int SCREEN_SIZE_X = 1920;
 	static constexpr int SCREEN_SIZE_Y = 1060;
 
-	static constexpr float ONE_CIRCLE = 2.0f * DX_PI_F;
-
 	// データパス関連
 	//-------------------------------------------
 	static const std::string PATH_DATA;
@@ -28,6 +26,7 @@ public:
 	static const std::string PATH_FONT;
 	static const std::string PATH_CSV;
 	static const std::string PATH_VIDEO;
+	static const std::string PATH_SHADER;
 	//-------------------------------------------
 
 	// インスタンスを明示的に生成
@@ -51,6 +50,7 @@ public:
 	// 解放成功／失敗の判定
 	bool IsReleaseFail(void) const;
 
+	//終わらせる
 	void FinishGame(void) { isFinish_ = true; }
 
 private:
