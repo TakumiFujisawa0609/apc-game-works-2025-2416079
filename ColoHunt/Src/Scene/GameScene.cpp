@@ -347,6 +347,7 @@ void GameScene::Collision(void)
 
 								hitFlgP_ = true;
 								player_->Damage(13, enemy_->GetTransform().rot.y);
+								shakeCnt_ = 6;
 								damageNum_++;
 								AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 							}
@@ -370,6 +371,7 @@ void GameScene::Collision(void)
 
 									hitFlgP_ = true;
 									player_->Damage(20, enemy_->GetTransform().rot.y);
+									shakeCnt_ = 15;
 									damageNum_++;
 									AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 								}
@@ -389,6 +391,7 @@ void GameScene::Collision(void)
 
 									hitFlgP_ = true;
 									player_->Damage(30, enemy_->GetTransform().rot.y);
+									shakeCnt_ = 15;
 									damageNum_++;
 									AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 								}

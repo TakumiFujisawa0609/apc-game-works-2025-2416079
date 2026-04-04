@@ -20,6 +20,8 @@ public:
 
 	//Ž~‚Ü‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©
 	bool IsPause() const { return isPause_; }
+	// ƒ^ƒCƒgƒ‹‚É–ß‚Á‚Æ‚©
+	bool ReturnTitle() const { return state_ == PAUSE_STATE::RETURN_TITLE; }
 
 private:
 

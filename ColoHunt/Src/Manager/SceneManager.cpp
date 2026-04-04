@@ -102,9 +102,18 @@ void SceneManager::Update(void)
 
 			pause_->Update();
 
+			//ポーズ解除時
 			if (!pause_->IsPause()) {
+				//タイトル戻らないならポーズしたBGM流す
+				if (!pause_->ReturnTitle()) {
+			
+					AudioManager::GetInstance()->PlayBGM(pauseId_);
+				}
+				//タイトル戻るならポーズしたBGMを消す
+				else {
 
-				AudioManager::GetInstance()->PlayBGM(pauseId_);
+					pauseId_ = {};
+				}
 			}
 		}
 		else {
