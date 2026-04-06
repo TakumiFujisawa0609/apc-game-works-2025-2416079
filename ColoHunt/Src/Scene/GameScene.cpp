@@ -95,8 +95,9 @@ void GameScene::Init(void)
 	MakeSquereVertex();
 
 	drawHandle_ = MakeScreen(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, TRUE);
+	
+	// シャドウマップの設定
 	shadowMap_ = MakeShadowMap(8192, 8192);
-
 	SetShadowMapLightDirection(shadowMap_, { 0.2f, -0.8f, 0.1f });
 	SetShadowMapDrawArea(shadowMap_, { -2500.0f, 0.0f, -2500.0f }, { 2500.0f, 0.0f, 2500.0f });
 
@@ -108,15 +109,20 @@ void GameScene::Init(void)
 
 void GameScene::Update(void)
 {
+	// ブラーフラグが立っている
 	if (blurFlg_) {
 
+		// ブラーを作ってカウントを減らす
 		SetBlur();
 		blurCnt_--;
 
+		// ブラーのカウントがなくなった
 		if (blurCnt_ <= 0) {
 
+			// フラグをおろす
 			blurFlg_ = false;
 
+			// 全部のブラーをリセットする
 			for (int i = 0; i < BLUR_NUM; i++) {
 
 				SetDrawScreen(blurImg_[i]);
@@ -126,6 +132,7 @@ void GameScene::Update(void)
 		}
 	}
 
+	// 各更新
 	player_->Update();
 	item_->Update();
 	enemy_->Update();
@@ -137,54 +144,80 @@ void GameScene::Update(void)
 	Collision();
 	ShakeCamera();
 
+	// ヒットストップの更新
 	if (hitStopCnt_ >= 0) {
 
 		hitStopCnt_--;
 	}
 
-	if (enemy_->ClearFlg()) {
-		AudioManager::GetInstance()->StopSE();
-		player_->NoSe();
-		if (!changeFlg_) {
-			if (changeCnt_ <= 1) {
+	// 敵が死んでなければタイマーを進める
+	if (!enemy_->ClearFlg()) {
 
-				AudioManager::GetInstance()->PlayBGM(SoundID::BGM_CLEAR);
-				AudioManager::GetInstance()->SetBgmVolume(185);
-			}
+		time_++;
+	}
+
+	// 敵が死んだ
+	if (enemy_->ClearFlg()) {
+		// 1カウント目に
+		if (changeCnt_ <= 1) {
+
+			// SEを消す
+			AudioManager::GetInstance()->StopSE();
+			player_->NoSe();
+			// BGMを鳴らす
+			AudioManager::GetInstance()->PlayBGM(SoundID::BGM_CLEAR);
+			AudioManager::GetInstance()->SetBgmVolume(185);
+		}
+		// シーンが変わるフラグ判定
+		if (!changeFlg_) {
+
+			// アニメーションが終わりカメラ演出が終わったら
 			if (enemy_->GetEnemyAnim()->IsEnd() && clearCamera_) {
 
+				//シーンが変わる
 				changeFlg_ = true;
 				changeCnt_ = 0;
 			}
 		}
 		else {
-
+			// 90カウントまでクリアロゴを出す
 			changeCnt_++;
 
+			// 経ったら
 			if (changeCnt_ >= 90) {
 
+				// スコアを保存してシーンを変える
 				SceneManager::GetInstance().SetScore(damageNum_, item_->GetItemNum());
 				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
 			}
 		}
 	}
+	// プレイヤーが死んだ
 	else if (player_->OverFlg()) {
+		// 1カウント目に
 		if (changeCnt_ <= 1) {
 
+			// BGMを鳴らす
 			AudioManager::GetInstance()->PlayBGM(SoundID::BGM_GAMEOVER);
 		}
+		// シーンが変わるフラグ判定
 		if (!changeFlg_) {
+			// アニメーションが終わりカメラ演出が終わったら
 			if (player_->GetPlayerAnim()->IsEnd()) {
 
+				//シーンが変わる
 				changeFlg_ = true;
 				changeCnt_ = 0;
 			}
 		}
 		else {
 
+			// 90カウントまで失敗ロゴを出す
 			changeCnt_++;
 
 			if (changeCnt_ >= 90) {
+
+				//シーンを変える
 				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::OVER);
 			}
 		}
@@ -193,9 +226,12 @@ void GameScene::Update(void)
 
 void GameScene::SetBlur(void)
 {
+	// ブラーの数まで回す
 	for (int i = 0; i < BLUR_NUM; i++) {
+		// 最古のモノを変える
 		if (blurCnt_ % BLUR_NUM == i) {
 			
+			// ブラー用の画面に今のプレイヤーを描画する
 			SetDrawScreen(blurImg_[i]);
 
 			ClearDrawScreen();
@@ -203,19 +239,13 @@ void GameScene::SetBlur(void)
 			Camera::GetInstance()->SetBeforeDraw();
 			player_->DrawModel();
 
+			// 元の描画画面に戻す
 			SetDrawScreen(DX_SCREEN_BACK);
 
+			// フィルターをかける
 			GraphFilter(blurImg_[i], DX_GRAPH_FILTER_HSB, 1, 240, 150, 80);
 			break;
 		}
-	}
-}
-
-void GameScene::Blur(void)
-{
-	for (int i = 0; i < BLUR_NUM; i++) {
-
-		DrawGraph(0, 0, blurImg_[i], true);
 	}
 }
 
@@ -685,7 +715,11 @@ void GameScene::Draw(void)
 		//影を落とさないものの描画
 		if (blurFlg_) {
 
-			Blur();
+			// ブラーの描画
+			for (int i = 0; i < BLUR_NUM; i++) {
+
+				DrawGraph(0, 0, blurImg_[i], true);
+			}
 		}
 		enemy_->DrawModel();
 		enemy_->Draw();
@@ -706,16 +740,7 @@ void GameScene::Draw(void)
 		DrawTriangle(10, 80, 30, 95, 30, 80, 0x000000, true);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
-	if (!enemy_->ClearFlg()) {
-
-		int time = SceneManager::GetInstance().GetTimer();
-		DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time / 60, time % 60);
-	}
-	else {
-
-		int time = SceneManager::GetInstance().GetTime();
-		DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time / 60, time % 60);
-	}
+	DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time_ / 60, time_ % 60);
 
 	if (changeFlg_) {
 

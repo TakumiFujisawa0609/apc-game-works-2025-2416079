@@ -23,12 +23,12 @@ void TitleScene::InitLoad(void)
 	imgBg_ = LoadGraph((Application::PATH_IMAGE + "Title.jpg").c_str());
 	video_ = LoadGraph((Application::PATH_VIDEO + "PV.mp4").c_str());
 	AudioManager::GetInstance()->LoadSceneSound(LoadScene::TITLE);
-	times_ = SceneManager::GetInstance().LoadTime();
 }
 
 void TitleScene::Init(void)
 {
 	fader_ = new Fader();
+	times_ = LoadTime();
 
 	font_ = CreateFontToHandle("アンニャントロマン", 45, 1, DX_FONTTYPE_ANTIALIASING_EDGE_4X4);
 	creatorFont_ = CreateFontToHandle("MS 明朝", 15, -1, DX_FONTTYPE_ANTIALIASING_EDGE_4X4);

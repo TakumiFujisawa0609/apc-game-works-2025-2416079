@@ -41,7 +41,7 @@ private:
 	~EffectResManager(void) = default;
 
 	// リソースのロード
-	void Load(void);
+	void InitLoad(void);
 
 	// エフェクシアのリソースハンドル
 	std::map<TYPE, int> resourceIds_;

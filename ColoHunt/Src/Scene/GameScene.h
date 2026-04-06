@@ -53,6 +53,9 @@ private:
 	//タイマーのフォント
 	int timerHandle_;
 
+	// タイム
+	int time_;
+
 	// リザルトロゴ
 	int failedImg_;
 	int clearImg_;
@@ -110,7 +113,6 @@ private:
 
 	//ブラー用
 	void SetBlur(void);
-	void Blur(void);
 
 	//シェーダー用
 	void MakeSquereVertex(void);

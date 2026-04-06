@@ -22,7 +22,7 @@ EffectResManager& EffectResManager::GetInstance(void)
 void EffectResManager::Init(void)
 {
 	// リソースのロード
-	Load();
+	InitLoad();
 }
 
 void EffectResManager::Destroy(void)
@@ -49,7 +49,7 @@ EffectResManager::EffectResManager(void)
 {
 }
 
-void EffectResManager::Load(void)
+void EffectResManager::InitLoad(void)
 {
 	// ヒットエフェクトのロード
 	resourceIds_.emplace(TYPE::ENEMY_HIT, LoadEffekseerEffect((Application::PATH_EFFECT + "Blood.efkproj").c_str()));

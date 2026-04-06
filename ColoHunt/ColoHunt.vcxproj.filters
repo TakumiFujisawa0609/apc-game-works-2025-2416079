@@ -11,7 +11,6 @@
     <ClInclude Include="Src\Common\Fader.h" />
     <ClInclude Include="Src\Manager\Camera.h" />
     <ClInclude Include="Src\Manager\EffectResManager.h" />
-    <ClInclude Include="Src\Manager\SceneManager.h" />
     <ClInclude Include="Src\Object\Common\AnimationController.h" />
     <ClInclude Include="Src\Manager\FpsControll.h" />
     <ClInclude Include="Src\Object\Actor\Player.h" />
@@ -25,7 +24,7 @@
     <ClInclude Include="Src\Manager\Audio\SoundTable.h" />
     <ClInclude Include="Src\Manager\Input\Controller.h" />
     <ClInclude Include="Src\Manager\Input\KeyMouse.h" />
-    <ClInclude Include="Src\Manager\Pause.h" />
+    <ClInclude Include="Src\Scene\Pause.h" />
     <ClInclude Include="Src\Object\Actor\ActorBase.h" />
     <ClInclude Include="Src\Scene\Result\GameClear.h" />
     <ClInclude Include="Src\Scene\Result\GameOver.h" />
@@ -38,6 +37,8 @@
     <ClInclude Include="Src\Object\Collider\ColliderSphere.h" />
     <ClInclude Include="Src\Object\Collision\CollisionBase.h" />
     <ClInclude Include="Src\Object\Collision\CollisionManager.h" />
+    <ClInclude Include="Src\Scene\Loading.h" />
+    <ClInclude Include="Src\Manager\SceneManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\main.cpp" />
@@ -50,7 +51,6 @@
     <ClCompile Include="Src\Common\Fader.cpp" />
     <ClCompile Include="Src\Manager\Camera.cpp" />
     <ClCompile Include="Src\Manager\EffectResManager.cpp" />
-    <ClCompile Include="Src\Manager\SceneManager.cpp" />
     <ClCompile Include="Src\Object\Common\AnimationController.cpp" />
     <ClCompile Include="Src\Manager\FpsControll.cpp" />
     <ClCompile Include="Src\Object\Actor\Player.cpp" />
@@ -64,7 +64,7 @@
     <ClCompile Include="Src\Manager\Audio\SoundTable.cpp" />
     <ClCompile Include="Src\Manager\Input\Controller.cpp" />
     <ClCompile Include="Src\Manager\Input\KeyMouse.cpp" />
-    <ClCompile Include="Src\Manager\Pause.cpp" />
+    <ClCompile Include="Src\Scene\Pause.cpp" />
     <ClCompile Include="Src\Object\Actor\ActorBase.cpp" />
     <ClCompile Include="Src\Scene\Result\GameClear.cpp" />
     <ClCompile Include="Src\Scene\Result\GameOver.cpp" />
@@ -77,6 +77,8 @@
     <ClCompile Include="Src\Object\Collider\ColliderSphere.cpp" />
     <ClCompile Include="Src\Object\Collision\CollisionBase.cpp" />
     <ClCompile Include="Src\Object\Collision\CollisionManager.cpp" />
+    <ClCompile Include="Src\Scene\Loading.cpp" />
+    <ClCompile Include="Src\Manager\SceneManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Data\Icon\icon.rc" />

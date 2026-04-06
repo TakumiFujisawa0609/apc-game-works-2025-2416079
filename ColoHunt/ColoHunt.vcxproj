@@ -29,8 +29,8 @@
     <ClInclude Include="Src\Manager\FpsControll.h" />
     <ClInclude Include="Src\Manager\Input\Controller.h" />
     <ClInclude Include="Src\Manager\Input\KeyMouse.h" />
-    <ClInclude Include="Src\Manager\Pause.h" />
     <ClInclude Include="Src\Manager\SceneManager.h" />
+    <ClInclude Include="Src\Scene\Pause.h" />
     <ClInclude Include="Src\Object\Actor\ActorBase.h" />
     <ClInclude Include="Src\Object\Collider\ColliderBase.h" />
     <ClInclude Include="Src\Object\Collider\ColliderCapsule.h" />
@@ -46,6 +46,7 @@
     <ClInclude Include="Src\Object\Item.h" />
     <ClInclude Include="Src\Object\Actor\Player.h" />
     <ClInclude Include="Src\Object\Actor\Stage.h" />
+    <ClInclude Include="Src\Scene\Loading.h" />
     <ClInclude Include="Src\Scene\Result\GameClear.h" />
     <ClInclude Include="Src\Scene\Result\GameOver.h" />
     <ClInclude Include="Src\Scene\GameScene.h" />
@@ -68,8 +69,8 @@
     <ClCompile Include="Src\Manager\FpsControll.cpp" />
     <ClCompile Include="Src\Manager\Input\Controller.cpp" />
     <ClCompile Include="Src\Manager\Input\KeyMouse.cpp" />
-    <ClCompile Include="Src\Manager\Pause.cpp" />
     <ClCompile Include="Src\Manager\SceneManager.cpp" />
+    <ClCompile Include="Src\Scene\Pause.cpp" />
     <ClCompile Include="Src\Object\Actor\ActorBase.cpp" />
     <ClCompile Include="Src\Object\Collider\ColliderBase.cpp" />
     <ClCompile Include="Src\Object\Collider\ColliderCapsule.cpp" />
@@ -85,6 +86,7 @@
     <ClCompile Include="Src\Object\Item.cpp" />
     <ClCompile Include="Src\Object\Actor\Player.cpp" />
     <ClCompile Include="Src\Object\Actor\Stage.cpp" />
+    <ClCompile Include="Src\Scene\Loading.cpp" />
     <ClCompile Include="Src\Scene\Result\GameClear.cpp" />
     <ClCompile Include="Src\Scene\Result\GameOver.cpp" />
     <ClCompile Include="Src\Scene\GameScene.cpp" />

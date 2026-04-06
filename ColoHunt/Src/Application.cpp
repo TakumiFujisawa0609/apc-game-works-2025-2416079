@@ -127,7 +127,7 @@ void Application::Destroy(void)
 	AudioManager::GetInstance()->DeleteAll();
 
 	// シーン管理解放
-	SceneManager::GetInstance().Destroy();
+	SceneManager::GetInstance().Release();
 
 	// エフェクト管理解放
 	EffectResManager::GetInstance().Destroy();

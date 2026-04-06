@@ -1,453 +1,254 @@
-#include <EffekseerForDxlib.h>
-#include <iostream>
-#include <fstream>
-#include <algorithm>
-#include "Camera.h"
-#include "../Utility/Utility.h"
-#include "../Object/Grid.h"
-#include "../Common/Fader.h"
-#include "../Scene/TitleScene.h"
-#include "../Scene/GameScene.h"
-#include "../Scene/Result/GameOver.h"
-#include "../Scene/Result/GameClear.h"
-#include "../Application.h"
-#include "Input/Controller.h"
-#include "Audio/AudioManager.h"
-#include "Pause.h"
 #include "SceneManager.h"
+#include <DxLib.h>
+#include "../Manager/Input/Controller.h"
+#include "../Scene/Loading.h"
+#include"../Scene/TitleScene.h"
+#include"../Scene/GameScene.h"
+#include"../Scene/Result/GameClear.h"
+#include"../Scene/Result/GameOver.h"
+#include "../Scene/Pause.h"
 
 SceneManager* SceneManager::instance_ = nullptr;
 
-void SceneManager::CreateInstance()
-{
-	instance_ = new SceneManager();
-
-	instance_->Init();
-}
-
-SceneManager& SceneManager::GetInstance(void)
-{
-	if (instance_ == nullptr)
-	{
-		instance_ = new SceneManager();
-	}
-	return *instance_;
-}
-
-SceneManager::SceneManager(void):timer_(0), waitSceneId_(SCENE_ID::NONE), time_(0), showFlg_(false), screenImg_(-1)
+// コンストラクタ
+SceneManager::SceneManager(void):
+	sceneId_(SCENE_ID::NONE)
 {
 }
 
+// デストラクタ
+SceneManager::~SceneManager(void)
+{
+}
+
+// 初期化
 void SceneManager::Init(void)
 {
-	sceneId_ = SCENE_ID::NONE;
-	waitSceneId_ = SCENE_ID::TITLE;
+	// ロード画面生成
+	Loading::GetInstance()->CreateInstance();
+	Loading::GetInstance()->Init();
+	Loading::GetInstance()->InitLoad();
 
-	grid_ = new Grid();
-	grid_->Init();
-
-	// フェード機能の初期化
-	fader_ = new Fader();
-	fader_->Init();
-	
-	Camera::GetInstance()->Init();
-
-	pause_ = new Pause();
-
-	backGround_ = MV1LoadModel((Application::PATH_MODEL + "Sky.mv1").c_str());
-	loadImg_ = LoadGraph((Application::PATH_IMAGE + "Load.png").c_str());
-	font_ = CreateFontToHandle("アンニャントロマン", 35, 1, DX_FONTTYPE_ANTIALIASING_EDGE_4X4);
-
-	MV1SetPosition(backGround_, Utility::VECTOR_ZERO);
-	MV1SetRotationXYZ(backGround_, Utility::VECTOR_ZERO);
-	MV1SetScale(backGround_, BACKGROUND_SCR);
-
-	isSceneChanging_ = true;
-	isLoad_ = false;
-	screenImg_ = MakeGraph(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y);
-
-	// デルタタイム
-	preTime_ = std::chrono::system_clock::now();
-
-	damageNum_ = 0;
-
-	// 3D描画の初期化
-	Init3D();
-
-	DoChangeScene(waitSceneId_);
+	// 最初はタイトル画面から
+	ChangeScene(SCENE_ID::TITLE);
 }
 
+
+// 更新
 void SceneManager::Update(void)
 {
-	if (scene_ == nullptr){
+	// シーンがなければ終了
+	if (scenes_.empty()) { return; }
 
-		return;
-	}
+	// ロード中
+	if (Loading::GetInstance()->IsLoading())
+	{
+		// ロード更新
+		Loading::GetInstance()->Update();
 
-	// デルタタイム
-	auto nowTime = std::chrono::system_clock::now();
-	deltaTime_ = static_cast<float>( std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - preTime_).count() / 1000000000.0);
-	preTime_ = nowTime;
-
-	// フェード機能の更新
-	fader_->Update();
-
-	if (isSceneChanging_){
-		
-		// フェード状態の切替処理
-		Fade();
-	}
-	else{
-		if (pause_->IsPause()) {
-
-			pause_->Update();
-
-			//ポーズ解除時
-			if (!pause_->IsPause()) {
-				//タイトル戻らないならポーズしたBGM流す
-				if (!pause_->ReturnTitle()) {
-			
-					AudioManager::GetInstance()->PlayBGM(pauseId_);
-				}
-				//タイトル戻るならポーズしたBGMを消す
-				else {
-
-					pauseId_ = {};
-				}
-			}
+		// ロードの更新が終了していたら
+		if (Loading::GetInstance()->IsLoading() == false)
+		{
+			// ロード後の初期化
+			scenes_.back()->Init();
 		}
-		else {
-			if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]) {
-				if (sceneId_ == SCENE_ID::GAME) {
+	}		
+	// 通常の更新処理
+	else
+	{
+		// 現在のシーンの更新
+		scenes_.back()->Update();
 
-					AudioManager::GetInstance()->StopSE();
-					pauseId_ = AudioManager::GetInstance()->PauseBGM();
-					AudioManager::GetInstance()->PlaySE(SoundID::SE_PAUSE);
-					pause_->Init();
-					return;
-				}
-			}
-			// 各シーンの更新処理
-			scene_->Update();
-			timer_++;
+		if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]) {
+
+			PushScene(SCENE_ID::PAUSE);
 		}
 	}
 }
 
+// 描画
 void SceneManager::Draw(void)
 {
-	// 描画先グラフィック領域の指定
-	// (３Ｄ描画で使用するカメラの設定などがリセットされる)
-	SetDrawScreen(DX_SCREEN_BACK);
-
-	// 画面を初期化
-	ClearDrawScreen();
-
-	// 3D描画の初期化
-	Camera::GetInstance()->SetBeforeDraw();
-
-	if (!pause_->IsPause()) {
-
-		UpdateEffekseer3D();
+	// ロード中ならロード画面を描画
+	if (Loading::GetInstance()->IsLoading())
+	{
+		// ロードの描画
+		Loading::GetInstance()->Draw();
 	}
-
-	SetUseLighting(false);
-	MV1DrawModel(backGround_);
-	SetUseLighting(true);
-
-	// 各シーンの描画処理
-	if (!isLoad_) {
-
-		scene_->Draw();
-	}
-
-	if (pause_->IsPause()) {
-
-		pause_->Draw();
-	}
-
-	// 暗転・明転
-	fader_->Draw();
-
-	if (isLoad_) {
-
-		DrawBox(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, 0x000000, true);
-		DrawRotaGraph(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 0.95, 0.0, loadImg_, true);
-		DrawFormatStringToHandle(Application::SCREEN_SIZE_X - 270, Application::SCREEN_SIZE_Y - 75, 0xdddddd, font_, "LOADING");
-		if (showFlg_[0]) {
-
-			DrawFormatStringToHandle(Application::SCREEN_SIZE_X - 75, Application::SCREEN_SIZE_Y - 75, 0xdddddd, font_, ".");
-		}
-		if (showFlg_[1]) {
-
-			DrawFormatStringToHandle(Application::SCREEN_SIZE_X - 50, Application::SCREEN_SIZE_Y - 75, 0xdddddd, font_, ".");
-		}
-		if (showFlg_[2]) {
-
-			DrawFormatStringToHandle(Application::SCREEN_SIZE_X - 25, Application::SCREEN_SIZE_Y - 75, 0xdddddd, font_, ".");
+	// 通常の更新
+	else
+	{
+		// 積まれているもの全てを描画する
+		for (auto& scene : scenes_) 
+		{
+			scene->Draw();
 		}
 	}
 }
 
-void SceneManager::Destroy(void)
+// 解放
+void SceneManager::Release(void)
 {
-	grid_->Release();
-	delete grid_;
+	//全てのシーンの解放・削除
+	for (auto& scene : scenes_)
+	{
+		scene->Release();
+	}
+	scenes_.clear();
 
-	// シーンの解放
-	scene_->Release();
-	delete scene_;
-
-	pause_->Release();
-	delete pause_;
-
-	// フェード機能の解放
-	delete fader_;
-
-	// インスタンスのメモリ解放
-	delete instance_;
-
-	DeleteGraph(screenImg_);
+	// ロード画面の削除
+	Loading::GetInstance()->Release();
+	Loading::GetInstance()->DeleteInstance();
 }
 
-void SceneManager::ChangeScene(SCENE_ID nextId)
-{
-	// フェード処理が終わってからシーンを変える場合もあるため、
-	// 遷移先シーンをメンバ変数に保持
-	waitSceneId_ = nextId;
+// 状態遷移関数
+void SceneManager::ChangeScene(std::shared_ptr<SceneBase>scene)
+{	
+	// シーンが空か？
+	if (scenes_.empty()) 
+	{
+		//空なので新しく入れる
+		scenes_.push_back(scene);
+	}
+	else 
+	{
+		//末尾のものを新しい物に入れ替える
+		scenes_.back()->Release();
+		scenes_.back() = scene;
+	}
 
-	// フェードアウト(暗転)を開始する
-	timer_ = 0;
-	fader_->SetFade(Fader::STATE::FADE_OUT);
-	isSceneChanging_ = true;
+	// 読み込み(非同期)
+	Loading::GetInstance()->StartAsyncLoad();
+	scenes_.back()->InitLoad();
+	Loading::GetInstance()->EndAsyncLoad();
 }
 
-SceneManager::SCENE_ID SceneManager::GetSceneID(void) const
+void SceneManager::ChangeScene(SCENE_ID scene)
 {
-	return sceneId_;
-}
+	switch (scene)
+	{
+	case SCENE_ID::TITLE:
 
-float SceneManager::GetDeltaTime(void) const
-{
-	//return 1.0f / 60.0f;
-	return deltaTime_;
-}
-
-void SceneManager::SetScreenImage(void) const
-{
-	GetDrawScreenGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, screenImg_);
-}
-
-void SceneManager::ResetDeltaTime(void)
-{
-	deltaTime_ = 1.0f / Application::FPS;
-	preTime_ = std::chrono::system_clock::now();
-}
-
-void SceneManager::DoChangeScene(SCENE_ID sceneId)
-{
-	loadCnt_++;
-
-	if (loadCnt_ == 3) {
-
-		showFlg_[0] = true;
-	}
-	if (loadCnt_ == 6) {
-
-		showFlg_[1] = true;
-	}
-	if (loadCnt_ == 9) {
-
-		showFlg_[2] = true;
-	}
-	if (loadCnt_ == 12) {
-
-		showFlg_[0] = false;
-		showFlg_[1] = false;
-		showFlg_[2] = false;
-	}
-	if (sceneId_ != sceneId) {
-		if (sceneId_ == SCENE_ID::OVER || sceneId_ == SCENE_ID::CLEAR) {
-
-			AudioManager::GetInstance()->StopBGM();
-		}
-		// シーンを変更する
-		sceneId_ = sceneId;
-
-		// 現在のシーンを解放
-		if (scene_ != nullptr) {
-				
-			scene_->Release();
-			delete scene_;
-		}
-
-		switch (sceneId_) {
-		case SCENE_ID::TITLE:
-
-			scene_ = new TitleScene();
-			break;
-
-		case SCENE_ID::GAME:
-
-			scene_ = new GameScene();
-			break;
-
-		case SCENE_ID::OVER:
-
-			scene_ = new GameOver();
-			break;
-
-		case SCENE_ID::CLEAR:
-
-			scene_ = new GameClear();
-			SaveTime();
-			break;
-		}
-	}
-	// 各シーンの初期化
-	if (!isLoad_) {
-	
-		isLoad_ = true;
-		SetUseASyncLoadFlag(true);
-		scene_->InitLoad();
-		SetUseASyncLoadFlag(false);
-	}
-	if (GetASyncLoadNum() <= 0) {
-
-		isLoad_ = false;
-		loadCnt_ = 0;
-
-		// 初期化
-		Camera::GetInstance()->Init();
-		scene_->Init();
-
-		ResetDeltaTime();
-
-		waitSceneId_ = SCENE_ID::NONE;
-	}
-}
-
-void SceneManager::Fade(void)
-{
-	Fader::STATE fState = fader_->GetState();
-	switch (fState){
-	case Fader::STATE::FADE_IN:
-		// 明転中
-		if (fader_->IsEnd()){
-
-			// 明転が終了したら、フェード処理終了
-			fader_->SetFade(Fader::STATE::NONE);
-			isSceneChanging_ = false;
-			timer_ = 0;
-		}
+		ChangeScene(std::make_shared<TitleScene>());
 		break;
 
-	case Fader::STATE::FADE_OUT:
-		// 暗転中
-		if (fader_->IsEnd()){
+	case SCENE_ID::GAME:
+		
+		ChangeScene(std::make_shared<GameScene>());
+		break;
+	
+	case SCENE_ID::CLEAR:
 
-			// 完全に暗転してからシーン遷移
-			DoChangeScene(waitSceneId_);
+		ChangeScene(std::make_shared<GameClear>());
+		break;
 
-			if (!isLoad_) {
+	case SCENE_ID::OVER:
+		
+		ChangeScene(std::make_shared<GameOver>());
+		break;
 
-				// 暗転から明転へ
-				fader_->SetFade(Fader::STATE::FADE_IN);
-			}
-		}
+	case SCENE_ID::PAUSE:
+
+		ChangeScene(std::make_shared<Pause>());
+		break;
+
+	default:
 		break;
 	}
-
 }
 
-void SceneManager::Init3D(void)
+void SceneManager::PushScene(std::shared_ptr<SceneBase> scene)
 {
-	//	背景色の設定
-	SetBackgroundColor(200, 200, 200);
-
-	// Zバッファの設定
-	SetUseZBuffer3D(true);
-	SetWriteZBuffer3D(true);
-
-	// カリング設定
-	SetUseBackCulling(true);
-
-	// ライト設定
-	SetUseLighting(true);
-	ChangeLightTypeDir({ 0.00f, -1.00f, 0.00f });
-
-	// フォグ設定
-	SetFogEnable(true);
-	// フォグの色
-	SetFogColor(200, 200, 200);
-	// フォグを発生させる奥行きの最小、最大距離
-	SetFogStartEnd(12000.0f, 14000.0f);
+	//新しく積むのでもともと入っている奴はまだ削除されない
+	scenes_.push_back(scene);
+	scenes_.back()->InitLoad();
+	scenes_.back()->Init();
 }
 
-std::vector<int> SceneManager::LoadTime(void)
+void SceneManager::PushScene(SCENE_ID scene)
 {
-	// ファイルの読込
-	std::ifstream ifs = std::ifstream(Application::PATH_CSV + "Time.csv");
-	std::vector<int> fileTime;
-
-	if (!ifs) {
-
-		// エラーが発生
-		fileTime.push_back(-1);
-		return fileTime;
-	}
-	// ファイルを１行ずつ読み込む
-	std::string line;
-	// 1行の文字情報
-	std::vector<std::string> strSplit;
-
-	getline(ifs, line);
-
-	// １行をカンマ区切りで分割
-	strSplit = Utility::Split(line, ',');
-
-	for (int i = 0; i < strSplit.size(); i++) {
-
-		fileTime.insert(fileTime.begin() + i, atoi(strSplit.at(i).c_str()));
-	}
-	ifs.close();
-
-	//昇順にソート
-	sort(fileTime.begin(), fileTime.end());
-
-	//サイズオーバーしてるなら最後の数値を消す
-	//(例外処理)
-	while (fileTime.size() >= 11) {
-		fileTime.pop_back();
-	}
-
-	return fileTime;
-}
-
-void SceneManager::SaveTime(void)
-{
-	//既存のファイルを開く
-	std::vector<int> fileTime = LoadTime();
-	std::vector<int> newTime;
-
-	//新しいタイムを入れてソートする
-	newTime.push_back(GetTime());
-	sort(newTime.begin(), newTime.end());
-
-	//サイズオーバーしてたら最後を消す
-	if (newTime.size() == 11) {
-
-		newTime.pop_back();
-	}
-	// ファイルの書き込み
-	std::ofstream ofs = std::ofstream(Application::PATH_CSV + "Time.csv");
-
-	//カンマ区切りで書き込み
-	for (int t : newTime) {
-
-		ofs << t;
-		ofs << ",";
-	}
+	switch (scene)
+	{
+	case SCENE_ID::TITLE:
+		
+		PushScene(std::make_shared<TitleScene>());
+		break;
 	
-	ofs.close();
+	case SCENE_ID::GAME:
+	
+		PushScene(std::make_shared<GameScene>());
+		break;
+
+	case SCENE_ID::CLEAR:
+
+		PushScene(std::make_shared<GameClear>());
+		break;
+
+	case SCENE_ID::OVER:
+
+		PushScene(std::make_shared<GameOver>());
+		break;
+
+	case SCENE_ID::PAUSE:
+
+		PushScene(std::make_shared<Pause>());
+		break;
+
+	default:
+		break;
+	}
+}
+
+void SceneManager::PopScene(void)
+{
+	//積んであるものを消して、もともとあったものを末尾にする
+	if (scenes_.size() > 1) 
+	{
+		scenes_.back()->Release();
+		scenes_.pop_back();
+	}
+}
+
+void SceneManager::JumpScene(std::shared_ptr<SceneBase> scene)
+{
+	// 全て解放
+	for (auto& s : scenes_) { s->Release(); }
+	scenes_.clear();
+
+	// 新しく積む
+	ChangeScene(scene);
+}
+
+void SceneManager::JumpScene(SCENE_ID scene)
+{
+	switch (scene)
+	{
+	case SCENE_ID::TITLE:
+		
+		JumpScene(std::make_shared<TitleScene>());
+		break;
+	
+	case SCENE_ID::GAME:
+		
+		JumpScene(std::make_shared<GameScene>());
+		break;
+
+	case SCENE_ID::CLEAR:
+
+		JumpScene(std::make_shared<GameClear>());
+		break;
+
+	case SCENE_ID::OVER:
+
+		JumpScene(std::make_shared<GameOver>());
+		break;
+
+	case SCENE_ID::PAUSE:
+
+		JumpScene(std::make_shared<Pause>());
+		break;
+
+	default:
+		break;
+	}
 }

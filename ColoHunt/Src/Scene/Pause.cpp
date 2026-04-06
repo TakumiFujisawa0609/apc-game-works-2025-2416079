@@ -1,12 +1,13 @@
 #include "Pause.h"
 #include <DxLib.h>
+#include "../Manager/SceneManager.h"
 #include "../Manager/Input/Controller.h"
 #include "../Manager/Audio/AudioManager.h"
 #include "../Utility/Utility.h"
 #include "../Application.h"
 
 
-Pause::Pause() : isPause_(false), state_(PAUSE_STATE::CONTINUE), pos_(Utility::VECTOR_ZERO)
+Pause::Pause() : state_(STATE::CONTINUE), pos_(Utility::VECTOR_ZERO)
 {
 }
 
@@ -16,15 +17,16 @@ Pause::~Pause()
 
 void Pause::Init(void)
 {
-	isPause_ = true;
-	state_ = PAUSE_STATE::CONTINUE;
+	state_ = STATE::CONTINUE;
 	pos_.y = Application::SCREEN_SIZE_Y;
 }
 
 void Pause::Update()
 {
+	// 枠がまだ上にある
 	if (pos_.y > 0) {
 
+		// 枠を上からおろす
 		pos_.y -= DOWN;
 
 		if (pos_.y <= 0) {
@@ -32,87 +34,75 @@ void Pause::Update()
 			pos_.y = 0;
 		}
 	}
+	// 枠が止まってから動く
 	else {
+		// 今の矢印の位置をintに
+		int i = static_cast<int>(state_);
+
+		//上を押したとき
 		if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP_DPAD)]) {
 
 			AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
+			
+			// 上に行く
+			i--;
 
-			switch (state_) {
-			case Pause::PAUSE_STATE::CONTINUE:
+			// 一番上で上を押した時
+			if (i < static_cast<int>(STATE::CONTINUE)) {
 
-				state_ = Pause::PAUSE_STATE::FINISH;
-				break;
-
-			case Pause::PAUSE_STATE::SETTING:
-
-				state_ = Pause::PAUSE_STATE::CONTINUE;
-				break;
-
-			case Pause::PAUSE_STATE::RETURN_TITLE:
-
-				state_ = Pause::PAUSE_STATE::SETTING;
-				break;
-
-			case Pause::PAUSE_STATE::FINISH:
-
-				state_ = Pause::PAUSE_STATE::RETURN_TITLE;
-				break;
+				i = static_cast<int>(STATE::CONTINUE);
 			}
 		}
+		//下を押したとき
 		else if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN_DPAD)]) {
 
 			AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
 
-			switch (state_) {
-			case Pause::PAUSE_STATE::CONTINUE:
+			// 下に行く
+			i++;
 
-				state_ = Pause::PAUSE_STATE::SETTING;
-				break;
+			// 一番下で下を押したとき
+			if (i > static_cast<int>(STATE::FINISH)) {
 
-			case Pause::PAUSE_STATE::SETTING:
-
-				state_ = Pause::PAUSE_STATE::RETURN_TITLE;
-				break;
-
-			case Pause::PAUSE_STATE::RETURN_TITLE:
-
-				state_ = Pause::PAUSE_STATE::FINISH;
-				break;
-
-			case Pause::PAUSE_STATE::FINISH:
-
-				state_ = Pause::PAUSE_STATE::CONTINUE;
-				break;
+				i = static_cast<int>(STATE::FINISH);
 			}
 		}
+		// intを変える
+		state_ = static_cast<STATE>(i);
+
+		// 決定したとき
 		if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
+		
+			//カーソルの位置で
 			switch (state_) {
-			case Pause::PAUSE_STATE::CONTINUE:
+			case Pause::STATE::CONTINUE:
 
 				AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
-				isPause_ = false;
+				//ゲームへ戻る
+				SceneManager::GetInstance().PopScene();
 				break;
 
-			case Pause::PAUSE_STATE::SETTING:
-
-				//設定画面へ
-				break;
-
-			case Pause::PAUSE_STATE::RETURN_TITLE:
+			case Pause::STATE::RETURN_TITLE:
 
 				AudioManager::GetInstance()->PlaySE(SoundID::SE_DESIDE);
 				//タイトルへ戻る
-				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
-				isPause_ = false;
+				SceneManager::GetInstance().JumpScene(SceneManager::SCENE_ID::TITLE);
 				break;
 
-			case Pause::PAUSE_STATE::FINISH:
+			case Pause::STATE::FINISH:
 
 				AudioManager::GetInstance()->PlaySE(SoundID::SE_DESIDE);
 				//ゲーム終了
 				Application::GetInstance().FinishGame();
 				break;
 			}
+		}
+		// もう一度押しても
+		if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]) {
+
+			AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
+			//ゲームへ戻る
+			SceneManager::GetInstance().PopScene();
 		}
 	}
 }
@@ -130,50 +120,38 @@ void Pause::Draw()
 	DrawLineBox(dx, dy, dx * 2, dy * 25 / 4, 0xcaaa00, 5);
 
 	dx += Application::SCREEN_SIZE_X / 6;
-	dy += Application::SCREEN_SIZE_Y / 42;
+	dy += Application::SCREEN_SIZE_Y / 40;
 
 	int width = GetDrawFormatStringWidth("一時停止中", SetFontSize(40)) / 2;
 
 	DrawFormatString(dx - width, dy, 0xffffff, "一時停止中", SetFontSize(40));
 
-	dy += Application::SCREEN_SIZE_Y / 6;
+	dy += Application::SCREEN_SIZE_Y / 5;
 	width = GetDrawFormatStringWidth("再開", SetFontSize(30)) / 2;
 
 	DrawFormatString(dx - width, dy, 0xffffff, "再開", SetFontSize(30));
 
-	if (state_ == PAUSE_STATE::CONTINUE) {
+	if (state_ == STATE::CONTINUE) {
 
 		DrawTriangle(dx - 65, dy + 15, dx - 90, dy, dx - 90, dy + 30, 0xffffff, true);
 	}
 
-	dy += Application::SCREEN_SIZE_Y / 6;
-	width = GetDrawFormatStringWidth("設定", SetFontSize(30)) / 2;
-
-	DrawFormatString(dx - width, dy, 0xffffff, "設定", SetFontSize(30));
-	DrawLine(dx - width - 10, dy + 10, dx + width + 10, dy + 10, 0xffffff, 2);
-	DrawLine(dx - width - 10, dy + 20, dx + width + 10, dy + 20, 0xffffff, 2);
-
-	if (state_ == PAUSE_STATE::SETTING) {
-
-		DrawTriangle(dx - 65, dy + 15, dx - 90, dy, dx - 90, dy + 30, 0xffffff, true);
-	}
-
-	dy += Application::SCREEN_SIZE_Y / 6;
+	dy += Application::SCREEN_SIZE_Y / 5;
 	width = GetDrawFormatStringWidth("リタイア", SetFontSize(30)) / 2;
 
 	DrawFormatString(dx - width, dy, 0xffffff, "リタイア", SetFontSize(30));
 
-	if (state_ == PAUSE_STATE::RETURN_TITLE) {
+	if (state_ == STATE::RETURN_TITLE) {
 
 		DrawTriangle(dx - 65, dy + 15, dx - 90, dy, dx - 90, dy + 30, 0xffffff, true);
 	}
 
-	dy += Application::SCREEN_SIZE_Y / 6;
+	dy += Application::SCREEN_SIZE_Y / 5;
 	width = GetDrawFormatStringWidth("終了", SetFontSize(30)) / 2;
 
 	DrawFormatString(dx - width, dy, 0xffffff, "終了", SetFontSize(30));
 
-	if (state_ == PAUSE_STATE::FINISH) {
+	if (state_ == STATE::FINISH) {
 
 		DrawTriangle(dx - 65, dy + 15, dx - 90, dy, dx - 90, dy + 30, 0xffffff, true);
 	}

@@ -1,7 +1,8 @@
 #pragma once
-#include "SceneManager.h"
+#include "SceneBase.h"
 
-class Pause {
+class Pause : public SceneBase
+{
 public:
 
 	//コンストラクタ
@@ -18,28 +19,24 @@ public:
 	//開放
 	void Release();
 
-	//止まっているかどうか
-	bool IsPause() const { return isPause_; }
-	// タイトルに戻っとか
-	bool ReturnTitle() const { return state_ == PAUSE_STATE::RETURN_TITLE; }
-
 private:
 
-	enum class PAUSE_STATE {
+	enum class STATE {
 
-		CONTINUE = 2,
-		SETTING,
+		NON = 1,
+
+		CONTINUE,
 		RETURN_TITLE,
 		FINISH,
+
+		MAX,
 	};
 
 	//メニューの止める位置
 	static constexpr int DOWN = 95;
 
-	//ポーズしているか
-	bool isPause_;
 	//矢印の場所
-	PAUSE_STATE state_;
+	STATE state_;
 
 	//現在のメニューの位置
 	VECTOR pos_;

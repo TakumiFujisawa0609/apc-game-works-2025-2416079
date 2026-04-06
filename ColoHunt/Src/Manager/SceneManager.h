@@ -1,154 +1,94 @@
 #pragma once
-#include <DxLib.h>
-#include <chrono>
-#include "Audio/SoundTable.h"
 
+#include<memory>
+#include<list>
 
 class SceneBase;
-class Fader;
-class Grid;
-class Pause;
 
 class SceneManager
 {
 public:
-
-	static constexpr float GRAVITY = 9.81f;
-
 	// シーン管理用
 	enum class SCENE_ID
 	{
-		NONE,
+		NONE = -1,
+
 		TITLE,
 		GAME,
-		OVER,
 		CLEAR,
+		OVER,
+		PAUSE,
+
+		MAX
 	};
-	
-	// インスタンスの生成
-	static void CreateInstance(void);
 
-	// インスタンスの取得
-	static SceneManager& GetInstance(void);
-
-	// 初期化
-	void Init(void);
-
-	// 更新
-	void Update(void);
-
-	// 描画
-	void Draw(void);
-
-	// リソースの破棄
-	void Destroy(void);
-
-	// 状態遷移
-	void ChangeScene(SCENE_ID nextId);
-
-	// シーンIDの取得
-	SCENE_ID GetSceneID(void) const;
-
-	// デルタタイムの取得
-	float GetDeltaTime(void) const;
-
-	//親クラスの取得
-	SceneBase* GetSceneBase(void) { return scene_; }
-
-	//現在の画面の保存/呼び出し
-	void SetScreenImage(void) const;
-	int GetScreenImage(void) const { return screenImg_; }
-
-	//時間の取得
-	int GetTime(void) { return time_ / 60; }
-	int GetTimer(void) { return timer_ / 60; }
-	//クリアタイムの一時保存
-	void SetTime(void) { time_ = timer_; }
-
-	//被弾回数・アイテム使用回数の取得
-	void SetScore(int damage, int item) { damageNum_ = damage; itemNum_ = item; }
-	int GetDamageNum(void) { return damageNum_; }
-	int GetItemNum(void) { return itemNum_; }
-	
-	//時間の呼び出し
-	std::vector<int> LoadTime(void);
+public:
+	// シングルトン（生成・取得・削除）
+	static void CreateInstance(void) { if (instance_ == nullptr) { instance_ = new SceneManager(); } };
+	static SceneManager& GetInstance(void) { return *instance_; };
+	static void DeleteInstance(void) { if (instance_ != nullptr) { delete instance_; instance_ = nullptr; } }
 
 private:
-
-	//背景の大きさ
-	static constexpr VECTOR BACKGROUND_SCR = { 7.0f, 7.0f, 7.0f };
-
-	//現在の画面を保存するハンドル
-	int screenImg_;
-
-	//時間
-	int timer_;
-	//クリア時間
-	int time_;
-
-	//被弾回数
-	int damageNum_;
-	//アイテム使用回数
-	int itemNum_;
-
-	// 静的インスタンス
-	static SceneManager* instance_;
-
-	//現在のシーンID
-	SCENE_ID sceneId_;
-	//更新待ちのシーンID
-	SCENE_ID waitSceneId_;
-
-	//現在止めてる音のID
-	SoundID pauseId_;
-
-	// グリッド
-	Grid* grid_;
-
-	// フェード
-	Fader* fader_;
-
-	// 各種シーン
-	SceneBase* scene_;
-
-	Pause* pause_;
-
-	int backGround_;
-
-	// シーン遷移中判定
-	bool isSceneChanging_;
-	bool isLoad_;
-
-	int loadImg_;
-	int loadCnt_;
-	
-	bool showFlg_[3];
-	int font_;
-
-	// デルタタイム
-	std::chrono::system_clock::time_point preTime_;
-	float deltaTime_;
-
 	// デフォルトコンストラクタをprivateにして、
 	// 外部から生成できない様にする
 	SceneManager(void);
-
-	// コピーコンストラクタも同様
-	SceneManager(const SceneManager& instance) = default;
-
 	// デストラクタも同様
-	~SceneManager(void) = default;
+	~SceneManager(void);
 
-	// デルタタイムをリセットする
-	void ResetDeltaTime(void);
+	// コピー・ムーブ操作を禁止
+	SceneManager(const SceneManager&) = delete;
+	SceneManager& operator=(const SceneManager&) = delete;
+	SceneManager(SceneManager&&) = delete;
+	SceneManager& operator=(SceneManager&&) = delete;
 
-	// シーン遷移
-	void DoChangeScene(SCENE_ID sceneId);
+public:
 
-	// フェード
-	void Fade(void);
+	void Init(void);	// 初期化
+	void Update(void);	// 更新
+	void Draw(void);	// 描画
+	void Release(void);	// 解放
 
-	void Init3D(void);
+	// 状態遷移
+	void ChangeScene(std::shared_ptr<SceneBase>scene);
+	void ChangeScene(SCENE_ID scene);
 
-	void SaveTime(void);
+	// シーンを新しく積む
+	void PushScene(std::shared_ptr<SceneBase>scene);
+	void PushScene(SCENE_ID scene);
+
+	// 最後に追加したシーンを削除する。
+	void PopScene(void);
+
+	// 強制的に特定のシーンに飛ぶ。リセットをかけ特定のシーンのみにする。
+	void JumpScene(std::shared_ptr<SceneBase>scene);
+	void JumpScene(SCENE_ID scene);
+
+	// シーンIDの取得
+	SCENE_ID GetSceneID(void) const { return sceneId_; };
+
+	const float GetDeltaTime(void)const { return (1.0f / 60); }
+
+	// スコアの一時保存
+	void SetScore(int dam, int item) { damageNum_ = dam; itemNum_ = item; }
+
+	// スコアの取得
+	int GetDamage(void) { return damageNum_; }
+	int GetItem(void) { return itemNum_; }
+
+private:
+	// 静的インスタンス
+	static SceneManager* instance_;
+
+	//Drawの関係上Backを最新のシーンとする
+	//基本的には要素は一つだけだがポーズシーンなどが積み重なる形
+	std::list<std::shared_ptr<SceneBase>>scenes_;
+
+	// シーンID
+	SCENE_ID sceneId_;
+
+	// スコアの一時保存用
+	int damageNum_;
+	int itemNum_;
 };
+
+using SCENE_ID = SceneManager::SCENE_ID;

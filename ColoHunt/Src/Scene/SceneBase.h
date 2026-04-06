@@ -1,5 +1,5 @@
 #pragma once
-
+#include <vector>
 
 class SceneBase
 {
@@ -21,4 +21,7 @@ public:
 	virtual void Draw(void) = 0;
 	// 解放処理
 	virtual void Release(void) = 0;
+
+	//クリア時間のロード
+	std::vector<int>LoadTime(void);
 };
