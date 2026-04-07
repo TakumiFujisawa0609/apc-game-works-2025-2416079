@@ -74,6 +74,26 @@ void Application::Init(void)
 	// 設定する数値によって、ランダムの出方が変わる
 	SRand(date.Year + date.Mon + date.Day + date.Hour + date.Min + date.Sec);
 
+	// Zバッファを有効にする
+	SetUseZBuffer3D(true);
+
+	// Zバッファへの書き込みを有効にする
+	SetWriteZBuffer3D(true);
+
+	// バックカリングを有効にする
+	SetUseBackCulling(true);
+
+	// ライトの設定
+	SetUseLighting(true);
+
+	// ライトの設定
+	ChangeLightTypeDir({ 0.3f, -0.7f, 0.8f });
+
+	// フォグ設定
+	SetFogEnable(true);
+	SetFogColor(5, 5, 5);
+	SetFogStartEnd(10000.0f, 20000.0f);
+
 	// 入力制御初期化
 	SetUseDirectInputFlag(true);
 	KeyMouse::CreateInstance();
@@ -91,6 +111,7 @@ void Application::Init(void)
 
 	// シーン管理初期化
 	SceneManager::CreateInstance();
+	SceneManager::GetInstance().Init();
 
 	fpsControll_ = new FpsControll(FPS);
 
@@ -99,22 +120,16 @@ void Application::Init(void)
 
 void Application::Run(void)
 {
-
-	KeyMouse& inputManager = KeyMouse::GetInstance();
-	Controller& controller = Controller::GetInstance();
-	SceneManager& sceneManager = SceneManager::GetInstance();
-
 	// ゲームループ
 	while (ProcessMessage() == 0 && !isFinish_)
 	{
 
-		inputManager.Update();
-		controller.Update(Controller::JOYPAD_NO::PAD1);
-		sceneManager.Update();
+		Controller::GetInstance().Update(Controller::JOYPAD_NO::PAD1);
+		SceneManager::GetInstance().Update();
 
 		if (!fpsControll_->SkipDrawScene()){
 			
-			sceneManager.Draw();
+			SceneManager::GetInstance().Draw();
 			fpsControll_->Wait();
 		}
 		ScreenFlip();
@@ -134,9 +149,6 @@ void Application::Destroy(void)
 
 	// 入力制御解放
 	Controller::GetInstance().Destroy();
-
-	// 入力制御解放
-	KeyMouse::GetInstance().Destroy();
 
 	//カメラの開放
 	Camera::DeleteInstance();

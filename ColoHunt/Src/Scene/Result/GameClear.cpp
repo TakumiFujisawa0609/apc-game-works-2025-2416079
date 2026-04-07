@@ -28,8 +28,8 @@ void GameClear::Draw(void)
 
 	int time = SceneManager::GetInstance().GetTime();
 	DrawFormatStringToHandle(600, 300, 0xffffff, timeHandle, "%d:%02d", time / 60, time % 60);
-	DrawFormatStringToHandle(550, 650, 0xffffff, scoreHandle, "   被 弾 回 数   : %d", SceneManager::GetInstance().GetDamageNum());
-	DrawFormatStringToHandle(550, 750, 0xffffff, scoreHandle, "アイテム使用回数 : %d", SceneManager::GetInstance().GetItemNum());
+	DrawFormatStringToHandle(550, 650, 0xffffff, scoreHandle, "   被 弾 回 数   : %d", SceneManager::GetInstance().GetDamage());
+	DrawFormatStringToHandle(550, 750, 0xffffff, scoreHandle, "アイテム使用回数 : %d", SceneManager::GetInstance().GetItem());
 }
 
 void GameClear::Release(void)

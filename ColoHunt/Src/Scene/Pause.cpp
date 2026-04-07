@@ -114,13 +114,13 @@ void Pause::Draw()
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
 
 	int dx = Application::SCREEN_SIZE_X / 3;
-	int dy = Application::SCREEN_SIZE_Y / 7 - pos_.y;
+	int dy = Application::SCREEN_SIZE_Y / 7 - (int)pos_.y;
 
 	DrawBox(dx, dy, dx * 2, dy * 25 / 4, 0x000000, true);
 	DrawLineBox(dx, dy, dx * 2, dy * 25 / 4, 0xcaaa00, 5);
 
 	dx += Application::SCREEN_SIZE_X / 6;
-	dy += Application::SCREEN_SIZE_Y / 40;
+	dy += Application::SCREEN_SIZE_Y / 38;
 
 	int width = GetDrawFormatStringWidth("ˆêŽž’âŽ~’†", SetFontSize(40)) / 2;
 

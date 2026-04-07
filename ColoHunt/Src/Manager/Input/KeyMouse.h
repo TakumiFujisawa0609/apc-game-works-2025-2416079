@@ -4,7 +4,6 @@
 
 class KeyMouse
 {
-
 public:
 
 	// インスタンスを明示的に生成
@@ -95,11 +94,14 @@ private:
 	// 外部から生成できない様にする
 	KeyMouse(void);
 
-	// コピーコンストラクタも同様
-	KeyMouse(const KeyMouse& instance) = default;
-
 	// デストラクタも同様
 	~KeyMouse(void) = default;
+
+	// コピー・ムーブ操作を禁止
+	KeyMouse(const KeyMouse&) = delete;
+	KeyMouse& operator=(const KeyMouse&) = delete;
+	KeyMouse(KeyMouse&&) = delete;
+	KeyMouse& operator=(KeyMouse&&) = delete;
 
 	// 配列の中からキー情報を取得する
 	const KeyMouse::Info& Find(int key) const;

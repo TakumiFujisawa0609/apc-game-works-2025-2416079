@@ -18,6 +18,14 @@ Controller& Controller::GetInstance(void)
 	return *inst_;
 }
 
+Controller::Controller(void)
+{
+}
+
+Controller::~Controller(void)
+{
+}
+
 void Controller::Init(void)
 {
 }

@@ -25,7 +25,7 @@ void Loading::Init(void)
 // ì«Ç›çûÇ›
 void Loading::InitLoad(void)
 {
-	LoadGraph((Application::PATH_IMAGE + "Load.png").c_str());
+	handle_ = LoadGraph((Application::PATH_IMAGE + "Load.png").c_str());
 }
 
 // çXêV
@@ -44,6 +44,7 @@ void Loading::Update(void)
 // ï`âÊ
 void Loading::Draw(void)
 {
+	DrawBox(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, 0x000000, true);
 	DrawRotaGraph(posX_, posY_, 0.9, 0.0, handle_, false);
 }
 

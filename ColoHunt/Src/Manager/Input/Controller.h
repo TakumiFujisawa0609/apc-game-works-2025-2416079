@@ -4,8 +4,9 @@
 class Controller {
 
 public:
+
 	// ゲームコントローラーの認識番号
-// DxLib定数、DX_INPUT_PAD1等に対応
+	// DxLib定数、DX_INPUT_PAD1等に対応
 	enum class JOYPAD_NO
 	{
 		KEY_PAD1,			// キー入力とパッド１入力
@@ -98,6 +99,15 @@ public:
 	JOYPAD_TYPE GetJPadType(JOYPAD_NO no) { return GetJPadDType(no); }
 
 private:
+
+	Controller(void);
+	~Controller(void);
+
+	// コピー・ムーブ操作を禁止
+	Controller(const Controller&) = delete;
+	Controller& operator=(const Controller&) = delete;
+	Controller(Controller&&) = delete;
+	Controller& operator=(Controller&&) = delete;
 
 	//インスタンス
 	static Controller* inst_;

@@ -27,6 +27,8 @@ void TitleScene::InitLoad(void)
 
 void TitleScene::Init(void)
 {
+	state_ = STATE::LOGO;
+	select_ = SELECT::PLAY;
 	fader_ = new Fader();
 	times_ = LoadTime();
 

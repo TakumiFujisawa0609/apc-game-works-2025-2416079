@@ -60,6 +60,9 @@ private:
 	int failedImg_;
 	int clearImg_;
 
+	// 背景モデルのハンドル
+	int backGroundHandle_;
+
 	//描画用のイメージハンドル
 	int drawHandle_;
 

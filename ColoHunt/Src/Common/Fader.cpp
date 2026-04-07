@@ -83,7 +83,6 @@ void Fader::Update(void)
 
 void Fader::Draw(void)
 {
-
 	switch (state_)
 	{
 	case STATE::NONE:

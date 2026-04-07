@@ -4,6 +4,7 @@
 #include<list>
 
 class SceneBase;
+class Fader;
 
 class SceneManager
 {
@@ -70,12 +71,21 @@ public:
 
 	// スコアの一時保存
 	void SetScore(int dam, int item) { damageNum_ = dam; itemNum_ = item; }
+	void SetTime(int time) { time_ = time; }
 
 	// スコアの取得
 	int GetDamage(void) { return damageNum_; }
 	int GetItem(void) { return itemNum_; }
+	int GetTime(void) { return time_; }
+
+	// 画面のイメージ保存
+	void SetScreenImage(void);
+
+	// 画面のイメージ呼び出し
+	int GetScreenImage(void) { return imgHandle_; }
 
 private:
+
 	// 静的インスタンス
 	static SceneManager* instance_;
 
@@ -85,8 +95,16 @@ private:
 
 	// シーンID
 	SCENE_ID sceneId_;
+	SCENE_ID waitSceneId_;
+
+	//フェードのポインター
+	Fader* fader_;
+
+	// 画面のイメージ保存用ハンドル
+	int imgHandle_;
 
 	// スコアの一時保存用
+	int time_;
 	int damageNum_;
 	int itemNum_;
 };

@@ -1,4 +1,5 @@
 #pragma once
+#include <DxLib.h>
 #include "SceneBase.h"
 
 class Pause : public SceneBase
@@ -10,14 +11,16 @@ public:
 	//デストラクタ
 	~Pause();
 
-	//初期化
-	void Init(void);
+	//ロード
+	void InitLoad(void) override {};
+	//その他の初期化
+	void Init(void) override;
 	//更新
-	void Update();
+	void Update(void) override;
 	//描画
-	void Draw();
-	//開放
-	void Release();
+	void Draw(void) override;
+	//解放
+	void Release(void) override;
 
 private:
 

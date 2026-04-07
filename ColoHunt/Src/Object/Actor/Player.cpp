@@ -303,6 +303,7 @@ void Player::Damage(int damage, float dir)
 	if (hp_ - damaged_ <= 0) {
 
 		autoHealHp_ = 0;
+		// uŠÔ‚Ì‰æ–Ê‚ÌƒCƒ[ƒW•Û‘¶
 		SceneManager::GetInstance().SetScreenImage();
 		DoChangeState(STATE::KO);
 	}

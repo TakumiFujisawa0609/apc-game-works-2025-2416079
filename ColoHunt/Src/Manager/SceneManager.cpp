@@ -1,12 +1,14 @@
 #include "SceneManager.h"
 #include <DxLib.h>
 #include "../Manager/Input/Controller.h"
+#include "../Application.h"
 #include "../Scene/Loading.h"
 #include"../Scene/TitleScene.h"
 #include"../Scene/GameScene.h"
 #include"../Scene/Result/GameClear.h"
 #include"../Scene/Result/GameOver.h"
 #include "../Scene/Pause.h"
+#include "../Common/Fader.h"
 
 SceneManager* SceneManager::instance_ = nullptr;
 
@@ -29,7 +31,15 @@ void SceneManager::Init(void)
 	Loading::GetInstance()->Init();
 	Loading::GetInstance()->InitLoad();
 
+	// フェーダーの初期化
+	fader_ = new Fader();
+	fader_->Init();
+
+	// 画面イメージ保存用の準備
+	imgHandle_ = MakeGraph(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, TRUE);
+
 	// 最初はタイトル画面から
+	waitSceneId_ = SCENE_ID::NONE;
 	ChangeScene(SCENE_ID::TITLE);
 }
 
@@ -37,31 +47,55 @@ void SceneManager::Init(void)
 // 更新
 void SceneManager::Update(void)
 {
-	// シーンがなければ終了
-	if (scenes_.empty()) { return; }
+	// フェーダーが起動中
+	if (fader_->GetState() != Fader::STATE::NONE) {
 
-	// ロード中
-	if (Loading::GetInstance()->IsLoading())
-	{
-		// ロード更新
-		Loading::GetInstance()->Update();
+		// フェーダーの更新
+		fader_->Update();
 
-		// ロードの更新が終了していたら
-		if (Loading::GetInstance()->IsLoading() == false)
-		{
-			// ロード後の初期化
-			scenes_.back()->Init();
+		// フェードアウト、フェードイン終了
+		if (fader_->IsEnd()) {
+
+			// フェードアウトの終了
+			if (fader_->GetState() == Fader::STATE::FADE_OUT) {
+
+				// シーンを切り替える
+				ChangeScene(waitSceneId_);
+			}
+
+			// フェーダーを消す
+			fader_->SetFade(Fader::STATE::NONE);
 		}
-	}		
-	// 通常の更新処理
-	else
-	{
-		// 現在のシーンの更新
-		scenes_.back()->Update();
+	}
+	else {
+		// ロード中
+		if (Loading::GetInstance()->IsLoading())
+		{
+			// ロード更新
+			Loading::GetInstance()->Update();
 
-		if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]) {
+			// ロードの更新が終了していたら
+			if (Loading::GetInstance()->IsLoading() == false)
+			{
+				// ロード後の初期化
+				scenes_.back()->Init();
+				// フェードイン
+				fader_->SetFade(Fader::STATE::FADE_IN);
+			}
+		}
+		// 通常の更新処理
+		else
+		{
+			if (fader_->IsEnd()) {
 
-			PushScene(SCENE_ID::PAUSE);
+				// 現在のシーンの更新
+				scenes_.back()->Update();
+
+				if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]) {
+
+					PushScene(SCENE_ID::PAUSE);
+				}
+			}
 		}
 	}
 }
@@ -83,6 +117,8 @@ void SceneManager::Draw(void)
 		{
 			scene->Draw();
 		}
+		// フェーダーが最優先
+		fader_->Draw();
 	}
 }
 
@@ -116,7 +152,6 @@ void SceneManager::ChangeScene(std::shared_ptr<SceneBase>scene)
 		scenes_.back()->Release();
 		scenes_.back() = scene;
 	}
-
 	// 読み込み(非同期)
 	Loading::GetInstance()->StartAsyncLoad();
 	scenes_.back()->InitLoad();
@@ -125,35 +160,44 @@ void SceneManager::ChangeScene(std::shared_ptr<SceneBase>scene)
 
 void SceneManager::ChangeScene(SCENE_ID scene)
 {
-	switch (scene)
-	{
-	case SCENE_ID::TITLE:
+	// 一度目なら
+	if (waitSceneId_ != scene) {
 
-		ChangeScene(std::make_shared<TitleScene>());
-		break;
+		// 待機、フェードアウト開始して返す
+		waitSceneId_ = scene;
+		fader_->SetFade(Fader::STATE::FADE_OUT);
+	}
+	else {
+		switch (scene)
+		{
+		case SCENE_ID::TITLE:
 
-	case SCENE_ID::GAME:
-		
-		ChangeScene(std::make_shared<GameScene>());
-		break;
-	
-	case SCENE_ID::CLEAR:
+			ChangeScene(std::make_shared<TitleScene>());
+			break;
 
-		ChangeScene(std::make_shared<GameClear>());
-		break;
+		case SCENE_ID::GAME:
 
-	case SCENE_ID::OVER:
-		
-		ChangeScene(std::make_shared<GameOver>());
-		break;
+			ChangeScene(std::make_shared<GameScene>());
+			break;
 
-	case SCENE_ID::PAUSE:
+		case SCENE_ID::CLEAR:
 
-		ChangeScene(std::make_shared<Pause>());
-		break;
+			ChangeScene(std::make_shared<GameClear>());
+			break;
 
-	default:
-		break;
+		case SCENE_ID::OVER:
+
+			ChangeScene(std::make_shared<GameOver>());
+			break;
+
+		case SCENE_ID::PAUSE:
+
+			ChangeScene(std::make_shared<Pause>());
+			break;
+
+		default:
+			break;
+		}
 	}
 }
 
@@ -251,4 +295,9 @@ void SceneManager::JumpScene(SCENE_ID scene)
 	default:
 		break;
 	}
+}
+
+void SceneManager::SetScreenImage(void)
+{
+	GetDrawScreenGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, imgHandle_);
 }

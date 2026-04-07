@@ -38,7 +38,8 @@ std::vector<int> SceneBase::LoadTime(void)
 	if (!ifs) {
 
 		// エラーが発生
-		return;
+		std::vector<int> error{};
+		return error;
 	}
 	// ファイルを１行ずつ読み込む
 	std::string line;

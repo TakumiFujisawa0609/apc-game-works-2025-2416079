@@ -250,8 +250,8 @@ void Enemy::Damage(int damage)
 	//HPがゼロならクリア
 	if (hp_ <= 0 && !clearFlg_) {
 
+		// 画面のイメージのみ瞬間を保存させる
 		SceneManager::GetInstance().SetScreenImage();
-		SceneManager::GetInstance().SetTime();
 		ChangeState(STATE::KO);
 	}
 }

@@ -52,6 +52,7 @@ void GameScene::InitLoad(void)
 
 	timerHandle_ = CreateFontToHandle("Monserhunterfonts Xtype", 45, 3, DX_FONTTYPE_ANTIALIASING_EDGE_4X4);
 
+	backGroundHandle_ = MV1LoadModel((Application::PATH_MODEL + "Sky.mv1").c_str());
 	lockOnImg_ = LoadGraph((Application::PATH_IMAGE + "LockOn.png").c_str());
 	failedImg_ = LoadGraph((Application::PATH_IMAGE + "Failed.png").c_str());
 	clearImg_ = LoadGraph((Application::PATH_IMAGE + "Clear.png").c_str());
@@ -105,6 +106,10 @@ void GameScene::Init(void)
 		
 		blurImg_[i] = MakeScreen(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, TRUE);
 	}
+
+	// 背景の設定
+	MV1SetPosition(backGroundHandle_, { 0.0f, 0.0f, 0.0f });
+	MV1SetScale(backGroundHandle_, { 8.0f, 8.0f, 8.0f });
 }
 
 void GameScene::Update(void)
@@ -150,20 +155,19 @@ void GameScene::Update(void)
 		hitStopCnt_--;
 	}
 
-	// 敵が死んでなければタイマーを進める
-	if (!enemy_->ClearFlg()) {
-
-		time_++;
-	}
-
 	// 敵が死んだ
 	if (enemy_->ClearFlg()) {
 		// 1カウント目に
 		if (changeCnt_ <= 1) {
 
+			// タイム、スコアの保存
+			SceneManager::GetInstance().SetTime(time_);
+			SceneManager::GetInstance().SetScore(damageNum_, item_->GetItemNum());
+
 			// SEを消す
 			AudioManager::GetInstance()->StopSE();
 			player_->NoSe();
+			
 			// BGMを鳴らす
 			AudioManager::GetInstance()->PlayBGM(SoundID::BGM_CLEAR);
 			AudioManager::GetInstance()->SetBgmVolume(185);
@@ -186,39 +190,45 @@ void GameScene::Update(void)
 			// 経ったら
 			if (changeCnt_ >= 90) {
 
-				// スコアを保存してシーンを変える
-				SceneManager::GetInstance().SetScore(damageNum_, item_->GetItemNum());
+				// シーンを変える
 				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
 			}
 		}
 	}
-	// プレイヤーが死んだ
-	else if (player_->OverFlg()) {
-		// 1カウント目に
-		if (changeCnt_ <= 1) {
+	//敵が死んでない
+	else {
 
-			// BGMを鳴らす
-			AudioManager::GetInstance()->PlayBGM(SoundID::BGM_GAMEOVER);
-		}
-		// シーンが変わるフラグ判定
-		if (!changeFlg_) {
-			// アニメーションが終わりカメラ演出が終わったら
-			if (player_->GetPlayerAnim()->IsEnd()) {
+		// タイムの加算
+		time_++;
+		
+		// プレイヤーが死んだ
+		if (player_->OverFlg()) {
+			// 1カウント目に
+			if (changeCnt_ <= 1) {
 
-				//シーンが変わる
-				changeFlg_ = true;
-				changeCnt_ = 0;
+				// BGMを鳴らす
+				AudioManager::GetInstance()->PlayBGM(SoundID::BGM_GAMEOVER);
 			}
-		}
-		else {
+			// シーンが変わるフラグ判定
+			if (!changeFlg_) {
+				// アニメーションが終わりカメラ演出が終わったら
+				if (player_->GetPlayerAnim()->IsEnd()) {
 
-			// 90カウントまで失敗ロゴを出す
-			changeCnt_++;
+					//シーンが変わる
+					changeFlg_ = true;
+					changeCnt_ = 0;
+				}
+			}
+			else {
 
-			if (changeCnt_ >= 90) {
+				// 90カウントまで失敗ロゴを出す
+				changeCnt_++;
 
-				//シーンを変える
-				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::OVER);
+				if (changeCnt_ >= 90) {
+
+					//シーンを変える
+					SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::OVER);
+				}
 			}
 		}
 	}
@@ -251,10 +261,7 @@ void GameScene::SetBlur(void)
 
 void GameScene::MakeSquereVertex(void)
 {
-
-	// 毎回頂点データを作成するのは無駄ですが、
-	// シェーダー追加時の作業を減らすため、毎フレーム作成
-
+	// 頂点データの作成
 	int cnt = 0;
 	float sX = static_cast<float>(0);
 	float sY = static_cast<float>(0);
@@ -704,6 +711,11 @@ void GameScene::Draw(void)
 		enemy_->DrawModel();
 
 		ShadowMap_DrawEnd();
+
+		// 背景の描画
+		SetUseLighting(false);
+		MV1DrawModel(backGroundHandle_);
+		SetUseLighting(true);
 
 		//影を落とすものの描画
 		SetUseShadowMap(0, shadowMap_);
