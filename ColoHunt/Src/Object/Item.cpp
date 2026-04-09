@@ -4,7 +4,7 @@
 #include "../Manager/Input/Controller.h"
 
 
-Item::Item(void)
+Item::Item(void) : itemImg_(),itemNum_(), nowKey_(), prevKey_(), type_(), useNum_(), useType_(), use_()
 {
 }
 
@@ -43,7 +43,7 @@ void Item::Init(void)
 		}
 	}
 	type_ = TYPE::HP;
-	use_ = prevUse_ = false;
+	use_  = false;
 	useNum_ = 0;
 }
 
@@ -53,81 +53,118 @@ void Item::Update(void)
 	//ゲームパッドの情報を取得
 	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
 
+	// 今のアイテムをintに変換
+	int itemNo = static_cast<int>(type_);
+	// 今のアイテムの位置を覚える
+	int prevNo = itemNo;
+
+	// 右を押したとき
 	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT_DPAD)]) {
 
-		int itemNo = static_cast<int>(type_);
-		int prevNo = itemNo;
+		// 右にずらす
 		itemNo++;
 
+		// 一番右なら
 		if (itemNo >= static_cast<int>(TYPE::MAX)) {
 
+			// 一番左に戻す
 			itemNo = 0;
 		}
+		// 移動先のアイテム数がゼロなら
 		while (itemNum_[itemNo] <= 0) {
 
+			// 右にずらす
 			itemNo++;
+
+			// 一番右なら
 			if (itemNo >= static_cast<int>(TYPE::MAX)) {
 
+				// 一番左に戻す
 				itemNo = 0;
 			}
+			// 一周してるなら返す
 			if (itemNo == prevNo) {
 
 				break;
 			}
 		}
-		type_ = static_cast<TYPE>(itemNo);
 	}
-	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::LEFT_DPAD)]) {
-		
-		int itemNo = static_cast<int>(type_);
-		int prevNo = itemNo;
+	// 左を押したとき
+	else if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::LEFT_DPAD)]) {
+
+		// 左にずらす
 		itemNo--;
 
+		// 一番左なら
 		if (itemNo < 0) {
 
+			// 一番右に戻す
 			itemNo = static_cast<int>(TYPE::MAX) - 1;
 		}
+		// 移動先のアイテム数がゼロなら
 		while (itemNum_[itemNo] <= 0) {
 
+			// 左にずらす
 			itemNo--;
+			
+			// 一番左なら
 			if (itemNo < 0) {
 
+				// 一番右に戻す
 				itemNo = static_cast<int>(TYPE::MAX) - 1;
 			}
+			// 一周してるなら返す
 			if (itemNo == prevNo) {
 
 				break;
 			}
 		}
-		type_ = static_cast<TYPE>(itemNo);
 	}
+	// intをアイテムに戻す
+	type_ = static_cast<TYPE>(itemNo);
 
+	// 念のためアイテムがある場合
 	if (itemNum_[static_cast<int>(type_)] > 0) {
-		if (use_ && !prevUse_) {
+		// 使うフラグが立ったら
+		if (use_) {
 
+			// 使った
 			useType_ = type_;
 			itemNum_[static_cast<int>(type_)]--;
 			useNum_++;
 			
+			// アイテムがなくなった
 			if (itemNum_[static_cast<int>(type_)] <= 0) {
 
+				// 今のアイテムをintに変換
 				int itemNo = static_cast<int>(type_);
+				// 今のアイテムの位置を覚える
 				int prevNo = itemNo;
+				// アイテムを右にずらす
 				itemNo++;
 
+				// 一番右なら
 				if (itemNo >= static_cast<int>(TYPE::MAX)) {
 
+					// 一番左に戻す
 					itemNo = 0;
 				}
+				// 移動先のアイテムがないなら
 				while (itemNum_[itemNo] <= 0) {
 
+					// アイテムを右にずらす
 					itemNo++;
+					
+					// 一番右なら
 					if (itemNo >= static_cast<int>(TYPE::MAX)) {
 
+						// 一番左に戻す
 						itemNo = 0;
 					}
+					// 一周してるなら
 					if (itemNo == prevNo) {
 
+						// 非表示ように-1をいれて返す
 						itemNo = -1;
 						break;
 					}
@@ -136,11 +173,10 @@ void Item::Update(void)
 			}
 		}
 	}
-	prevUse_ = use_;
 	use_ = false;
 }
 
-void Item::Draw(void)
+void Item::Draw(void) const
 {
 	float dxF = Application::SCREEN_SIZE_X - 100.0f;
 	float dyF = Application::SCREEN_SIZE_Y - 100.0f;
@@ -151,7 +187,7 @@ void Item::Draw(void)
 	DrawBox(dx - 40, dy - 40, dx + 40, dy + 40, 0x222255, true);
 	if (itemNo != -1) {
 	
-		DrawRotaGraph(dxF, dyF, 1.0f, 0.0f, itemImg_[itemNo], true);
+		DrawRotaGraph(dx, dy, 1.0f, 0.0f, itemImg_[itemNo], true);
 	}
 	DrawLine(dx - 40, dy - 38, dx + 40, dy - 38, 0xeeee33, 4);
 	DrawLine(dx - 38, dy - 36, dx - 38, dy + 40, 0xeeee33, 4);
@@ -171,7 +207,7 @@ void Item::Draw(void)
 	}
 }
 
-void Item::Release(void)
+void Item::Release(void) const
 {
 	for (int i = static_cast<int>(TYPE::MAX) -1; i >= 0; i--){
 

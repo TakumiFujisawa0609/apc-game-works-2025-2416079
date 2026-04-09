@@ -1,5 +1,4 @@
 #include <DxLib.h>
-#include <iostream>
 #include <fstream>
 #include "SceneBase.h"
 #include "../Application.h"

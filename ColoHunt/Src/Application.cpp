@@ -6,6 +6,7 @@
 #include "Manager/FpsControll.h"
 #include "Manager/Camera.h"
 #include "Manager/Audio/AudioManager.h"
+#include "Manager/Parameter/Parameter.h"
 #include "Application.h"
 
 Application* Application::instance_ = nullptr;
@@ -91,8 +92,14 @@ void Application::Init(void)
 
 	// フォグ設定
 	SetFogEnable(true);
-	SetFogColor(5, 5, 5);
-	SetFogStartEnd(10000.0f, 20000.0f);
+	// フォグの色
+	SetFogColor(200, 200, 200);
+	// フォグを発生させる奥行きの最小、最大距離
+	SetFogStartEnd(12000.0f, 14000.0f);
+
+	// 定数の呼び込み
+	Parameter::CreateInstance();
+	Parameter::GetInstance()->LoadParameter();
 
 	// 入力制御初期化
 	SetUseDirectInputFlag(true);

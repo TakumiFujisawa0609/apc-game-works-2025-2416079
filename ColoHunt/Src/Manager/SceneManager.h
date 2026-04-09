@@ -1,5 +1,5 @@
 #pragma once
-
+#include <vector>
 #include<memory>
 #include<list>
 
@@ -64,9 +64,7 @@ public:
 	void JumpScene(std::shared_ptr<SceneBase>scene);
 	void JumpScene(SCENE_ID scene);
 
-	// シーンIDの取得
-	SCENE_ID GetSceneID(void) const { return sceneId_; };
-
+	// デルタタイムの取得
 	const float GetDeltaTime(void)const { return (1.0f / 60); }
 
 	// スコアの一時保存
@@ -79,7 +77,7 @@ public:
 	int GetTime(void) { return time_; }
 
 	// 画面のイメージ保存
-	void SetScreenImage(void);
+	void SetScreenImage(void) const;
 
 	// 画面のイメージ呼び出し
 	int GetScreenImage(void) { return imgHandle_; }
@@ -94,7 +92,7 @@ private:
 	std::list<std::shared_ptr<SceneBase>>scenes_;
 
 	// シーンID
-	SCENE_ID sceneId_;
+	std::vector<SCENE_ID> sceneId_;
 	SCENE_ID waitSceneId_;
 
 	//フェードのポインター

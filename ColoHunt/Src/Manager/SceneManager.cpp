@@ -13,8 +13,7 @@
 SceneManager* SceneManager::instance_ = nullptr;
 
 // コンストラクタ
-SceneManager::SceneManager(void):
-	sceneId_(SCENE_ID::NONE)
+SceneManager::SceneManager(void) : sceneId_(), damageNum_(), fader_(), imgHandle_(), itemNum_(), time_(), waitSceneId_()
 {
 }
 
@@ -84,17 +83,20 @@ void SceneManager::Update(void)
 			}
 		}
 		// 通常の更新処理
-		else
-		{
+		else{
 			if (fader_->IsEnd()) {
 
+				// ポーズ解除後すぐに入るのを防ぐため先に判断する
+				// ゲームシーンのときのみ
+				if (sceneId_.back() == SCENE_ID::GAME) {
+					if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]) {
+
+						// ポーズに入る
+						PushScene(SCENE_ID::PAUSE);
+					}
+				}
 				// 現在のシーンの更新
 				scenes_.back()->Update();
-
-				if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]) {
-
-					PushScene(SCENE_ID::PAUSE);
-				}
 			}
 		}
 	}
@@ -168,6 +170,13 @@ void SceneManager::ChangeScene(SCENE_ID scene)
 		fader_->SetFade(Fader::STATE::FADE_OUT);
 	}
 	else {
+		// 現在のシーンを保存
+		if (!scenes_.empty()){
+
+			sceneId_.pop_back();
+		}
+		sceneId_.push_back(scene);
+
 		switch (scene)
 		{
 		case SCENE_ID::TITLE:
@@ -211,6 +220,14 @@ void SceneManager::PushScene(std::shared_ptr<SceneBase> scene)
 
 void SceneManager::PushScene(SCENE_ID scene)
 {
+	// 同じシーンを積まないために
+	if (sceneId_.back() == scene) {
+
+		return;
+	}
+	// 現在のシーンを保存
+	sceneId_.push_back(scene);
+
 	switch (scene)
 	{
 	case SCENE_ID::TITLE:
@@ -248,6 +265,7 @@ void SceneManager::PopScene(void)
 	//積んであるものを消して、もともとあったものを末尾にする
 	if (scenes_.size() > 1) 
 	{
+		sceneId_.pop_back();
 		scenes_.back()->Release();
 		scenes_.pop_back();
 	}
@@ -265,6 +283,18 @@ void SceneManager::JumpScene(std::shared_ptr<SceneBase> scene)
 
 void SceneManager::JumpScene(SCENE_ID scene)
 {
+	// 同じシーンに飛ばないために
+	if (sceneId_.back() == scene) {
+
+		return;
+	}
+	// 現在のシーンを保存
+	if (!scenes_.empty()) {
+
+		sceneId_.pop_back();
+	}
+	sceneId_.push_back(scene);
+
 	switch (scene)
 	{
 	case SCENE_ID::TITLE:
@@ -297,7 +327,7 @@ void SceneManager::JumpScene(SCENE_ID scene)
 	}
 }
 
-void SceneManager::SetScreenImage(void)
+void SceneManager::SetScreenImage(void) const
 {
 	GetDrawScreenGraph(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, imgHandle_);
 }

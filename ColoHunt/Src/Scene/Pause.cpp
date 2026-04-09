@@ -2,12 +2,11 @@
 #include <DxLib.h>
 #include "../Manager/SceneManager.h"
 #include "../Manager/Input/Controller.h"
-#include "../Manager/Audio/AudioManager.h"
 #include "../Utility/Utility.h"
 #include "../Application.h"
 
 
-Pause::Pause() : state_(STATE::CONTINUE), pos_(Utility::VECTOR_ZERO)
+Pause::Pause() : state_(STATE::CONTINUE), pos_(Utility::VECTOR_ZERO), pauseBGM_()
 {
 }
 
@@ -19,6 +18,8 @@ void Pause::Init(void)
 {
 	state_ = STATE::CONTINUE;
 	pos_.y = Application::SCREEN_SIZE_Y;
+	pauseBGM_ = AudioManager::GetInstance()->PauseBGM();
+	AudioManager::GetInstance()->StopSE();
 }
 
 void Pause::Update()
@@ -78,6 +79,7 @@ void Pause::Update()
 			case Pause::STATE::CONTINUE:
 
 				AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
+				AudioManager::GetInstance()->PlayBGM(pauseBGM_);
 				//ÉQÅ[ÉÄÇ÷ñﬂÇÈ
 				SceneManager::GetInstance().PopScene();
 				break;
@@ -101,6 +103,7 @@ void Pause::Update()
 		if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]) {
 
 			AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
+			AudioManager::GetInstance()->PlayBGM(pauseBGM_);
 			//ÉQÅ[ÉÄÇ÷ñﬂÇÈ
 			SceneManager::GetInstance().PopScene();
 		}

@@ -24,7 +24,7 @@
 GameScene::GameScene(void) : enemy_(nullptr), hitFlgE_(false), hitFlgP_(false), isLockon_(false), item_(nullptr), pitch_(DEFAULT_TILT), yaw_(DEFAULT_YAW),
 	shadowMap_(-1), stage_(nullptr), player_(nullptr), cntDown_(false), cnt_(10), lockOnImg_(-1), changeCnt_(0), changeFlg_(false), clearCamera_(false),
 	shakeCnt_(0), blurFlg_(false), blurCnt_(0), timerHandle_(-1), shakeWidVer_(0.0f), shakeWidSide_(0.0f), shader_(0), shaderConstBuff_(0), mVertex_(),
-	mIndex_(), hitStopCnt_(0), failedImg_(-1), clearImg_(-1), drawHandle_(-1), damageNum_(0), blurImg_(-1)
+	mIndex_(), hitStopCnt_(0), failedImg_(-1), clearImg_(-1), drawHandle_(-1), damageNum_(0), blurImg_(-1), time_(0.0f)
 {
 }
 
@@ -81,7 +81,7 @@ void GameScene::Init(void)
 
 	CollisionStage();
 
-	VECTOR headPos = VAdd(player_->GetTransform().pos, { 0.0f, 180.0f, 0.0f });
+	VECTOR headPos = VAdd(player_->GetTransform().pos, PLAYER_HEAD_POS);
 	SetCameraPos(headPos, CAMERA_TO_PLAYER);
 
 	hitFlgE_ = false;
@@ -142,6 +142,7 @@ void GameScene::Update(void)
 	item_->Update();
 	enemy_->Update();
 	GameCamera();
+	UpdateEffekseer3D();
 
 	// ステージの更新
 	stage_->Update();
@@ -161,7 +162,7 @@ void GameScene::Update(void)
 		if (changeCnt_ <= 1) {
 
 			// タイム、スコアの保存
-			SceneManager::GetInstance().SetTime(time_);
+			SceneManager::GetInstance().SetTime(static_cast<int>(time_));
 			SceneManager::GetInstance().SetScore(damageNum_, item_->GetItemNum());
 
 			// SEを消す
@@ -199,7 +200,7 @@ void GameScene::Update(void)
 	else {
 
 		// タイムの加算
-		time_++;
+		time_ += SceneManager::GetInstance().GetDeltaTime();
 		
 		// プレイヤーが死んだ
 		if (player_->OverFlg()) {
@@ -452,9 +453,9 @@ void GameScene::Collision(void)
 
 void GameScene::CollisionStage(void)
 {
-	CollisionManager::GetInstance().PushBack(stage_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 75.0f, 0.15f);
-	CollisionManager::GetInstance().PushBack(enemy_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 20.0f, 0.1f);
-	CollisionManager::GetInstance().PushBack(stage_->GetOwnColliders(), enemy_->GetOwnColliders(), &enemy_->GetTransform(), 50.0f, 0.1f);
+	CollisionManager::GetInstance().PushBack(stage_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 75, 0.15f);
+	CollisionManager::GetInstance().PushBack(enemy_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 20, 0.1f);
+	CollisionManager::GetInstance().PushBack(stage_->GetOwnColliders(), enemy_->GetOwnColliders(), &enemy_->GetTransform(), 50, 0.1f);
 	
 	if (enemy_->IsAttackA()) {
 		if (CollisionManager::GetInstance().IsHitSphere(stage_->GetOwnColliders(), enemy_->GetShotColliders())) {
@@ -492,7 +493,7 @@ void GameScene::CollisionCamera(void)
 void GameScene::GameCamera(void)
 {
 	//カメラのインスタンスとプレイヤーの注視点の位置を取る
-	VECTOR headPos = VAdd(player_->GetTransform().pos, { 0.0f, 180.0f, 0.0f });
+	VECTOR headPos = VAdd(player_->GetTransform().pos, PLAYER_HEAD_POS);
 	headPos.x += shakeWidSide_ * cos(player_->GetTransform().rot.y);
 	headPos.y += shakeWidVer_;
 	headPos.z += shakeWidSide_ * sin(player_->GetTransform().rot.y);
@@ -752,7 +753,7 @@ void GameScene::Draw(void)
 		DrawTriangle(10, 80, 30, 95, 30, 80, 0x000000, true);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
-	DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", time_ / 60, time_ % 60);
+	DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", (int)time_ / 60, (int)time_ % 60);
 
 	if (changeFlg_) {
 

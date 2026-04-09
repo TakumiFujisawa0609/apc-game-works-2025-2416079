@@ -15,8 +15,8 @@
 #include "../Item.h"
 
 
-Player::Player(Item* itm): ActorBase(), item_(itm), autoHealCnt_(0), autoHealHp_(0), speed_(), effectSize_(), effectCnt_(), dodge_(), damaged_(),
-	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(false), knockBackDir_(0.0f),
+Player::Player(Item* itm): ActorBase(), item_(itm), autoHealCnt_(0), autoHealHp_(0), speed_(), effectSize_(), effectCnt_(), dodge_(), damaged_(), swordPosEnd_(),
+	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(false), knockBackDir_(0.0f), swordPosSta_(),
 	overFlg_(false), power_(0), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),se_(true), dodgeStamina_(DODGE_STAMINA),
 	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),	barStaEY_(), barStaSY_(), damage_(BASIC_DAMAGE), goodDodge_(), greatDodge_(), guageEX_(),
 	guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(), powerUp_(), powerUpCnt_(), effectBottomPos_(), effectTopPos_(), buff_(1.0), effectType_(EFFECT::NON)
@@ -445,8 +445,8 @@ void Player::Status(void)
 		if (power_ >= MAX_POWER) {
 
 			power_ = MAX_POWER;
-			damage_ = BASIC_DAMAGE * 1.5;
-			dodgeStamina_ = DODGE_STAMINA / 2;
+			damage_ = (int)(BASIC_DAMAGE * 1.5);
+			dodgeStamina_ = DODGE_STAMINA / 2.0f;
 			powerUp_ = true;
 		}
 	}
@@ -561,12 +561,12 @@ void Player::FindHpAndPower(void)
 
 	GetSoftImageSize(powerGauge_, &dx, &dy);
 
-	float gx = 0;;
+	int gx = 0;
 
-	for (float y = 0; y < static_cast<float>(dy); y++) {
-		for (float x = 0; x <= static_cast<float>(dx); x++) {
+	for (int y = 0; y < dy; y++) {
+		for (int x = 0; x <= dx; x++) {
 
-			GetPixelSoftImage(powerGauge_, static_cast<int>(x), static_cast<int>(y), &r, &g, &b, &a);
+			GetPixelSoftImage(powerGauge_, x, y, &r, &g, &b, &a);
 
 			//真っ青な部分を探す
 			if (r == 0 && g == 0 && b == 255 && a > 0) {
@@ -625,18 +625,18 @@ void Player::DrawHpAndPower(void) const
 	}
 
 	//一番長いサイズをゲージのマックス値分する
-	float powerRate = (guageEX_.front() - guageSX_) / MAX_POWER;
-	float power = guageSX_ + powerRate * power_;
+	float powerRate = (static_cast<float>(guageEX_.front()) - static_cast<float>(guageSX_)) / static_cast<float>(MAX_POWER);
+	float power = static_cast<float>(guageSX_) + powerRate * static_cast<float>(power_);
 
-	for (float y = 0; y < guageEX_.size(); y++) {
+	for (int y = 0; y < guageEX_.size(); y++) {
 
-		float dy = y + guageSY_;
+		int dy = y + guageSY_;
 		DrawLineSoftImage(powerGauge_, guageSX_, dy, guageEX_.at(y), dy, 100, 100, 100, 255);
 
 		if (!powerUp_) {
-			if (power <= guageEX_.at(y)) {
+			if (power <= static_cast<float>(guageEX_.at(y))) {
 
-				DrawLineSoftImage(powerGauge_, guageSX_, dy, power, dy, 255, 0, 0, 255);
+				DrawLineSoftImage(powerGauge_, guageSX_, dy, static_cast<int>(power), dy, 255, 0, 0, 255);
 			}
 			else {
 
@@ -645,9 +645,9 @@ void Player::DrawHpAndPower(void) const
 		}
 		else {
 			int color = abs(powerUpCnt_ % 30 - 15) * 17;
-			if (power <= guageEX_.at(y)) {
+			if (power <= static_cast<float>(guageEX_.at(y))) {
 
-				DrawLineSoftImage(powerGauge_, guageSX_, dy, power, dy, 255, color, color, 255);
+				DrawLineSoftImage(powerGauge_, guageSX_, dy, static_cast<int>(power), dy, 255, color, color, 255);
 			}
 			else {
 

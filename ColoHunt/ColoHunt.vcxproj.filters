@@ -39,6 +39,7 @@
     <ClInclude Include="Src\Object\Collision\CollisionManager.h" />
     <ClInclude Include="Src\Scene\Loading.h" />
     <ClInclude Include="Src\Manager\SceneManager.h" />
+    <ClInclude Include="Src\Manager\Parameter\Parameter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\main.cpp" />
@@ -79,6 +80,7 @@
     <ClCompile Include="Src\Object\Collision\CollisionManager.cpp" />
     <ClCompile Include="Src\Scene\Loading.cpp" />
     <ClCompile Include="Src\Manager\SceneManager.cpp" />
+    <ClCompile Include="Src\Manager\Parameter\Parameter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Data\Icon\icon.rc" />

@@ -33,7 +33,8 @@ public:
 private:
 	
 	//カメラとプレイヤーの距離
-	static constexpr float CAMERA_TO_PLAYER = 350.0f;
+	static constexpr float CAMERA_TO_PLAYER = 375.0f;
+	static constexpr VECTOR PLAYER_HEAD_POS = { 0.0f, 200.0f, 0.0f };
 
 	static constexpr float COLLISION_STAGE_DIFF = 25.0f;
 	static constexpr float COLLISION_CAMERA_DIFF = 3.0f;
@@ -54,7 +55,7 @@ private:
 	int timerHandle_;
 
 	// タイム
-	int time_;
+	float time_;
 
 	// リザルトロゴ
 	int failedImg_;

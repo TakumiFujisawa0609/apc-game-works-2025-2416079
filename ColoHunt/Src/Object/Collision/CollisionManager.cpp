@@ -21,7 +21,7 @@ void CollisionManager::CreateInstance() {
 	}
 }
 
-void CollisionManager::PushBack(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> capsule, Transform* transform, const float tryCnt, const float dist)
+void CollisionManager::PushBack(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> capsule, Transform* transform, const int tryCnt, const float dist)
 {
 	auto hit = CollisionBase::CollisionLine(model, capsule);
 

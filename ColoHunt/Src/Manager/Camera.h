@@ -39,8 +39,8 @@ public:
 	void SetAbsCameraAngles(VECTOR angle) { angles_ = angle; }
 	
 	// カメラの位置と角度の取得
-	VECTOR GetCameraPos(void) { return pos_; }
-	VECTOR GetCameraAngles(void) { return angles_; }
+	VECTOR GetCameraPos(void) const { return pos_; }
+	VECTOR GetCameraAngles(void) const { return angles_; }
 
 	// コピー・ムーブ操作を禁止
 	Camera(const Camera&) = delete;

@@ -69,8 +69,8 @@ public:
 	bool IsAttack(void) const { return isAttack_; }
 
 	//剣の座標の取得
-	VECTOR GetSwordPosSta(void) { return swordPosSta_; }
-	VECTOR GetSwordPosEnd(void) { return swordPosEnd_; }
+	VECTOR GetSwordPosSta(void) const { return swordPosSta_; }
+	VECTOR GetSwordPosEnd(void) const { return swordPosEnd_; }
 
 	//回避判定があるかどうか
 	bool IsDodge(void) const { return dodgeFlg_; }
@@ -150,7 +150,7 @@ private:
 	static constexpr int STAMINA_MAX_TIME = 30 * 60;
 
 	//基礎速度
-	static constexpr int SPEED = 7.0f;
+	static constexpr int SPEED = 7;
 	//基礎攻撃力
 	static constexpr int BASIC_DAMAGE = 10;
 	//パワーアップするまでに必要なゲージ量
@@ -239,11 +239,11 @@ private:
 	//パワーアップゲージの画像ハンドル
 	int powerGauge_;
 	//ゲージの最初の位置高さ
-	float guageSX_, guageSY_;
+	int guageSX_, guageSY_;
 	//ゲージの曲線の最後の位置(数が高さ)
-	std::vector<float> guageEX_;
+	std::vector<int> guageEX_;
 	//ゲージの長さ
-	std::vector<float> guageSize_;
+	std::vector<int> guageSize_;
 
 	//回避フレーム数
 	int dodgeCnt_;
@@ -257,7 +257,7 @@ private:
 	bool dodge_;
 
 	//回避時消費するスタミナ量
-	int dodgeStamina_;
+	float dodgeStamina_;
 	
 	//エフェクトの位置情報
 	VECTOR effectTopPos_[EFFECT_NUM];

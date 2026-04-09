@@ -26,19 +26,16 @@ public:
 	//更新
 	void Update(void);
 	//描画
-	void Draw(void);
+	void Draw(void) const;
 	//解放
-	void Release(void);
+	void Release(void) const;
 
 	//何の種類か
-	TYPE GetSelectType(void) { return type_; }
 	TYPE GetUseType(void) { return useType_; }
 	
 	//使用状況取得
-	void Use(void) { use_ = using_ = true; }
-	bool IsUse(void) { return use_; }
-	void SetUsing(bool use) { using_ = use; }
-
+	void Use(void) { use_ = true; }
+	
 	//アイテムの数
 	int GetItemNum(void) { return useNum_; }
 
@@ -55,9 +52,7 @@ private:
 	TYPE useType_;
 	
 	//使用状況
-	bool prevUse_;
 	bool use_;
-	bool using_;
 	int useNum_;
 
 	//デバッグ

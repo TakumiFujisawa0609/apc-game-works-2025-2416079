@@ -156,7 +156,7 @@ bool KeyMouse::IsTrgMouseRight(void) const
 	return FindMouse(MOUSE_INPUT_RIGHT).keyTrgDown;
 }
 
-KeyMouse::KeyMouse(void)
+KeyMouse::KeyMouse(void) : infoEmpty_(), mouseInfoEmpty_(), mousePos_()
 {
 	mouseInput_ = -1;
 }

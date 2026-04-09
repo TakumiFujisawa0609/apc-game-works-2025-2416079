@@ -94,7 +94,7 @@ public:
 	VECTOR GetDirectionXZAKey(int aKeyX, int aKeyY);
 
 	// ƒRƒ“ƒgƒ[ƒ‰‚Ì“ü—Íî•ñ‚ğæ“¾‚·‚é
-	JOYPAD_IN_STATE GetJPadState(JOYPAD_NO no) { return padInfos_[static_cast<int>(no)]; }
+	JOYPAD_IN_STATE GetJPadState(JOYPAD_NO no) const { return padInfos_[static_cast<int>(no)]; }
 
 	JOYPAD_TYPE GetJPadType(JOYPAD_NO no) { return GetJPadDType(no); }
 

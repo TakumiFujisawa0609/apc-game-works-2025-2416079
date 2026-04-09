@@ -13,7 +13,7 @@ public:
 	void Release(void);
 
 	//‰Ÿ‚µ–ß‚µˆ—
-	void PushBack(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> capsule, Transform* transform, const float tryCnt, const float dist);
+	void PushBack(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> capsule, Transform* transform, const int tryCnt, const float dist);
 
 	//“–‚½‚Á‚½‚©‚Ç‚¤‚©‚¾‚¯‚Ìˆ—
 	bool IsHitCapsule(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> capsule);

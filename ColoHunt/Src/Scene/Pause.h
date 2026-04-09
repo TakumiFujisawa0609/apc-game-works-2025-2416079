@@ -1,6 +1,8 @@
 #pragma once
 #include <DxLib.h>
 #include "SceneBase.h"
+#include "../Manager/Audio/AudioManager.h"
+
 
 class Pause : public SceneBase
 {
@@ -43,4 +45,7 @@ private:
 
 	//Œ»İ‚Ìƒƒjƒ…[‚ÌˆÊ’u
 	VECTOR pos_;
+
+	// BGM‚Ìˆê•Û‘¶
+	SoundID pauseBGM_;
 };
