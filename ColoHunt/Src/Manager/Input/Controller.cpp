@@ -2,22 +2,6 @@
 #include "Controller.h"
 
 
-Controller* Controller::inst_ = nullptr;
-
-void Controller::CreateInstance(void)
-{
-	inst_ = new Controller();
-}
-
-Controller& Controller::GetInstance(void)
-{
-	if (inst_ == nullptr) {
-
-		CreateInstance();
-	}
-	return *inst_;
-}
-
 Controller::Controller(void)
 {
 }
@@ -30,7 +14,7 @@ void Controller::Init(void)
 {
 }
 
-void Controller::Update(JOYPAD_NO i)
+void Controller::Update(int i)
 {
 	// パッド情報
 	SetJPadInState(i);
@@ -62,7 +46,6 @@ VECTOR Controller::GetDirectionXZAKey(int aKeyX, int aKeyY)
 	}
 
 	// デッドゾーン境界からに再スケーリング(可変デッドゾーン)
-	// ( しきい値 0.35 の場合は、 0.0 ～ 0.65 / 0.65 になる )
 	float scale = (len - THRESHOLD) / (1.0f - THRESHOLD);
 	dirX = (dirX / len) * scale;
 	dirZ = (dirZ / len) * scale;
@@ -72,7 +55,7 @@ VECTOR Controller::GetDirectionXZAKey(int aKeyX, int aKeyY)
 	return ret;
 }
 
-Controller::JOYPAD_IN_STATE Controller::GetJPadInputState(JOYPAD_NO no)
+Controller::JOYPAD_IN_STATE Controller::GetJPadInputState(int no)
 {
 	JOYPAD_IN_STATE ret = JOYPAD_IN_STATE();
 
@@ -275,30 +258,29 @@ Controller::JOYPAD_IN_STATE Controller::GetJPadInputState(JOYPAD_NO no)
 	return ret;
 }
 
-Controller::JOYPAD_TYPE Controller::GetJPadDType(JOYPAD_NO no)
+Controller::JOYPAD_TYPE Controller::GetJPadDType(int no)
 {
-	return static_cast<Controller::JOYPAD_TYPE>(GetJoypadType(static_cast<int>(no)));
+	return static_cast<Controller::JOYPAD_TYPE>(GetJoypadType(no));
 }
 
-DINPUT_JOYSTATE Controller::GetJPadDInputState(JOYPAD_NO no)
+DINPUT_JOYSTATE Controller::GetJPadDInputState(int no)
 {
 	// コントローラ情報
-	GetJoypadDirectInputState(static_cast<int>(no), &joyDInState_);
+	GetJoypadDirectInputState(no, &joyDInState_);
 	return joyDInState_;
 }
 
-XINPUT_STATE Controller::GetJPadXInputState(JOYPAD_NO no)
+XINPUT_STATE Controller::GetJPadXInputState(int no)
 {
 	// コントローラ情報
-	GetJoypadXInputState(static_cast<int>(no), &joyXInState_);
+	GetJoypadXInputState(no, &joyXInState_);
 	return joyXInState_;
 }
 
-void Controller::SetJPadInState(JOYPAD_NO jpNo)
+void Controller::SetJPadInState(int jpNo)
 {
-	int no = static_cast<int>(jpNo);
 	auto stateNew = GetJPadInputState(jpNo);
-	auto& stateNow = padInfos_[no];
+	auto& stateNow = padInfos_[jpNo];
 
 	stateNow.AnyoneBotton = stateNow.Anyone = stateNow.IsAnyoneDown = false;
 

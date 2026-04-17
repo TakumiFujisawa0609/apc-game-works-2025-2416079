@@ -5,18 +5,6 @@ class Controller {
 
 public:
 
-	// ゲームコントローラーの認識番号
-	// DxLib定数、DX_INPUT_PAD1等に対応
-	enum class JOYPAD_NO
-	{
-		KEY_PAD1,			// キー入力とパッド１入力
-		PAD1,				// パッド１入力
-		PAD2,				// パッド２入力
-		PAD3,				// パッド３入力
-		PAD4,				// パッド４入力
-		INPUT_KEY = 4096	// キー入力
-	};
-
 	// ゲームコントローラータイプ
 	// DxLib定数、DX_OTHER等に対応
 	enum class JOYPAD_TYPE
@@ -73,17 +61,15 @@ public:
 		bool Anyone;
 	};
 
-	// インスタンスを明示的に生成
-	static void CreateInstance(void);
-	// インスタンスの取得
-	static Controller& GetInstance(void);
+	Controller(void);
+	~Controller(void);
 
 	// 初期化
-	void Init(void);
+	virtual void Init(void);
 	// 更新
-	void Update(JOYPAD_NO i);
+	virtual void Update(int i);
 	// リソースの破棄
-	void Destroy(void);
+	virtual void Destroy(void);
 
 	// アナログキーの最大値
 	static constexpr float AKEY_VAL_MAX = 1000.0f;
@@ -94,23 +80,11 @@ public:
 	VECTOR GetDirectionXZAKey(int aKeyX, int aKeyY);
 
 	// コントローラの入力情報を取得する
-	JOYPAD_IN_STATE GetJPadState(JOYPAD_NO no) const { return padInfos_[static_cast<int>(no)]; }
+	JOYPAD_IN_STATE GetJPadState(int no) const { return padInfos_[static_cast<int>(no)]; }
 
-	JOYPAD_TYPE GetJPadType(JOYPAD_NO no) { return GetJPadDType(no); }
+	JOYPAD_TYPE GetJPadType(int no) { return GetJPadDType(no); }
 
 private:
-
-	Controller(void);
-	~Controller(void);
-
-	// コピー・ムーブ操作を禁止
-	Controller(const Controller&) = delete;
-	Controller& operator=(const Controller&) = delete;
-	Controller(Controller&&) = delete;
-	Controller& operator=(Controller&&) = delete;
-
-	//インスタンス
-	static Controller* inst_;
 
 	// コントローラ情報
 	DINPUT_JOYSTATE joyDInState_;
@@ -121,17 +95,17 @@ private:
 	JOYPAD_IN_STATE padInfos_[5];
 
 	// 接続されたコントローラの種別を取得する
-	JOYPAD_TYPE GetJPadDType(JOYPAD_NO no);
+	JOYPAD_TYPE GetJPadDType(int no);
 
 	// コントローラの入力情報を取得する
-	DINPUT_JOYSTATE GetJPadDInputState(JOYPAD_NO no);
+	DINPUT_JOYSTATE GetJPadDInputState(int no);
 
 	// コントローラ(XBOX)の入力情報を取得する
-	XINPUT_STATE GetJPadXInputState(JOYPAD_NO no);
+	XINPUT_STATE GetJPadXInputState(int no);
 
 	// コントローラの入力情報を更新する
-	void SetJPadInState(JOYPAD_NO jpNo);
+	void SetJPadInState(int jpNo);
 
 	// コントローラの入力情報を取得する
-	JOYPAD_IN_STATE GetJPadInputState(JOYPAD_NO no);
+	JOYPAD_IN_STATE GetJPadInputState(int no);
 };
