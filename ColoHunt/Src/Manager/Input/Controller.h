@@ -10,6 +10,7 @@ public:
 	enum class JOYPAD_TYPE
 	{
 		OTHER = 0,
+
 		XBOX_360,
 		XBOX_ONE,
 		DUAL_SHOCK_3,
@@ -18,6 +19,7 @@ public:
 		SWITCH_JOY_CON_L,
 		SWITCH_JOY_CON_R,
 		SWITCH_PRO_CTRL,
+
 		MAX
 	};
 
@@ -25,6 +27,7 @@ public:
 	enum class JOYPAD_BTN
 	{
 		LEFT = 0,
+
 		RIGHT,
 		TOP,
 		DOWN,
@@ -40,6 +43,7 @@ public:
 		SELECT,
 		R3_PUSH,
 		L3_PUSH,
+
 		MAX
 	};
 

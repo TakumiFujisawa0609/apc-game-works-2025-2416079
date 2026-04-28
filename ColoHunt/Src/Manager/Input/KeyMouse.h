@@ -17,16 +17,6 @@ public:
 		bool keyTrgUp;		// 現フレームでボタンが離されたか
 	};
 
-	// マウス
-	struct MouseInfo
-	{
-		int key;			// キーID
-		bool keyOld;		// 1フレーム前の押下状態
-		bool keyNew;		// 現フレームの押下状態
-		bool keyTrgDown;	// 現フレームでボタンが押されたか
-		bool keyTrgUp;		// 現フレームでボタンが離されたか
-	};
-
 	// インスタンスを明示的に生成
 	static void CreateInstance(void);
 	// インスタンスの取得
@@ -48,26 +38,19 @@ public:
 	void Add(int key);
 
 	// 判定を行うキーをクリア
-	void Clear(void) { keyInfos_.clear(); }
+	void Clear(void) { infos_.clear(); }
 
 	// キーの状態を取得
-	KeyMouse::Info GetKey(int key) const { return keyInfos_.at(key); }
+	KeyMouse::Info GetKey(int key) const { return infos_.at(key); }
 
 	// マウス座標の取得
 	VECTOR GetMousePos(void) const { return mousePos_; }
 
-	// マウスのクリック状態を取得(MOUSE_INPUT_LEFT、RIGHT)
-	KeyMouse::MouseInfo GetMouse(int key) const { return mouseInfos_.at(key); }
-
 private:
 
 	// キー情報
-	std::map<int, KeyMouse::Info> keyInfos_;
+	std::map<int, KeyMouse::Info> infos_;
 	KeyMouse::Info infoEmpty_;
-
-	// マウス情報
-	std::map<int, KeyMouse::MouseInfo> mouseInfos_;
-	KeyMouse::MouseInfo mouseInfoEmpty_;
 
 	// マウスカーソルの位置
 	VECTOR mousePos_;
@@ -77,8 +60,4 @@ private:
 
 	// 配列の中からキー情報を取得する
 	const KeyMouse::Info& Find(int key) const;
-
-	// 配列の中からマウス情報を取得する
-	const KeyMouse::MouseInfo& FindMouse(int key) const;
-
 };

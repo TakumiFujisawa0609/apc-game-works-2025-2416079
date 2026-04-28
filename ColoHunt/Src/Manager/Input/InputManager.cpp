@@ -1,8 +1,6 @@
-#define STR(var) #var
 #include <fstream>
 #include <vector>
 #include "InputManager.h"
-#include "Controller.h"
 #include "KeyMouse.h"
 #include "../../Application.h"
 #include "../../Utility/Utility.h"
@@ -29,9 +27,27 @@ void InputManager::Init(void){
 
 	// キーマウ取得
 	keyMou_ = new KeyMouse();
+	keyMou_->Init();
+	
+	// キーの登録
+	keyMou_->Add(KEY_INPUT_RSHIFT);
+	keyMou_->Add(MOUSE_INPUT_RIGHT);
+	keyMou_->Add(MOUSE_INPUT_LEFT);
+	keyMou_->Add(KEY_INPUT_SPACE);
+	keyMou_->Add(MOUSE_INPUT_MIDDLE);
+	keyMou_->Add(KEY_INPUT_F);
+	keyMou_->Add(KEY_INPUT_Q);
+	keyMou_->Add(KEY_INPUT_LEFT);
+	keyMou_->Add(KEY_INPUT_E);
+	keyMou_->Add(KEY_INPUT_RIGHT);
+	keyMou_->Add(KEY_INPUT_W);
+	keyMou_->Add(KEY_INPUT_UP);
+	keyMou_->Add(KEY_INPUT_S);
+	keyMou_->Add(KEY_INPUT_DOWN);
 
-	// パッド取得
+	// パッド取得]
 	pads_ = new Controller();
+	pads_->Init();
 }
 
 // 更新
@@ -50,6 +66,11 @@ void InputManager::Update(void){
 // リソースの破棄
 void InputManager::Release(void){
 
+	// 解放
+	keyMou_->Destroy();
+	pads_->Destroy();
+	delete keyMou_;
+	delete pads_;
 }
 
 std::map<InputManager::KEYPAD_NO, VECTOR>  InputManager::GetDirectionXZAKeyL(void)
@@ -100,6 +121,16 @@ std::map<InputManager::KEYPAD_NO, VECTOR>  InputManager::GetDirectionXZAKeyR(voi
 	return res;
 }
 
+KeyMouse::Info InputManager::GetKeyMouse(COMMAND com)
+{
+	return KeyMouse::Info();
+}
+
+Controller::JOYPAD_IN_STATE InputManager::GetKeyController(COMMAND com)
+{
+	return Controller::JOYPAD_IN_STATE();
+}
+
 InputManager::InputManager(void)
 {
 }
@@ -110,37 +141,52 @@ InputManager::~InputManager(void)
 
 void InputManager::CommondLoad(void)
 {
-	// ファイルの読込
-	std::ifstream ifs = std::ifstream(Application::PATH_CSV + "Command.csv");
+	// ダッシュキー
+	keyCommand_.emplace(COMMAND::RUN, KEY_INPUT_LSHIFT);
+	padCommand_.emplace(COMMAND::RUN, Controller::JOYPAD_BTN::R);
+	
+	// 攻撃キー
+	keyCommand_.emplace(COMMAND::ATTACK, MOUSE_INPUT_RIGHT);
+	padCommand_.emplace(COMMAND::ATTACK, Controller::JOYPAD_BTN::LEFT);
 
-	if (!ifs) {
+	// コンボキー
+	keyCommand_.emplace(COMMAND::COMBO, MOUSE_INPUT_LEFT);
+	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::TOP);
 
-		// エラーが発生
-		return;
-	}
-	// ファイルを１行ずつ読み込む
-	std::string line;
-	// 1行の文字情報
-	std::vector<std::string> strSplit;
+	// 回避キー
+	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_SPACE);
+	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::DOWN);
 
-	while (getline(ifs, line)) {
+	// ロックオンキー
+	keyCommand_.emplace(COMMAND::COMBO, MOUSE_INPUT_MIDDLE);
+	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::L);
 
-		// １行をカンマ区切りで分割
-		strSplit = Utility::Split(line, ',');
+	// 使うキー
+	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_F);
+	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::LEFT);
 
-		// コマンドに追加しキーの判定にも追加
-		keyCommand_.emplace(strSplit.front(), std::stoi(strSplit.at(1)));
-		keyMou_->Add(std::stoi(strSplit.at(1)));
+	// 左キー
+	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_Q);
+	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_LEFT);
+	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::LEFT_DPAD);
 
-		// キーと同じものにコマンドを配置
-		int key = 0;
-		while (key < static_cast<int>(Controller::JOYPAD_BTN::MAX)) {
-			if (strSplit.at(2) == STR(static_cast<Controller::JOYPAD_BTN>(key))) {
-			
-				padCommand_.emplace(strSplit.front(), static_cast<Controller::JOYPAD_BTN>(key));
-				key++;
-			}
-		}
-	}
-	ifs.close();
+	// 右キー
+	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_E);
+	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_RIGHT);
+	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::RIGHT_DPAD);
+
+	// 上キー
+	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_W);
+	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_UP);
+	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::LEFT_DPAD);
+
+	// 下キー
+	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_S);
+	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_DOWN);
+	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::RIGHT_DPAD);
+
+	// ポーズキー
+	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_ESCAPE);
+	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::SELECT);
+	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::START);
 }

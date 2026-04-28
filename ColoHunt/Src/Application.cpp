@@ -2,7 +2,7 @@
 #include "Manager/Input/KeyMouse.h"
 #include "Manager/EffectResManager.h"
 #include "Manager/SceneManager.h"
-#include "Manager/Input/Controller.h"
+#include "Manager/Input/InputManager.h"
 #include "Manager/FpsControll.h"
 #include "Manager/Camera.h"
 #include "Manager/Audio/AudioManager.h"
@@ -103,8 +103,8 @@ void Application::Init(void)
 
 	// 入力制御初期化
 	SetUseDirectInputFlag(true);
-	KeyMouse::CreateInstance();
-	Controller::CreateInstance();
+	InputManager::CreateInstance();
+	InputManager::GetInstance().Init();
 
 	// エフェクト管理初期化
 	EffectResManager::CreateInstance();
@@ -130,8 +130,7 @@ void Application::Run(void)
 	// ゲームループ
 	while (ProcessMessage() == 0 && !isFinish_)
 	{
-
-		Controller::GetInstance().Update(Controller::JOYPAD_NO::PAD1);
+		InputManager::GetInstance().Update();
 		SceneManager::GetInstance().Update();
 
 		if (!fpsControll_->SkipDrawScene()){
@@ -155,7 +154,7 @@ void Application::Destroy(void)
 	EffectResManager::GetInstance().Destroy();
 
 	// 入力制御解放
-	Controller::GetInstance().Destroy();
+	InputManager::GetInstance().Release();
 
 	//カメラの開放
 	Camera::DeleteInstance();
