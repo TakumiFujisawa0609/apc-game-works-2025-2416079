@@ -110,37 +110,5 @@ InputManager::~InputManager(void)
 
 void InputManager::CommondLoad(void)
 {
-	// ファイルの読込
-	std::ifstream ifs = std::ifstream(Application::PATH_CSV + "Command.csv");
 
-	if (!ifs) {
-
-		// エラーが発生
-		return;
-	}
-	// ファイルを１行ずつ読み込む
-	std::string line;
-	// 1行の文字情報
-	std::vector<std::string> strSplit;
-
-	while (getline(ifs, line)) {
-
-		// １行をカンマ区切りで分割
-		strSplit = Utility::Split(line, ',');
-
-		// コマンドに追加しキーの判定にも追加
-		keyCommand_.emplace(strSplit.front(), std::stoi(strSplit.at(1)));
-		keyMou_->Add(std::stoi(strSplit.at(1)));
-
-		// キーと同じものにコマンドを配置
-		int key = 0;
-		while (key < static_cast<int>(Controller::JOYPAD_BTN::MAX)) {
-			if (strSplit.at(2) == STR(static_cast<Controller::JOYPAD_BTN>(key))) {
-			
-				padCommand_.emplace(strSplit.front(), static_cast<Controller::JOYPAD_BTN>(key));
-				key++;
-			}
-		}
-	}
-	ifs.close();
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <Dxlib.h>
 #include <map>
+#include <list>
 #include <string>
 
 
@@ -37,8 +38,6 @@ public:
 	// •ûŒü‚ðŽæ“¾
 	std::map<InputManager::KEYPAD_NO, VECTOR> GetDirectionXZAKeyL(void);
 	std::map<InputManager::KEYPAD_NO, VECTOR>  GetDirectionXZAKeyR(void);
-
-	// 
 
 private:
 
