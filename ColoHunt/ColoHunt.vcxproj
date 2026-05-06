@@ -28,6 +28,7 @@
     <ClInclude Include="Src\Manager\EffectResManager.h" />
     <ClInclude Include="Src\Manager\FpsControll.h" />
     <ClInclude Include="Src\Manager\Input\Controller.h" />
+    <ClInclude Include="Src\Manager\Input\InputBase.h" />
     <ClInclude Include="Src\Manager\Input\InputManager.h" />
     <ClInclude Include="Src\Manager\Input\KeyMouse.h" />
     <ClInclude Include="Src\Manager\Parameter\Parameter.h" />
@@ -70,6 +71,7 @@
     <ClCompile Include="Src\Manager\EffectResManager.cpp" />
     <ClCompile Include="Src\Manager\FpsControll.cpp" />
     <ClCompile Include="Src\Manager\Input\Controller.cpp" />
+    <ClCompile Include="Src\Manager\Input\InputBase.cpp" />
     <ClCompile Include="Src\Manager\Input\InputManager.cpp" />
     <ClCompile Include="Src\Manager\Input\KeyMouse.cpp" />
     <ClCompile Include="Src\Manager\Parameter\Parameter.cpp" />

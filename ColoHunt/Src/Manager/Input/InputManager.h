@@ -45,6 +45,8 @@ public:
 		UP,
 		DOWN,
 		PAUSE,
+		DECIDE,
+		CANCEL,
 
 		MAX,
 	};
@@ -65,14 +67,17 @@ public:
 	std::map<InputManager::KEYPAD_NO, VECTOR> GetDirectionXZAKeyL(void);
 	std::map<InputManager::KEYPAD_NO, VECTOR>  GetDirectionXZAKeyR(void);
 
-<<<<<<< HEAD
-=======
-	// ボタンを取得
-	KeyMouse::Info GetKeyMouse(COMMAND com);
-	Controller::JOYPAD_IN_STATE GetKeyController(COMMAND com);
+	// 特定のボタンを取得
+	InputBase::Info GetKey(COMMAND com, KEYPAD_NO no);
 
+	// 優先順に一つ取得
+	InputBase::Info GetPriorityKey(COMMAND com);
+	// 指定数(優先機種を0から)
+	std::vector<InputBase::Info> GetPriorityKey(COMMAND com, int num);
 
->>>>>>> e21b7bcb84e8595c45fabe20210778bf7a280d36
+	// 最優先されたタイプを取得
+	Controller::JOYPAD_TYPE GetMostPriorityType(void) { return mostPriorityType_; }
+
 private:
 
 	InputManager(void);
@@ -91,7 +96,7 @@ private:
 	static InputManager* inst_;
 
 	// パッド情報
-	Controller* pads_;
+	std::vector<Controller*> pads_;
 
 	// キーマウ情報
 	KeyMouse* keyMou_;
@@ -99,5 +104,10 @@ private:
 	// キーマウコマンド
 	std::map<InputManager::COMMAND, int> keyCommand_;
 	//パッドコマンド
-	std::map<InputManager::COMMAND, Controller::JOYPAD_BTN> padCommand_;
+	std::map<InputManager::COMMAND, int> padCommand_;
+
+	// 優先
+	std::vector<bool> orderOfPriority_;
+	KEYPAD_NO mostPriority_;
+	Controller::JOYPAD_TYPE mostPriorityType_;
 };

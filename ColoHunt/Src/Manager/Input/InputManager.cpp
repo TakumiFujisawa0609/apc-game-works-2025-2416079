@@ -30,36 +30,84 @@ void InputManager::Init(void){
 	keyMou_->Init();
 	
 	// キーの登録
-	keyMou_->Add(KEY_INPUT_RSHIFT);
-	keyMou_->Add(MOUSE_INPUT_RIGHT);
-	keyMou_->Add(MOUSE_INPUT_LEFT);
-	keyMou_->Add(KEY_INPUT_SPACE);
-	keyMou_->Add(MOUSE_INPUT_MIDDLE);
-	keyMou_->Add(KEY_INPUT_F);
-	keyMou_->Add(KEY_INPUT_Q);
-	keyMou_->Add(KEY_INPUT_LEFT);
-	keyMou_->Add(KEY_INPUT_E);
-	keyMou_->Add(KEY_INPUT_RIGHT);
-	keyMou_->Add(KEY_INPUT_W);
-	keyMou_->Add(KEY_INPUT_UP);
-	keyMou_->Add(KEY_INPUT_S);
-	keyMou_->Add(KEY_INPUT_DOWN);
+	keyMou_->Add(MOUSE_INPUT_LEFT, InputBase::TYPE::MOUSE);
+	keyMou_->Add(MOUSE_INPUT_RIGHT, InputBase::TYPE::MOUSE);
+	keyMou_->Add(MOUSE_INPUT_MIDDLE, InputBase::TYPE::MOUSE);
+	keyMou_->Add(KEY_INPUT_W, InputBase::TYPE::KEY);
+	keyMou_->Add(KEY_INPUT_A, InputBase::TYPE::KEY);
+	keyMou_->Add(KEY_INPUT_S, InputBase::TYPE::KEY);
+	keyMou_->Add(KEY_INPUT_D, InputBase::TYPE::KEY);
+	keyMou_->Add(KEY_INPUT_RSHIFT, InputBase::TYPE::KEY);
+	keyMou_->Add(KEY_INPUT_SPACE, InputBase::TYPE::KEY);
+	keyMou_->Add(KEY_INPUT_F, InputBase::TYPE::KEY);
+	keyMou_->Add(KEY_INPUT_Q, InputBase::TYPE::KEY);
+	keyMou_->Add(KEY_INPUT_E, InputBase::TYPE::KEY);
+	keyMou_->Add(KEY_INPUT_LEFT, InputBase::TYPE::KEY);
+	keyMou_->Add(KEY_INPUT_RIGHT, InputBase::TYPE::KEY);
+	keyMou_->Add(KEY_INPUT_UP, InputBase::TYPE::KEY);
+	keyMou_->Add(KEY_INPUT_DOWN, InputBase::TYPE::KEY);
 
-	// パッド取得]
-	pads_ = new Controller();
-	pads_->Init();
+	// パッド取得
+	for (int num = static_cast<int>(KEYPAD_NO::PAD1); num < static_cast<int>(KEYPAD_NO::MAX); num++) {
+		
+		pads_.emplace_back(new Controller(num));
+		pads_.back()->Init();
+
+		pads_.back()->Add(XINPUT_BUTTON_A, InputBase::TYPE::PAD);
+		pads_.back()->Add(XINPUT_BUTTON_B, InputBase::TYPE::PAD);
+		pads_.back()->Add(XINPUT_BUTTON_X, InputBase::TYPE::PAD);
+		pads_.back()->Add(XINPUT_BUTTON_Y, InputBase::TYPE::PAD);
+		pads_.back()->Add(XINPUT_BUTTON_DPAD_UP, InputBase::TYPE::PAD);
+		pads_.back()->Add(XINPUT_BUTTON_DPAD_DOWN, InputBase::TYPE::PAD);
+		pads_.back()->Add(XINPUT_BUTTON_DPAD_LEFT, InputBase::TYPE::PAD);
+		pads_.back()->Add(XINPUT_BUTTON_DPAD_RIGHT, InputBase::TYPE::PAD);
+		pads_.back()->Add(PAD_INPUT_L, InputBase::TYPE::PAD);
+		pads_.back()->Add(PAD_INPUT_R, InputBase::TYPE::PAD);
+		pads_.back()->Add(XINPUT_BUTTON_BACK, InputBase::TYPE::PAD);
+		pads_.back()->Add(XINPUT_BUTTON_START, InputBase::TYPE::PAD);
+	}
 }
 
 // 更新
 void InputManager::Update(void){
-	
-	// キーマウ更新
-	keyMou_->Update();
+
+	// 優先を初期化
+	orderOfPriority_.clear();
+	mostPriority_ = KEYPAD_NO::NON;
+	mostPriorityType_ = Controller::JOYPAD_TYPE::NON;
 
 	// 現在の接続しているパッドの数のみ更新(1番から)
-	for (int num = static_cast<int>(KEYPAD_NO::PAD1); num < GetJoypadNum(); num++) {
+	for (int num = static_cast<int>(KEYPAD_NO::PAD1) - 1; num < GetJoypadNum(); num++) {
 
-		pads_->Update(num);
+		pads_.at(num)->Update();
+		// 優先順に動いているか
+		orderOfPriority_.emplace_back(pads_.at(num)->GetAnyone());
+		// 最も優先的に動いているもの
+		if (orderOfPriority_.back() && mostPriority_ == KEYPAD_NO::NON) {
+			mostPriority_ = static_cast<KEYPAD_NO>(num + 1);
+			mostPriorityType_ = pads_.at(num)->GetJPadType();
+		}
+	}
+
+	// キーマウ更新
+	keyMou_->Update();
+	orderOfPriority_.emplace_back(keyMou_->GetAnyone());
+
+	// 最も優先的に動いているもの
+	if (mostPriority_ == KEYPAD_NO::NON) {
+		if (orderOfPriority_.back()) {
+			mostPriority_ = KEYPAD_NO::KEY;
+			mostPriorityType_ = Controller::JOYPAD_TYPE::NON;
+		}
+		// どれも動いてないときはPAD1を取るようにする
+		else {
+			orderOfPriority_.emplace_back(KEYPAD_NO::PAD1, true);
+			mostPriority_ = KEYPAD_NO::PAD1;
+			mostPriorityType_ = pads_.at(static_cast<int>(KEYPAD_NO::PAD1) - 1)->GetJPadType();
+			if (mostPriorityType_ == Controller::JOYPAD_TYPE::NON) {
+				mostPriorityType_ = Controller::JOYPAD_TYPE::XBOX_360;
+			}
+		}
 	}
 }
 
@@ -67,17 +115,21 @@ void InputManager::Update(void){
 void InputManager::Release(void){
 
 	// 解放
-	keyMou_->Destroy();
-	pads_->Destroy();
+	keyMou_->Release();
+	for (auto p : pads_) {
+
+		p->Release();
+		delete p;
+	}
 	delete keyMou_;
-	delete pads_;
+	pads_.clear();
 }
 
 std::map<InputManager::KEYPAD_NO, VECTOR>  InputManager::GetDirectionXZAKeyL(void)
 {
 	std::map<KEYPAD_NO, VECTOR>  res;
 
-	VECTOR nowPos;
+	VECTOR nowPos = Utility::VECTOR_ZERO;
 
 	// WASDをアナログに変換
 	if (keyMou_->GetKey(KEY_INPUT_W).keyNew) {
@@ -95,9 +147,9 @@ std::map<InputManager::KEYPAD_NO, VECTOR>  InputManager::GetDirectionXZAKeyL(voi
 	res[KEYPAD_NO::KEY] = VNorm(nowPos);
 
 	// 現在の接続しているパッドの数のみ取得(1番から)
-	for (int num = static_cast<int>(KEYPAD_NO::PAD1); num < GetJoypadNum(); num++) {
+	for (int num = static_cast<int>(KEYPAD_NO::PAD1) - 1; num < GetJoypadNum(); num++) {
 
-		nowPos = pads_->GetDirectionXZAKey(pads_->GetJPadState(num).AKeyLX, pads_->GetJPadState(num).AKeyLY);
+		nowPos = pads_.at(num)->GetDirectionXZAKeyL();
 		res[static_cast<KEYPAD_NO>(num)] = nowPos;
 	}
 	return res;
@@ -113,22 +165,80 @@ std::map<InputManager::KEYPAD_NO, VECTOR>  InputManager::GetDirectionXZAKeyR(voi
 	res[KEYPAD_NO::KEY] = diffPos;
 
 	// 現在の接続しているパッドの数のみ取得(1番から)
-	for (int num = static_cast<int>(KEYPAD_NO::PAD1); num < GetJoypadNum(); num++) {
+	for (int num = static_cast<int>(KEYPAD_NO::PAD1) - 1; num < GetJoypadNum(); num++) {
 
-		nowPos = pads_->GetDirectionXZAKey(pads_->GetJPadState(num).AKeyRX, pads_->GetJPadState(num).AKeyRY);
+		nowPos = pads_.at(num)->GetDirectionXZAKeyR();
 		res[static_cast<KEYPAD_NO>(num)] = nowPos;
 	}
 	return res;
 }
 
-KeyMouse::Info InputManager::GetKeyMouse(COMMAND com)
+InputBase::Info InputManager::GetKey(COMMAND com, KEYPAD_NO no)
 {
-	return KeyMouse::Info();
+	if (no == KEYPAD_NO::KEY) {
+		return keyMou_->GetKey(keyCommand_.at(com));
+	}
+	return pads_.at(static_cast<int>(no) - 1)->GetKey(padCommand_.at(com));
 }
 
-Controller::JOYPAD_IN_STATE InputManager::GetKeyController(COMMAND com)
+InputBase::Info InputManager::GetPriorityKey(COMMAND com)
 {
-	return Controller::JOYPAD_IN_STATE();
+	switch (mostPriority_)
+	{
+		case KEYPAD_NO::KEY:
+			return GetKey(com, KEYPAD_NO::KEY);
+			break;
+		case KEYPAD_NO::PAD1:
+			return GetKey(com, KEYPAD_NO::PAD1);
+			break;
+		case KEYPAD_NO::PAD2:
+			return GetKey(com, KEYPAD_NO::PAD2);
+			break;
+		case KEYPAD_NO::PAD3:
+			return GetKey(com, KEYPAD_NO::PAD3);
+			break;
+		case KEYPAD_NO::PAD4:
+			return GetKey(com, KEYPAD_NO::PAD4);
+			break;
+		default:
+		break;
+	}
+}
+
+std::vector<InputBase::Info> InputManager::GetPriorityKey(COMMAND com, int num)
+{
+	std::vector<InputBase::Info> temp;
+	for (int i = 0; i < static_cast<int>(KEYPAD_NO::MAX); i++) {
+		if (orderOfPriority_.at(i)) {
+			switch (i)
+			{
+			case static_cast<int>(KEYPAD_NO::KEY):
+				temp.emplace_back(GetKey(com, KEYPAD_NO::KEY));
+				break;
+			case static_cast<int>(KEYPAD_NO::PAD1):
+				temp.emplace_back(GetKey(com, KEYPAD_NO::PAD1));
+				break;
+			case static_cast<int>(KEYPAD_NO::PAD2):
+				temp.emplace_back(GetKey(com, KEYPAD_NO::PAD2));
+				break;
+			case static_cast<int>(KEYPAD_NO::PAD3):
+				temp.emplace_back(GetKey(com, KEYPAD_NO::PAD3));
+				break;
+			case static_cast<int>(KEYPAD_NO::PAD4):
+				temp.emplace_back(GetKey(com, KEYPAD_NO::PAD4));
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	// 多いなら減らす 
+	while (temp.size() > num) {
+
+		temp.pop_back();
+	}
+	// 少なくてもそのまま
+	return temp;
 }
 
 InputManager::InputManager(void)
@@ -141,56 +251,62 @@ InputManager::~InputManager(void)
 
 void InputManager::CommondLoad(void)
 {
-<<<<<<< HEAD
 
-=======
 	// ダッシュキー
 	keyCommand_.emplace(COMMAND::RUN, KEY_INPUT_LSHIFT);
-	padCommand_.emplace(COMMAND::RUN, Controller::JOYPAD_BTN::R);
+	padCommand_.emplace(COMMAND::RUN, PAD_INPUT_R);
 	
 	// 攻撃キー
 	keyCommand_.emplace(COMMAND::ATTACK, MOUSE_INPUT_RIGHT);
-	padCommand_.emplace(COMMAND::ATTACK, Controller::JOYPAD_BTN::LEFT);
+	padCommand_.emplace(COMMAND::ATTACK, XINPUT_BUTTON_B);
 
 	// コンボキー
 	keyCommand_.emplace(COMMAND::COMBO, MOUSE_INPUT_LEFT);
-	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::TOP);
+	padCommand_.emplace(COMMAND::COMBO, XINPUT_BUTTON_Y);
 
 	// 回避キー
-	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_SPACE);
-	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::DOWN);
+	keyCommand_.emplace(COMMAND::DODGE, KEY_INPUT_SPACE);
+	padCommand_.emplace(COMMAND::DODGE, XINPUT_BUTTON_A);
 
 	// ロックオンキー
-	keyCommand_.emplace(COMMAND::COMBO, MOUSE_INPUT_MIDDLE);
-	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::L);
+	keyCommand_.emplace(COMMAND::LOCK_ON, MOUSE_INPUT_MIDDLE);
+	padCommand_.emplace(COMMAND::LOCK_ON, PAD_INPUT_L);
 
 	// 使うキー
-	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_F);
-	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::LEFT);
+	keyCommand_.emplace(COMMAND::USE, KEY_INPUT_F);
+	padCommand_.emplace(COMMAND::USE, XINPUT_BUTTON_X);
 
 	// 左キー
-	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_Q);
-	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_LEFT);
-	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::LEFT_DPAD);
+	keyCommand_.emplace(COMMAND::LEFT, KEY_INPUT_Q);
+	keyCommand_.emplace(COMMAND::LEFT, KEY_INPUT_LEFT);
+	padCommand_.emplace(COMMAND::LEFT, XINPUT_BUTTON_DPAD_LEFT);
 
 	// 右キー
-	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_E);
-	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_RIGHT);
-	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::RIGHT_DPAD);
+	keyCommand_.emplace(COMMAND::RIGHT, KEY_INPUT_E);
+	keyCommand_.emplace(COMMAND::RIGHT, KEY_INPUT_RIGHT);
+	padCommand_.emplace(COMMAND::RIGHT, XINPUT_BUTTON_DPAD_RIGHT);
 
 	// 上キー
-	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_W);
-	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_UP);
-	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::LEFT_DPAD);
+	keyCommand_.emplace(COMMAND::UP, KEY_INPUT_W);
+	keyCommand_.emplace(COMMAND::UP, KEY_INPUT_UP);
+	padCommand_.emplace(COMMAND::UP, XINPUT_BUTTON_DPAD_UP);
 
 	// 下キー
-	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_S);
-	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_DOWN);
-	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::RIGHT_DPAD);
+	keyCommand_.emplace(COMMAND::DOWN, KEY_INPUT_S);
+	keyCommand_.emplace(COMMAND::DOWN, KEY_INPUT_DOWN);
+	padCommand_.emplace(COMMAND::DOWN, XINPUT_BUTTON_DPAD_DOWN);
 
 	// ポーズキー
-	keyCommand_.emplace(COMMAND::COMBO, KEY_INPUT_ESCAPE);
-	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::SELECT);
-	padCommand_.emplace(COMMAND::COMBO, Controller::JOYPAD_BTN::START);
->>>>>>> e21b7bcb84e8595c45fabe20210778bf7a280d36
+	keyCommand_.emplace(COMMAND::PAUSE, KEY_INPUT_ESCAPE);
+	padCommand_.emplace(COMMAND::PAUSE, XINPUT_BUTTON_BACK);
+	padCommand_.emplace(COMMAND::PAUSE, XINPUT_BUTTON_START);
+
+	// 決定キー
+	keyCommand_.emplace(COMMAND::DECIDE, MOUSE_INPUT_LEFT);
+	padCommand_.emplace(COMMAND::DECIDE, XINPUT_BUTTON_A);
+
+	// キャンセルキー
+	keyCommand_.emplace(COMMAND::CANCEL, MOUSE_INPUT_RIGHT);
+	keyCommand_.emplace(COMMAND::CANCEL, KEY_INPUT_ESCAPE);
+	padCommand_.emplace(COMMAND::CANCEL, XINPUT_BUTTON_B);
 }
