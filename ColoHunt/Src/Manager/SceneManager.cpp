@@ -1,6 +1,6 @@
 #include "SceneManager.h"
 #include <DxLib.h>
-#include "../Manager/Input/Controller.h"
+#include "../Manager/Input/InputManager.h"
 #include "../Application.h"
 #include "../Scene/Loading.h"
 #include"../Scene/TitleScene.h"
@@ -89,7 +89,7 @@ void SceneManager::Update(void)
 				// ポーズ解除後すぐに入るのを防ぐため先に判断する
 				// ゲームシーンのときのみ
 				if (sceneId_.back() == SCENE_ID::GAME) {
-					if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::START)]) {
+					if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::PAUSE).keyTrgDown) {
 
 						// ポーズに入る
 						PushScene(SCENE_ID::PAUSE);

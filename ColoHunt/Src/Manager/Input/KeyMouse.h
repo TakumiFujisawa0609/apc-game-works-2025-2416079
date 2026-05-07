@@ -20,12 +20,13 @@ public:
 	// リソースの破棄
 	void Release(void) override;
 
+	// 判定を行うキーをクリア
+	void Clear(void) { infos_.clear(); }
+
 	// マウス座標の取得
 	VECTOR GetMousePos(void) const { return mousePos_; }
 
 private:
-
-	static constexpr float MOUSE_SEMSITIVITY = 3.0f;
 
 	// マウスカーソルの位置
 	VECTOR mousePos_;
@@ -33,6 +34,6 @@ private:
 	// マウスボタンの入力状態
 	int mouseInput_;
 
-	// マウスの情報の取得
-	bool CheckMouseKey(int key);
+	// マウスの入力取得
+	bool CheckMouse(int key);
 };

@@ -1,7 +1,7 @@
 #include<DxLib.h>
 #include "Item.h"
 #include"../Application.h"
-#include "../Manager/Input/Controller.h"
+#include "../Manager/Input/InputManager.h"
 
 
 Item::Item(void) : itemImg_(),itemNum_(), nowKey_(), prevKey_(), type_(), useNum_(), useType_(), use_()
@@ -49,17 +49,13 @@ void Item::Init(void)
 
 void Item::Update(void)
 {
-	Controller& ctrl = Controller::GetInstance();
-	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
-
 	// 今のアイテムをintに変換
 	int itemNo = static_cast<int>(type_);
 	// 今のアイテムの位置を覚える
 	int prevNo = itemNo;
 
 	// 右を押したとき
-	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT_DPAD)]) {
+	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::RIGHT).keyTrgDown) {
 
 		// 右にずらす
 		itemNo++;
@@ -90,7 +86,7 @@ void Item::Update(void)
 		}
 	}
 	// 左を押したとき
-	else if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::LEFT_DPAD)]) {
+	else if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::LEFT).keyTrgDown) {
 
 		// 左にずらす
 		itemNo--;

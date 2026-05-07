@@ -1,32 +1,29 @@
 #include "InputBase.h"
 
+
 InputBase::InputBase(void)
 {
 }
 
-void InputBase::Update(std::pair<const int, InputBase::Info>& p)
+void InputBase::Update(std::pair<const int, Info> p)
 {
 	p.second.keyTrgDown = p.second.keyNew && !p.second.keyOld;
 	p.second.keyTrgUp = !p.second.keyNew && p.second.keyOld;
 
-	// âΩÇ©Ç™ç°âüÇ≥ÇÍÇΩÇ©
-	if (!isAnyoneDown_) {
-
-		isAnyoneDown_ = p.second.keyTrgDown;
-		anyoneKey_ = p.second.keyTrgDown;
-		anyone_ = p.second.keyTrgDown;
+	if (!anyoneTrgDown_) {
+		anyoneTrgDown_ = p.second.keyTrgDown = p.second.keyNew && !p.second.keyOld;
+		anyoneTrg_ = p.second.keyTrgDown = p.second.keyNew && !p.second.keyOld;
+		anyone_ = p.second.keyTrgDown = p.second.keyNew && !p.second.keyOld;
 	}
-	// âΩÇ©Ç™âüÇ≥ÇÍÇƒÇ¢ÇÈÇ©
-	if (!anyoneKey_) {
-
-		anyoneKey_ = p.second.keyNew;
-		anyone_ = p.second.keyNew;
+	if (!anyoneTrg_) {
+		anyoneTrg_ = p.second.keyTrgDown = p.second.keyNew;
+		anyone_ = p.second.keyTrgDown = p.second.keyNew;
 	}
 }
 
-void InputBase::Add(int key, KEYPAD_NO type)
+void InputBase::Add(int key, TYPE type)
 {
-	InputBase::Info info = InputBase::Info();
+	Info info = Info();
 	info.key = key;
 	info.type = type;
 	info.keyOld = false;

@@ -5,8 +5,7 @@
 
 void KeyMouse::Init(void)
 {
-	// マウス検知
-	mouseInput_ = GetMouseInput();
+	anyoneTrgDown_ = anyoneTrg_ = anyone_ = false;
 
 	// マウスを中央に
 	SetMousePoint(Application::SCREEN_SIZE_X_HALF, Application::SCREEN_SIZE_Y_HALF);
@@ -14,7 +13,9 @@ void KeyMouse::Init(void)
 
 void KeyMouse::Update(void)
 {
-	anyone_ = anyoneKey_ = isAnyoneDown_ = false;
+	// 初期化
+	anyoneTrgDown_ = anyoneTrg_ = anyone_ = false; 
+	mouseInput_ = GetMouseInput();
 
 	// キーボード検知
 	for (auto& p : infos_)
@@ -25,20 +26,18 @@ void KeyMouse::Update(void)
 			continue;
 		}
 		p.second.keyOld = p.second.keyNew;
-		
-		// マウスの取得
-		if (p.second.type == KEYPAD_NO::MOUSE) {
-			p.second.keyNew = CheckMouseKey(p.second.key);
-		}
-		// キーボードの取得
-		else {
+		if (p.second.type == TYPE::KEY) {
 			p.second.keyNew = CheckHitKey(p.second.key);
 		}
+		if (p.second.type == TYPE::MOUSE) {
+			p.second.keyNew = CheckMouse(p.second.key);
+		}
+		InputBase::Update(p);
+	}
 
 		InputBase::Update(p);
 	}
 	// マウス検知
-	mouseInput_ = GetMouseInput();
 	int mouseX = 0;
 	int mouseY = 0;
 	GetMousePoint(&mouseX, &mouseY);
@@ -51,6 +50,11 @@ void KeyMouse::Update(void)
 		anyone_ = true;
 	}
 
+	if (!anyone_ && mousePos_.x != Application::SCREEN_SIZE_X_HALF && mousePos_.y != Application::SCREEN_SIZE_Y_HALF) {
+
+		anyone_ = true;
+	}
+
 	// マウスを中央に
 	SetMousePoint(Application::SCREEN_SIZE_X_HALF, Application::SCREEN_SIZE_Y_HALF);
 }
@@ -59,16 +63,16 @@ void KeyMouse::Release(void)
 {
 }
 
-KeyMouse::KeyMouse(int sensi) : mousePos_()
-{
-	mouseInput_ = -1;
-}
-
-bool KeyMouse::CheckMouseKey(int key)
+bool KeyMouse::CheckMouse(int key)
 {
 	if (mouseInput_ & key) {
 
 		return true;
 	}
 	return false;
+}
+
+KeyMouse::KeyMouse(void) : mousePos_()
+{
+	mouseInput_ = -1;
 }

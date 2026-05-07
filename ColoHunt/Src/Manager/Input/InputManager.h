@@ -1,6 +1,7 @@
 #pragma once
 #include <Dxlib.h>
 #include <map>
+#include <list>
 #include <string>
 #include "Controller.h"
 #include "KeyMouse.h"
@@ -29,6 +30,8 @@ public:
 		UP,
 		DOWN,
 		PAUSE,
+		DECIDE,
+		CANCEL,
 
 		MAX,
 	};
@@ -52,59 +55,16 @@ public:
 	std::map<InputManager::KEYPAD_NO, VECTOR> GetDirectionXZAKeyL(void);
 	std::map<InputManager::KEYPAD_NO, VECTOR>  GetDirectionXZAKeyR(void);
 
-	// ボタンをすべて取得
-	template<class T>
-	std::map<InputManager::KEYPAD_NO, T> GetKeyAll(COMMAND com) {
-		
-		std::map<InputManager::KEYPAD_NO, T> res;
+	// 特定のボタンを取得
+	InputBase::Info GetKey(COMMAND com, KEYPAD_NO no);
 
-		T value = keyMou_->GetKey(keyCommand_.at(com));
-		res.emplace(KEYPAD_NO::KEY, value);
+	// 優先順に一つ取得
+	InputBase::Info GetPriorityKey(COMMAND com);
+	// 指定数(優先機種を0から)
+	std::vector<InputBase::Info> GetPriorityKey(COMMAND com, int num);
 
-		for (int i = static_cast<int>(KEYPAD_NO::PAD1); i < static_cast<int>(KEYPAD_NO::MAX); i++) {
-			value = pads_->GetJPadState(i);
-			res.emplace(static_cast<KEYPAD_NO>(i), value);
-		}
-		return res;
-	}
-
-	/// <summary>
-	/// ボタンを優先順に指定数取得
-	/// </summary>
-	/// <typeparam name="T">返り値</typeparam>
-	/// <param name="com">コマンド</param>
-	/// <param name="num">ほしい数(1以上)</param>
-	/// <returns></returns>
-	template<class T>
-	std::map<InputManager::KEYPAD_NO, T> GetKeyAll(COMMAND com, int num) {
-
-		std::map<InputManager::KEYPAD_NO, T> res;
-		T value;
-
-		if (num == 0) return res;
-
-		if (orderOfPriority_.size() == 0) {
-
-			value = pads_->GetJPadState(static_cast<int>(KEYPAD_NO::PAD1));
-			res.emplace(static_cast<KEYPAD_NO>(static_cast<int>(KEYPAD_NO::PAD1)), value);
-			return res;
-		}
-
-		for (int i = static_cast<int>(KEYPAD_NO::PAD1); i < static_cast<int>(KEYPAD_NO::MAX); i++) {
-			if (orderOfPriority_.at(i - 1)) {
-
-				value = pads_->GetJPadState(i);
-				res.emplace(static_cast<KEYPAD_NO>(i), value);
-			}
-		}
-
-		if (orderOfPriority_.at(static_cast<int>(KEYPAD_NO::MAX) - 1)) {
-
-			T value = keyMou_->GetKey(keyCommand_.at(com));
-			res.emplace(KEYPAD_NO::KEY, value);
-		}
-		return res;
-	}
+	// 最優先されたタイプを取得
+	Controller::JOYPAD_TYPE GetMostPriorityType(void) { return mostPriorityType_; }
 
 private:
 
@@ -131,9 +91,11 @@ private:
 
 	// キーマウコマンド
 	std::map<InputManager::COMMAND, int> keyCommand_;
-	// パッドコマンド
+	//パッドコマンド
 	std::map<InputManager::COMMAND, int> padCommand_;
 
-	// 最終打ち込みを優先順に入れる
+	// 優先
 	std::vector<bool> orderOfPriority_;
+	KEYPAD_NO mostPriority_;
+	Controller::JOYPAD_TYPE mostPriorityType_;
 };
