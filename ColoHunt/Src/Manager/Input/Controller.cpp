@@ -24,9 +24,7 @@ void Controller::Update(void)
 	for (auto& p : infos_)
 	{
 		p.second.keyOld = p.second.keyNew;
-		if (p.second.type == TYPE::PAD) {
-			p.second.keyNew = GetJPadInputState(p.second.key);
-		}
+		p.second.keyNew = GetJPadInputState(p.second.key);
 		InputBase::Update(p);
 	}
 	// スティックの更新

@@ -1,7 +1,7 @@
 #include <string>
 #include "../../Application.h"
 #include "../../Manager/SceneManager.h"
-#include "../../Manager/Input/Controller.h"
+#include "../../Manager/Input/InputManager.h"
 #include "../../Manager/Audio/AudioManager.h"
 #include "ResultBase.h"
 
@@ -26,9 +26,7 @@ void ResultBase::Init(void)
 void ResultBase::Update(void)
 {
 	// シーン遷移
-	Controller& ins = Controller::GetInstance();
-	Controller::JOYPAD_IN_STATE state = ins.GetJPadState(Controller::JOYPAD_NO::PAD1);
-	if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP_DPAD)]) {
+	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::UP).keyTrgDown) {
 		
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
 
@@ -49,7 +47,7 @@ void ResultBase::Update(void)
 			break;
 		}
 	}
-	else if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN_DPAD)]) {
+	else if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::DOWN).keyTrgDown) {
 		
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
 
@@ -71,7 +69,7 @@ void ResultBase::Update(void)
 		}
 	}
 
-	if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
+	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::DECIDE).keyTrgDown) {
 		
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_DESIDE);
 
@@ -152,12 +150,17 @@ void ResultBase::Draw(void)
 	DrawString(100, Application::SCREEN_SIZE_Y - 40, "↑↓　選択", 0xffffff);
 
 	//コントローラータイプに応じて表示を変える
-	if (Controller::GetInstance().GetJPadType(Controller::JOYPAD_NO::PAD1) <= Controller::JOYPAD_TYPE::XBOX_ONE) {
+	if (InputManager::GetInstance().GetMostPriorityType() == InputBase::JOYPAD_TYPE::NON) {
+
+		DrawString(250, Application::SCREEN_SIZE_Y - 40, "Lｸﾘｯｸ　決定", 0xffffff);
+		DrawString(400, Application::SCREEN_SIZE_Y - 40, "Rｸﾘｯｸ　戻る", 0xffffff);
+	}
+	else if (InputManager::GetInstance().GetMostPriorityType() <= Controller::JOYPAD_TYPE::XBOX_ONE) {
 
 		DrawString(250, Application::SCREEN_SIZE_Y - 40, "Ａ　決定", 0xffffff);
 		DrawString(400, Application::SCREEN_SIZE_Y - 40, "Ｂ　戻る", 0xffffff);
 	}
-	else if (Controller::GetInstance().GetJPadType(Controller::JOYPAD_NO::PAD1) <= Controller::JOYPAD_TYPE::DUAL_SENSE) {
+	else if (InputManager::GetInstance().GetMostPriorityType() <= Controller::JOYPAD_TYPE::DUAL_SENSE) {
 
 		DrawString(250, Application::SCREEN_SIZE_Y - 40, "×　決定", 0xffffff);
 		DrawString(400, Application::SCREEN_SIZE_Y - 40, "○　戻る", 0xffffff);

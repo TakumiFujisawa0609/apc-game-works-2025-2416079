@@ -172,8 +172,8 @@ void Pause::Draw()
 	//コントローラータイプに応じて表示を変える
 	if (InputManager::GetInstance().GetMostPriorityType() == InputBase::JOYPAD_TYPE::NON) {
 
-		DrawString(250, Application::SCREEN_SIZE_Y - 40, "Rｸﾘｯｸ　決定", 0xffffff);
-		DrawString(400, Application::SCREEN_SIZE_Y - 40, "Lｸﾘｯｸ　戻る", 0xffffff);
+		DrawString(250, Application::SCREEN_SIZE_Y - 40, "Lｸﾘｯｸ　決定", 0xffffff);
+		DrawString(400, Application::SCREEN_SIZE_Y - 40, "Rｸﾘｯｸ　戻る", 0xffffff);
 	}
 	else if (InputManager::GetInstance().GetMostPriorityType() <= InputBase::JOYPAD_TYPE::XBOX_ONE) {
 

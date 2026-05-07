@@ -7,7 +7,7 @@
 #include "../../Manager/Audio/SoundTable.h"
 #include "../../Manager/SceneManager.h"
 #include "../../Manager/Camera.h"
-#include "../../Manager/Input/Controller.h"
+#include "../../Manager/Input/InputManager.h"
 #include "../Common/AnimationController.h"
 #include "../Collider/ColliderCapsule.h"
 #include "../Collider/ColliderLine.h"
@@ -365,12 +365,8 @@ void Player::GoodDodge(void)
 
 void Player::Status(void)
 {
-	Controller& ctrl = Controller::GetInstance();
-	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
-
 	//スタミナ回復の条件
-	if ((state_ != STATE::DOGDE && (!padState.IsNew[static_cast<int>(Controller::JOYPAD_BTN::R)] && state_ != STATE::WAIT)) || isStaminaMax_) {
+	if ((state_ != STATE::DOGDE && (!InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::RUN).keyNew && state_ != STATE::WAIT)) || isStaminaMax_) {
 		if (stamina_ < MAX_STAMINA) {
 
 			stamina_++;
@@ -729,17 +725,13 @@ void Player::UpdateWait(void)
 
 void Player::UpdateMove(void)
 {
-	Controller& ctrl = Controller::GetInstance();
-	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
-
 	//行列と方向の設定
 	MATRIX mat = MGetIdent();
 	VECTOR dir = { 0.0f, 0.0f, 0.0f };
 
 	//前後左右の移動処理
 	//方向の取得
-	dir = ctrl.GetDirectionXZAKey(padState.AKeyLX, padState.AKeyLY);
+	dir = InputManager::GetInstance().GetDirectionXZAKeyL().at(InputManager::GetInstance().GetMostPriority());
 	
 	if (!VectorUtility::EqualsVZero(dir)) {
 
@@ -753,7 +745,7 @@ void Player::UpdateMove(void)
 		dir = VNorm(dir);
 		moveDir_ = VTransform(dir, mat);
 
-		if (padState.IsNew[static_cast<int>(Controller::JOYPAD_BTN::R)]) {
+		if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::RUN).keyNew) {
 			if (stamina_ > 0.0f) {
 
 				//移動モーション
@@ -891,10 +883,6 @@ void Player::UpdateAttack(void)
 
 void Player::UpdateCombo(void)
 {
-	Controller& ctrl = Controller::GetInstance();
-	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
-
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_1)) {
 		//モーション時間に合わせて攻撃を出す
 		if (animationCtrl_->GetTime() >= 32.0f && animationCtrl_->GetTime() <= 34.0f) {
@@ -909,7 +897,7 @@ void Player::UpdateCombo(void)
 			BoolChangeDodge();
 
 			//同じボタンを押したら二段階目
-			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
+			if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::COMBO).keyTrgDown) {
 
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_2), false);
 			}
@@ -935,7 +923,7 @@ void Player::UpdateCombo(void)
 			BoolChangeDodge();
 			
 			//同じボタンを押したら三段階目
-			if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
+			if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::COMBO).keyTrgDown) {
 
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::COMBO_3), false);
 			}
@@ -1033,12 +1021,8 @@ void Player::UpdateDamagedHeavy(void)
 
 			steps++;
 
-			Controller& ctrl = Controller::GetInstance();
-			//ゲームパッドの情報を取得
-			Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
-
 			//何かキーが押されるか一定時間経つまで起き上がらない
-			if (padState.Anyone || steps >= 90) {
+			if (InputManager::GetInstance().GetPriorityAnyoneTrg() || steps >= 90) {
 
 				steps = 0;
 				animationCtrl_->ChangePause(false);
@@ -1098,10 +1082,7 @@ void Player::UpdateDrink(void)
 
 void Player::BoolChangeMove(void)
 {
-	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1);
-
-	if (padState.AKeyLX != 0 || padState.AKeyLY != 0) {
+	if (!VectorUtility::EqualsVZero(InputManager::GetInstance().GetDirectionXZAKeyL().at(InputManager::GetInstance().GetMostPriority()))) {
 
 		//移動モーションに移行
 		DoChangeState(STATE::MOVE);
@@ -1110,10 +1091,7 @@ void Player::BoolChangeMove(void)
 
 void Player::BoolChangeAttack(void)
 {
-	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1);
-
-	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP)]) {
+	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::ATTACK).keyTrgDown) {
 
 		//攻撃モーションに移行
 		DoChangeState(STATE::ATTACK);
@@ -1122,10 +1100,7 @@ void Player::BoolChangeAttack(void)
 
 void Player::BoolChangeCombo(void)
 {
-	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1);
-
-	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
+	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::COMBO).keyTrgDown) {
 
 		//攻撃モーションに移行
 		DoChangeState(STATE::COMBO);
@@ -1134,10 +1109,7 @@ void Player::BoolChangeCombo(void)
 
 void Player::BoolChangeDodge(void)
 {
-	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1);
-
-	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
+	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::DODGE).keyTrgDown) {
 		if (stamina_ >= dodgeStamina_ || isStaminaMax_) {
 
 			//回避モーションに移行
@@ -1148,10 +1120,7 @@ void Player::BoolChangeDodge(void)
 
 void Player::BoolChangeDrink(void)
 {
-	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1);
-
-	if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::LEFT)] || CheckHitKey(KEY_INPUT_0)) {
+	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::USE).keyTrgDown) {
 		if (!isHeal_ && !isHealMax_ && damaged_ <= 0) {
 
 			//飲むモーションに移行

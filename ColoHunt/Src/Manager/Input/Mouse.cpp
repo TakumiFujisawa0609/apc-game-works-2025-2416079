@@ -1,9 +1,9 @@
 #include <DxLib.h>
-#include "KeyMouse.h"
+#include "Mouse.h"
 #include "../../Application.h"
 
 
-void KeyMouse::Init(void)
+void Mouse::Init(void)
 {
 	anyoneTrgDown_ = anyoneTrg_ = anyone_ = false;
 
@@ -11,22 +11,17 @@ void KeyMouse::Init(void)
 	SetMousePoint(Application::SCREEN_SIZE_X_HALF, Application::SCREEN_SIZE_Y_HALF);
 }
 
-void KeyMouse::Update(void)
+void Mouse::Update(void)
 {
 	// 初期化
-	anyoneTrgDown_ = anyoneTrg_ = anyone_ = false; 
+	anyoneTrgDown_ = anyoneTrg_ = anyone_ = false;
 	mouseInput_ = GetMouseInput();
 
 	// キーボード検知
 	for (auto& p : infos_)
 	{
 		p.second.keyOld = p.second.keyNew;
-		if (p.second.type == TYPE::KEY) {
-			p.second.keyNew = CheckHitKey(p.second.key);
-		}
-		if (p.second.type == TYPE::MOUSE) {
-			p.second.keyNew = CheckMouse(p.second.key);
-		}
+		p.second.keyNew = CheckMouse(p.second.key);
 		InputBase::Update(p);
 	}
 
@@ -46,11 +41,11 @@ void KeyMouse::Update(void)
 	SetMousePoint(Application::SCREEN_SIZE_X_HALF, Application::SCREEN_SIZE_Y_HALF);
 }
 
-void KeyMouse::Release(void)
+void Mouse::Release(void)
 {
 }
 
-bool KeyMouse::CheckMouse(int key)
+bool Mouse::CheckMouse(int key)
 {
 	if (mouseInput_ & key) {
 
@@ -59,7 +54,7 @@ bool KeyMouse::CheckMouse(int key)
 	return false;
 }
 
-KeyMouse::KeyMouse(void) : mousePos_()
+Mouse::Mouse(void) : mousePos_()
 {
 	mouseInput_ = -1;
 }

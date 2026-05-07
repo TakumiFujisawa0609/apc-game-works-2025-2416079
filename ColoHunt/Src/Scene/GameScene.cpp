@@ -11,7 +11,7 @@
 #include "../Manager/EffectResManager.h"
 #include "../Manager/SceneManager.h"
 #include "../Manager/Camera.h"
-#include "../Manager/Input/Controller.h"
+#include "../Manager/Input/InputManager.h"
 #include "../Application.h"
 #include "../Object/Collision/CollisionManager.h"
 #include "../Object/Collider/ColliderCapsule.h"
@@ -580,17 +580,13 @@ void GameScene::GameCamera(void)
 		return;
 	}
 
-	Controller& ctrl = Controller::GetInstance();
-	//ゲームパッドの情報を取得
-	Controller::JOYPAD_IN_STATE padState = ctrl.GetJPadState(Controller::JOYPAD_NO::PAD1);
-
 	if (!isLockon_) {
 	
 		//方向の取得
-		pitch_ += padState.AKeyRY / 25000.0f;
-		yaw_ += padState.AKeyRX / 12000.0f;
+		pitch_ += InputManager::GetInstance().GetDirectionXZAKeyR().at(InputManager::GetInstance().GetMostPriority()).z / 25000.0f;
+		yaw_ += InputManager::GetInstance().GetDirectionXZAKeyR().at(InputManager::GetInstance().GetMostPriority()).x / 12000.0f;
 
-		if (padState.IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::L)] || CheckHitKey(KEY_INPUT_O)) {
+		if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::LOCK_ON).keyTrgDown) {
 
 			cnt_ = 10;
 			isLockon_ = true;

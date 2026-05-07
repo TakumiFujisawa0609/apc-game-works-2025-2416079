@@ -3,7 +3,7 @@
 #include "../Manager/SceneManager.h"
 #include "../Manager/Audio/AudioManager.h"
 #include "../Manager/Audio/SoundTable.h"
-#include "../Manager/Input/Controller.h"
+#include "../Manager/Input/InputManager.h"
 #include "../Common/Fader.h"
 #include "TitleScene.h"
 
@@ -163,10 +163,7 @@ void TitleScene::UpdateLogo(void)
 		}
 
 		// シーン遷移
-		Controller& ins = Controller::GetInstance();
-		Controller::JOYPAD_IN_STATE state = ins.GetJPadState(Controller::JOYPAD_NO::PAD1);
-
-		if (state.IsAnyoneDown) {
+		if (InputManager::GetInstance().GetPriorityAnyoneTrgDown()) {
 
 			cnt_ = 0;
 			AudioManager::GetInstance()->PlayBGM(SoundID::BGM_TITLE);
@@ -178,13 +175,13 @@ void TitleScene::UpdateLogo(void)
 
 void TitleScene::UpdateSelect(void)
 {
-	if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::RIGHT)]) {
+	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::CANCEL).keyTrgDown) {
 	
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_CANCEL);
 		ChangeState(STATE::LOGO);
 		return;
 	}
-	if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::TOP_DPAD)]) {
+	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::UP).keyTrgDown) {
 		
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
 		
@@ -207,7 +204,7 @@ void TitleScene::UpdateSelect(void)
 			break;
 		}
 	}
-	else if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN_DPAD)]) {
+	else if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::DOWN).keyTrgDown) {
 		
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
 		
@@ -225,12 +222,11 @@ void TitleScene::UpdateSelect(void)
 
 		case TitleScene::SELECT::END:
 
-
 			select_ = SELECT::PLAY;
 			break;
 		}
 	}
-	if (Controller::GetInstance().GetJPadState(Controller::JOYPAD_NO::PAD1).IsTrgDown[static_cast<int>(Controller::JOYPAD_BTN::DOWN)]) {
+	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::DECIDE).keyTrgDown) {
 		
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_DESIDE);
 		
@@ -257,10 +253,7 @@ void TitleScene::UpdateSelect(void)
 void TitleScene::UpdateRanking(void)
 {
 	// シーン遷移
-	Controller& ins = Controller::GetInstance();
-	Controller::JOYPAD_IN_STATE state = ins.GetJPadState(Controller::JOYPAD_NO::PAD1);
-
-	if (state.IsAnyoneDown) {
+	if (InputManager::GetInstance().GetPriorityAnyoneTrgDown()) {
 
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_CANCEL);
 		state_ = STATE::SELECT;
@@ -287,10 +280,7 @@ void TitleScene::UpdatePv(void)
 	if (fader_->GetState() == Fader::STATE::NONE) {
 
 		// シーン遷移
-		Controller& ins = Controller::GetInstance();
-		Controller::JOYPAD_IN_STATE state = ins.GetJPadState(Controller::JOYPAD_NO::PAD1);
-
-		if (state.IsAnyoneDown || GetMovieStateToGraph(video_) == 0) {
+		if (InputManager::GetInstance().GetPriorityAnyoneTrgDown() || GetMovieStateToGraph(video_) == 0) {
 
 			fader_->SetFade(Fader::STATE::FADE_OUT);
 			SceneManager::GetInstance().SetScreenImage();
@@ -434,17 +424,22 @@ void TitleScene::DrawSelect(void)
 	DrawString(100, Application::SCREEN_SIZE_Y - 40, "↑↓　選択", 0xffffff);
 
 	//コントローラータイプに応じて表示を変える
-	if (Controller::GetInstance().GetJPadType(Controller::JOYPAD_NO::PAD1) <= Controller::JOYPAD_TYPE::XBOX_ONE) {
+	if (InputManager::GetInstance().GetMostPriorityType() == InputBase::JOYPAD_TYPE::NON) {
+
+		DrawString(250, Application::SCREEN_SIZE_Y - 40, "Lｸﾘｯｸ　決定", 0xffffff);
+		DrawString(400, Application::SCREEN_SIZE_Y - 40, "Rｸﾘｯｸ　戻る", 0xffffff);
+	}
+	else if (InputManager::GetInstance().GetMostPriorityType() <= InputBase::JOYPAD_TYPE::XBOX_ONE) {
 
 		DrawString(250, Application::SCREEN_SIZE_Y - 40, "Ａ　決定", 0xffffff);
 		DrawString(400, Application::SCREEN_SIZE_Y - 40, "Ｂ　戻る", 0xffffff);
 	}
-	else if (Controller::GetInstance().GetJPadType(Controller::JOYPAD_NO::PAD1) <= Controller::JOYPAD_TYPE::DUAL_SENSE) {
+	else if (InputManager::GetInstance().GetMostPriorityType() <= InputBase::JOYPAD_TYPE::DUAL_SENSE) {
 
 		DrawString(250, Application::SCREEN_SIZE_Y - 40, "×　決定", 0xffffff);
 		DrawString(400, Application::SCREEN_SIZE_Y - 40, "○　戻る", 0xffffff);
 	}
-	else{
+	else {
 
 		DrawString(250, Application::SCREEN_SIZE_Y - 40, "Ｂ　決定", 0xffffff);
 		DrawString(400, Application::SCREEN_SIZE_Y - 40, "Ａ　戻る", 0xffffff);
@@ -536,7 +531,6 @@ void TitleScene::DrawPv(void)
 
 		DrawFormatStringToHandle((Application::SCREEN_SIZE_X - widthB) / 2, Application::SCREEN_SIZE_Y - 100, 0xffffff, creatorFont_, "HIRO 2025,2026 CREATED");
 
-		//DrawRotaGraph(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2, 1.0f, 0.0, imgBg_, true);
 		DrawRotaGraph(Application::SCREEN_SIZE_X / 2, Application::SCREEN_SIZE_Y / 2 - 100, 0.75f, 0.0, imgTitle_, true);
 	}
 }

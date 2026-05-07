@@ -4,14 +4,14 @@
 #include <Dxlib.h>
 #include "InputBase.h"
 
-class KeyMouse : public InputBase
+class Keyboard : public InputBase
 {
 public:
 
 	// コンストラクタ
-	KeyMouse(void);
+	Keyboard(void);
 	// デストラクタ
-	~KeyMouse(void) = default;
+	~Keyboard(void) = default;
 
 	// 初期化
 	void Init(void) override;
@@ -23,17 +23,5 @@ public:
 	// 判定を行うキーをクリア
 	void Clear(void) { infos_.clear(); }
 
-	// マウス座標の取得
-	VECTOR GetMousePos(void) const { return mousePos_; }
-
 private:
-
-	// マウスカーソルの位置
-	VECTOR mousePos_;
-	
-	// マウスボタンの入力状態
-	int mouseInput_;
-
-	// マウスの入力取得
-	bool CheckMouse(int key);
 };

@@ -1,5 +1,4 @@
 #include <EffekseerForDXLib.h>
-#include "Manager/Input/KeyMouse.h"
 #include "Manager/EffectResManager.h"
 #include "Manager/SceneManager.h"
 #include "Manager/Input/InputManager.h"

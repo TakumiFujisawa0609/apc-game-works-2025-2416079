@@ -4,11 +4,13 @@
 #include <list>
 #include <string>
 #include "Controller.h"
-#include "KeyMouse.h"
+#include "Keyboard.h"
+#include "Mouse.h"
 
 
 class Controller;
-class KeyMouse;
+class Keyboard;
+class Mouse;
 
 class InputManager{
 
@@ -20,11 +22,12 @@ public:
 		{
 		NON = -1,
 
-		KEY,				// キー入力
 		PAD1,				// パッド１入力
 		PAD2,				// パッド２入力
 		PAD3,				// パッド３入力
 		PAD4,				// パッド４入力
+		KEY,				// キー入力
+		MOUSE,				// マウス入力
 
 		MAX,
 	};
@@ -76,7 +79,13 @@ public:
 	std::vector<InputBase::Info> GetPriorityKey(COMMAND com, int num);
 
 	// 最優先されたタイプを取得
-	Controller::JOYPAD_TYPE GetMostPriorityType(void) { return mostPriorityType_; }
+	KEYPAD_NO GetMostPriority(void) { return mostPriority_; }
+	Controller::JOYPAD_TYPE GetMostPriorityType(void) { return mostPriorityNo_; }
+
+	// (今のフレームで)最優先の物が何か押しているか
+	bool GetPriorityAnyoneTrg(void);
+	// (今のフレームで)最優先の物が今何か押したか
+	bool GetPriorityAnyoneTrgDown(void);
 
 private:
 
@@ -90,7 +99,10 @@ private:
 	InputManager& operator=(InputManager&&) = delete;
 
 	// コマンドロード
-	void CommondLoad(void);
+	void CommandLoad(void);
+
+	// コマンドの複数の押下判定の合算
+	InputBase::Info GetKeyInfo(std::vector<InputBase::Info> infos);
 
 	//インスタンス
 	static InputManager* inst_;
@@ -99,15 +111,17 @@ private:
 	std::vector<Controller*> pads_;
 
 	// キーマウ情報
-	KeyMouse* keyMou_;
+	Keyboard* keyboard_;
+	Mouse* mouse_;
 
 	// キーマウコマンド
-	std::map<InputManager::COMMAND, int> keyCommand_;
+	std::map<InputManager::COMMAND, std::vector<int>> keyCommand_;
+	std::map<InputManager::COMMAND, std::vector<int>> mouseCommand_;
 	//パッドコマンド
-	std::map<InputManager::COMMAND, int> padCommand_;
+	std::map<InputManager::COMMAND, std::vector<int>> padCommand_;
 
 	// 優先
 	std::vector<bool> orderOfPriority_;
 	KEYPAD_NO mostPriority_;
-	Controller::JOYPAD_TYPE mostPriorityType_;
+	Controller::JOYPAD_TYPE mostPriorityNo_;
 };
