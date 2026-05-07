@@ -9,7 +9,7 @@ class KeyMouse : public InputBase
 public:
 
 	// コンストラクタ
-	KeyMouse(int sensi);
+	KeyMouse(void);
 	// デストラクタ
 	~KeyMouse(void) = default;
 

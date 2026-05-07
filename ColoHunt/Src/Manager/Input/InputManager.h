@@ -14,6 +14,21 @@ class InputManager{
 
 public:
 
+	// キーボード,ゲームコントローラー認識番号
+	// DxLib定数、DX_INPUT_PAD1等に対応
+	enum class KEYPAD_NO
+		{
+		NON = -1,
+
+		KEY,				// キー入力
+		PAD1,				// パッド１入力
+		PAD2,				// パッド２入力
+		PAD3,				// パッド３入力
+		PAD4,				// パッド４入力
+
+		MAX,
+	};
+
 	// コマンド
 	enum class COMMAND {
 
@@ -35,9 +50,6 @@ public:
 
 		MAX,
 	};
-
-	// マウス感度
-	static constexpr int MOUSE_SENSITIVITY = 30;
 
 	// インスタンスを明示的に生成
 	static void CreateInstance(void);

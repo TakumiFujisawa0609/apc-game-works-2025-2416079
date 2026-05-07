@@ -56,8 +56,7 @@ bool FpsControll::SkipDrawScene(void) {
 /// 現在の自国の確認
 /// </summary>
 /// <param name="nowtime">現在の時刻(ミリ秒)</param>
-void FpsControll::RegisterTime(const 
-	wtime) {
+void FpsControll::RegisterTime(const int nowtime) {
 
 	//時間を記録する
 	time_list.push_back(nowtime);

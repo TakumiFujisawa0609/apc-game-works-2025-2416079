@@ -29,8 +29,7 @@ public:
 
 	JOYPAD_TYPE GetJPadType(void) { return GetJPadDType(); }
 
-	// コントローラータイプ
-	JOYPAD_TYPE type_;
+private:
 
 	// コントローラーの番号
 	const int CONTROLLER_NUM;

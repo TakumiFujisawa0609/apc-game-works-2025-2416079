@@ -52,12 +52,33 @@ VECTOR Controller::GetDirectionXZAKeyR(void)
 
 VECTOR Controller::GetDirectionXZAKey(int aKeyX, int aKeyY)
 {
-	return GetDirectionXZAKey(analogKeyLX, analogKeyLY);
-}
+	VECTOR ret = { 0.0f, 0.0f, 0.0f };
 
-VECTOR Controller::GetDirectionXZAKeyR(void)
-{
-	return GetDirectionXZAKey(analogKeyRX, analogKeyRY);
+	// スティックの個々の入力値は、
+	// -1000.0f ～ 1000.0f の範囲で返ってくるが、
+	// X:1000.0f、Y:1000.0fになることは無い(1000と500くらいが最大)
+	// スティックの入力値を -1.0 ～ 1.0 に正規化
+	float dirX = static_cast<float>(aKeyX) / AKEY_VAL_MAX;
+	float dirZ = static_cast<float>(aKeyY) / AKEY_VAL_MAX;
+	
+	// ピタゴラスの定理でニュートラル状態からの長さベクトルにする
+	// ( 円形のデッドゾーンになる )
+	// 平方根により、おおよその最大値が1.0となる
+	float len = sqrtf(dirX * dirX + dirZ * dirZ);
+
+	if (len < THRESHOLD){
+		// (0.0f, 0.0f, 0.0f)
+		return ret;
+	}
+
+	// デッドゾーン境界からに再スケーリング(可変デッドゾーン)
+	float scale = (len - THRESHOLD) / (1.0f - THRESHOLD);
+	dirX = (dirX / len) * scale;
+	dirZ = (dirZ / len) * scale;
+	
+	// Zは前に倒すとマイナス値が返ってくるので反転
+	ret = VNorm({ dirX, 0.0f, -dirZ });
+	return ret;
 }
 
 bool Controller::GetJPadInputState(int key)

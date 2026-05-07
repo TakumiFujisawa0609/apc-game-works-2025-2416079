@@ -86,5 +86,4 @@ protected:
 	bool anyoneTrg_;
 	// ‰½‚©‚µ‚Ä‚¢‚é‚©
 	bool anyone_;
-	bool anyoneKey_;
 };

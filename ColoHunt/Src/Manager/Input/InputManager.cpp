@@ -26,7 +26,7 @@ InputManager& InputManager::GetInstance(void)
 void InputManager::Init(void){
 
 	// キーマウ取得
-	keyMou_ = new KeyMouse(MOUSE_SENSITIVITY);
+	keyMou_ = new KeyMouse();
 	keyMou_->Init();
 	
 	// キーの登録
@@ -109,10 +109,6 @@ void InputManager::Update(void){
 			}
 		}
 	}
-
-	// キーマウ更新
-	keyMou_->Update();
-	orderOfPriority_.push_back(keyMou_->GetAnyone());
 }
 
 // リソースの破棄
