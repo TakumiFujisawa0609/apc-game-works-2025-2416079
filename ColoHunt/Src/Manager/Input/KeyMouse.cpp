@@ -5,60 +5,70 @@
 
 void KeyMouse::Init(void)
 {
+	// マウス検知
+	mouseInput_ = GetMouseInput();
+
 	// マウスを中央に
 	SetMousePoint(Application::SCREEN_SIZE_X_HALF, Application::SCREEN_SIZE_Y_HALF);
 }
 
 void KeyMouse::Update(void)
 {
+	anyone_ = anyoneKey_ = isAnyoneDown_ = false;
 
 	// キーボード検知
 	for (auto& p : infos_)
 	{
+		// キーマウ以外は更新しない
+		if (p.second.type != KEYPAD_NO::KEY && p.second.type != KEYPAD_NO::MOUSE) {
+			
+			continue;
+		}
 		p.second.keyOld = p.second.keyNew;
-		p.second.keyNew = CheckHitKey(p.second.key);
-		p.second.keyTrgDown = p.second.keyNew && !p.second.keyOld;
-		p.second.keyTrgUp = !p.second.keyNew && p.second.keyOld;
-	}
+		
+		// マウスの取得
+		if (p.second.type == KEYPAD_NO::MOUSE) {
+			p.second.keyNew = CheckMouseKey(p.second.key);
+		}
+		// キーボードの取得
+		else {
+			p.second.keyNew = CheckHitKey(p.second.key);
+		}
 
+		InputBase::Update(p);
+	}
 	// マウス検知
 	mouseInput_ = GetMouseInput();
 	int mouseX = 0;
 	int mouseY = 0;
 	GetMousePoint(&mouseX, &mouseY);
-	mousePos_.x = static_cast<float>(mouseX);
-	mousePos_.y = static_cast<float>(mouseY);
+	mousePos_.x = static_cast<float>(mouseX) / MOUSE_SEMSITIVITY;
+	mousePos_.y = static_cast<float>(mouseY) / MOUSE_SEMSITIVITY;
+
+	// 何も押されていないがマウスが動いているか
+	if (mouseX != Application::SCREEN_SIZE_X_HALF && mouseY != Application::SCREEN_SIZE_Y_HALF) {
+
+		anyone_ = true;
+	}
 
 	// マウスを中央に
 	SetMousePoint(Application::SCREEN_SIZE_X_HALF, Application::SCREEN_SIZE_Y_HALF);
 }
 
-void KeyMouse::Destroy(void)
+void KeyMouse::Release(void)
 {
 }
 
-void KeyMouse::Add(int key)
-{
-	KeyMouse::Info info = KeyMouse::Info();
-	info.key = key;
-	info.keyOld = false;
-	info.keyNew = false;
-	info.keyTrgDown = false;
-	info.keyTrgUp = false;
-	infos_.emplace(key, info);
-}
-
-KeyMouse::KeyMouse(void) : infoEmpty_(), mousePos_()
+KeyMouse::KeyMouse(int sensi) : mousePos_()
 {
 	mouseInput_ = -1;
 }
 
-const KeyMouse::Info& KeyMouse::Find(int key) const
+bool KeyMouse::CheckMouseKey(int key)
 {
-	auto it = infos_.find(key);
-	if (it != infos_.end())
-	{
-		return it->second;
+	if (mouseInput_ & key) {
+
+		return true;
 	}
-	return infoEmpty_;
+	return false;
 }

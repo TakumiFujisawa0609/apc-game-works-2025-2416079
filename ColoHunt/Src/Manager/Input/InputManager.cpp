@@ -26,24 +26,24 @@ InputManager& InputManager::GetInstance(void)
 void InputManager::Init(void){
 
 	// キーマウ取得
-	keyMou_ = new KeyMouse();
+	keyMou_ = new KeyMouse(MOUSE_SENSITIVITY);
 	keyMou_->Init();
 	
-	// キーの登録
-	keyMou_->Add(KEY_INPUT_RSHIFT);
-	keyMou_->Add(MOUSE_INPUT_RIGHT);
-	keyMou_->Add(MOUSE_INPUT_LEFT);
-	keyMou_->Add(KEY_INPUT_SPACE);
-	keyMou_->Add(MOUSE_INPUT_MIDDLE);
-	keyMou_->Add(KEY_INPUT_F);
-	keyMou_->Add(KEY_INPUT_Q);
-	keyMou_->Add(KEY_INPUT_LEFT);
-	keyMou_->Add(KEY_INPUT_E);
-	keyMou_->Add(KEY_INPUT_RIGHT);
-	keyMou_->Add(KEY_INPUT_W);
-	keyMou_->Add(KEY_INPUT_UP);
-	keyMou_->Add(KEY_INPUT_S);
-	keyMou_->Add(KEY_INPUT_DOWN);
+	// キーの登録	
+	keyMou_->Add(MOUSE_INPUT_RIGHT, true);
+	keyMou_->Add(MOUSE_INPUT_LEFT, true);
+	keyMou_->Add(MOUSE_INPUT_MIDDLE, true);
+	keyMou_->Add(KEY_INPUT_RSHIFT, false);
+	keyMou_->Add(KEY_INPUT_SPACE, false);
+	keyMou_->Add(KEY_INPUT_F, false);
+	keyMou_->Add(KEY_INPUT_Q, false);
+	keyMou_->Add(KEY_INPUT_LEFT, false);
+	keyMou_->Add(KEY_INPUT_E, false);
+	keyMou_->Add(KEY_INPUT_RIGHT, false);
+	keyMou_->Add(KEY_INPUT_W, false);
+	keyMou_->Add(KEY_INPUT_UP, false);
+	keyMou_->Add(KEY_INPUT_S, false);
+	keyMou_->Add(KEY_INPUT_DOWN, false);
 
 	// パッド取得]
 	pads_ = new Controller();
@@ -51,23 +51,27 @@ void InputManager::Init(void){
 }
 
 // 更新
-void InputManager::Update(void){
-	
-	// キーマウ更新
-	keyMou_->Update();
+void InputManager::Update(void) {
+
+	orderOfPriority_.clear();
 
 	// 現在の接続しているパッドの数のみ更新(1番から)
 	for (int num = static_cast<int>(KEYPAD_NO::PAD1); num < GetJoypadNum(); num++) {
 
 		pads_->Update(num);
+		orderOfPriority_.push_back(pads_->GetJPadState(num).Anyone);
 	}
+
+	// キーマウ更新
+	keyMou_->Update();
+	orderOfPriority_.push_back(keyMou_->GetAnyone());
 }
 
 // リソースの破棄
 void InputManager::Release(void){
 
 	// 解放
-	keyMou_->Destroy();
+	keyMou_->Release();
 	pads_->Destroy();
 	delete keyMou_;
 	delete pads_;
@@ -77,7 +81,7 @@ std::map<InputManager::KEYPAD_NO, VECTOR>  InputManager::GetDirectionXZAKeyL(voi
 {
 	std::map<KEYPAD_NO, VECTOR>  res;
 
-	VECTOR nowPos;
+	VECTOR nowPos = Utility::VECTOR_ZERO;
 
 	// WASDをアナログに変換
 	if (keyMou_->GetKey(KEY_INPUT_W).keyNew) {
@@ -119,16 +123,6 @@ std::map<InputManager::KEYPAD_NO, VECTOR>  InputManager::GetDirectionXZAKeyR(voi
 		res[static_cast<KEYPAD_NO>(num)] = nowPos;
 	}
 	return res;
-}
-
-KeyMouse::Info InputManager::GetKeyMouse(COMMAND com)
-{
-	return KeyMouse::Info();
-}
-
-Controller::JOYPAD_IN_STATE InputManager::GetKeyController(COMMAND com)
-{
-	return Controller::JOYPAD_IN_STATE();
 }
 
 InputManager::InputManager(void)

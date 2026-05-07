@@ -2,7 +2,7 @@
 #include "Controller.h"
 
 
-Controller::Controller(void)
+Controller::Controller(int no) : PAD_NUMBER(no)
 {
 }
 
@@ -12,128 +12,109 @@ Controller::~Controller(void)
 
 void Controller::Init(void)
 {
+	type_ = static_cast<Controller::JOYPAD_TYPE>(GetJoypadType(PAD_NUMBER));
 }
 
-void Controller::Update(int i)
+void Controller::Update(void)
 {
 	// パッド情報
-	SetJPadInState(i);
+	SetJPadInState();
 }
 
-void Controller::Destroy(void)
+void Controller::Release(void)
 {
 }
 
-VECTOR Controller::GetDirectionXZAKey(int aKeyX, int aKeyY)
+VECTOR Controller::GetDirectionXZAKeyL(void)
 {
-	VECTOR ret = { 0.0f, 0.0f, 0.0f };
-
-	// スティックの個々の入力値は、
-	// -1000.0f ～ 1000.0f の範囲で返ってくるが、
-	// X:1000.0f、Y:1000.0fになることは無い(1000と500くらいが最大)
-	// スティックの入力値を -1.0 ～ 1.0 に正規化
-	float dirX = static_cast<float>(aKeyX) / AKEY_VAL_MAX;
-	float dirZ = static_cast<float>(aKeyY) / AKEY_VAL_MAX;
-	
-	// ピタゴラスの定理でニュートラル状態からの長さベクトルにする
-	// ( 円形のデッドゾーンになる )
-	// 平方根により、おおよその最大値が1.0となる
-	float len = sqrtf(dirX * dirX + dirZ * dirZ);
-
-	if (len < THRESHOLD){
-		// (0.0f, 0.0f, 0.0f)
-		return ret;
-	}
-
-	// デッドゾーン境界からに再スケーリング(可変デッドゾーン)
-	float scale = (len - THRESHOLD) / (1.0f - THRESHOLD);
-	dirX = (dirX / len) * scale;
-	dirZ = (dirZ / len) * scale;
-	
-	// Zは前に倒すとマイナス値が返ってくるので反転
-	ret = VNorm({ dirX, 0.0f, -dirZ });
-	return ret;
+	return GetDirectionXZAKey(analogKeyLX, analogKeyLY);
 }
 
-Controller::JOYPAD_IN_STATE Controller::GetJPadInputState(int no)
+VECTOR Controller::GetDirectionXZAKeyR(void)
 {
-	JOYPAD_IN_STATE ret = JOYPAD_IN_STATE();
+	return GetDirectionXZAKey(analogKeyRX, analogKeyRY);
+}
 
-	auto type = GetJPadDType(no);
+bool Controller::GetJPadInputState(int idx)
+{
+	bool res = false;
 
-	switch (type){
+	switch (type_){
 	case Controller::JOYPAD_TYPE::OTHER:
 		break;
 
 	case Controller::JOYPAD_TYPE::XBOX_360:
 	case Controller::JOYPAD_TYPE::XBOX_ONE:
 	{
-
-		auto d = GetJPadDInputState(no);
-		auto x = GetJPadXInputState(no);
-
-		int idx;
+		auto d = GetJPadDInputState();
+		auto x = GetJPadXInputState();
 
 		//   Y
 		// X   B
 		//   A
 
-		idx = static_cast<int>(JOYPAD_BTN::TOP);
-		ret.ButtonsNew[idx] = d.Buttons[3];// Y
+		switch (idx)
+		{
+		case XINPUT_BUTTON_DPAD_UP:
+			res = x.Buttons[0] == 1;// UP
+			break;
+		case XINPUT_BUTTON_DPAD_DOWN:
+			res = x.Buttons[1] == 1;// DOWN
+			break;
+		case XINPUT_BUTTON_DPAD_LEFT:
+			res = x.Buttons[2] == 1;// LEFT
+			break;
+		case XINPUT_BUTTON_DPAD_RIGHT:
+			res = x.Buttons[3] == 1;// RIGHT
+			break;
+		case XINPUT_BUTTON_Y:
+			res = d.Buttons[3] == INPUT_SENSI;// Y
+			break;
+		case XINPUT_BUTTON_X:
+			res = d.Buttons[2] == INPUT_SENSI;// X
+			break;
+		case XINPUT_BUTTON_B:
+			res = d.Buttons[1] == INPUT_SENSI;// B
+			break;
+		case XINPUT_BUTTON_A:
+			res = d.Buttons[0] == INPUT_SENSI;// A
+			break;
+		case PAD_INPUT_L:
+			res = d.Buttons[4] == INPUT_SENSI;// L
+			break;
+		case PAD_INPUT_R:
+			res = d.Buttons[5] == INPUT_SENSI;// R
+			break;
+		case XINPUT_BUTTON_LEFT_SHOULDER:
+			res = x.LeftTrigger >= INPUT_SENSI; // L2_TRIGGER
+			break;
+		case XINPUT_BUTTON_RIGHT_SHOULDER:
+			res = x.RightTrigger >= INPUT_SENSI;// R2_TRIGGER
+			break;
+		case XINPUT_BUTTON_START:
+			res = d.Buttons[7] == INPUT_SENSI;// START
+			break;
+		case XINPUT_BUTTON_BACK:
+			res = d.Buttons[6] == INPUT_SENSI;// SELECT
+			break;
+		case XINPUT_BUTTON_LEFT_THUMB:
+			res = d.Buttons[9] == INPUT_SENSI;// R3
+			break;
+		case XINPUT_BUTTON_RIGHT_THUMB:
+			res = d.Buttons[8] == INPUT_SENSI;// L3
+			break;
+		default:
 
-		idx = static_cast<int>(JOYPAD_BTN::LEFT);
-		ret.ButtonsNew[idx] = d.Buttons[2];// X
+			// 左スティック
+			analogKeyLX = d.X;
+			analogKeyLY = d.Y;
 
-		idx = static_cast<int>(JOYPAD_BTN::RIGHT);
-		ret.ButtonsNew[idx] = d.Buttons[1];// B
+			// 右スティック
+			analogKeyRX = d.Rx;
+			analogKeyRY = d.Ry;
 
-		idx = static_cast<int>(JOYPAD_BTN::DOWN);
-		ret.ButtonsNew[idx] = d.Buttons[0];// A
-		
-		idx = static_cast<int>(JOYPAD_BTN::TOP_DPAD);
-		ret.ButtonsNew[idx] = x.Buttons[0];// UP
-
-		idx = static_cast<int>(JOYPAD_BTN::LEFT_DPAD);
-		ret.ButtonsNew[idx] = x.Buttons[2];// LEFT
-
-		idx = static_cast<int>(JOYPAD_BTN::RIGHT_DPAD);
-		ret.ButtonsNew[idx] = x.Buttons[3];// RIGHT
-
-		idx = static_cast<int>(JOYPAD_BTN::DOWN_DPAD);
-		ret.ButtonsNew[idx] = x.Buttons[1];// DOWN
-
-		idx = static_cast<int>(JOYPAD_BTN::R);
-		ret.ButtonsNew[idx] = d.Buttons[5];// R
-
-		idx = static_cast<int>(JOYPAD_BTN::L);
-		ret.ButtonsNew[idx] = d.Buttons[4];// L
-
-		idx = static_cast<int>(JOYPAD_BTN::R2_TRIGGER);
-		ret.ButtonsNew[idx] = x.RightTrigger;// R2_TRIGGER
-
-		idx = static_cast<int>(JOYPAD_BTN::L2_TRIGGER);
-		ret.ButtonsNew[idx] = x.LeftTrigger; // L2_TRIGGER
-
-		idx = static_cast<int>(JOYPAD_BTN::START);
-		ret.ButtonsNew[idx] = d.Buttons[7];// START
-
-		idx = static_cast<int>(JOYPAD_BTN::SELECT);
-		ret.ButtonsNew[idx] = d.Buttons[6];// SELECT
-		
-		idx = static_cast<int>(JOYPAD_BTN::R3_PUSH);
-		ret.ButtonsNew[idx] = d.Buttons[9];// R3
-
-		idx = static_cast<int>(JOYPAD_BTN::L3_PUSH);
-		ret.ButtonsNew[idx] = d.Buttons[8];// L3
-
-		// 左スティック
-		ret.AKeyLX = d.X;
-		ret.AKeyLY = d.Y;
-
-		// 右スティック
-		ret.AKeyRX = d.Rx;
-		ret.AKeyRY = d.Ry;
-
+			break;
+		}
 	}
 	break;
 
@@ -141,105 +122,97 @@ Controller::JOYPAD_IN_STATE Controller::GetJPadInputState(int no)
 	case Controller::JOYPAD_TYPE::DUAL_SHOCK_4:
 	case Controller::JOYPAD_TYPE::DUAL_SENSE:
 	{
-
-		auto d = GetJPadDInputState(no);
-
-		int idx;
+		auto d = GetJPadDInputState();
 
 		//   △
 		// □  〇
 		//   ×
+		switch (idx)
+		{
+		case XINPUT_BUTTON_DPAD_UP:
+			if ((int)d.POV[0] == 0 || (int)d.POV[0] == 4500 || (int)d.POV[0] == 31500) {
+				res = true;// UP
+			}
+			else {
+				res = false;
+			};
+			break;
+		case XINPUT_BUTTON_DPAD_DOWN:
+			if ((int)d.POV[0] == 13500 || (int)d.POV[0] == 18000 || (int)d.POV[0] == 22500) {
+				res = true;// DOWN
+			}
+			else {
+				res = false;
+			}
+			break;
+		case XINPUT_BUTTON_DPAD_LEFT:
+			if ((int)d.POV[0] == 22500 || (int)d.POV[0] == 27000 || (int)d.POV[0] == 31500) {
+				res = true;// LEFT
+			}
+			else {
+				res = false;
+			}
+			break;
+		case XINPUT_BUTTON_DPAD_RIGHT:
+			if ((int)d.POV[0] == 4500 || (int)d.POV[0] == 9000 || (int)d.POV[0] == 13500) {
+				res = true;// RIGHT
+			}
+			else {
+				res = false;
+			}
+			break;
+		case XINPUT_BUTTON_Y:
+			res = d.Buttons[3] == INPUT_SENSI;// △
+			break;
+		case XINPUT_BUTTON_X:
+			res = d.Buttons[0] == INPUT_SENSI;// □
+			break;
+		case XINPUT_BUTTON_B:
+			res = d.Buttons[2] == INPUT_SENSI;// ×
+			break;
+		case XINPUT_BUTTON_A:
+			res = d.Buttons[1] == INPUT_SENSI;// 〇
+			break;
+		case PAD_INPUT_L:
+			res = d.Buttons[4] == INPUT_SENSI;// L
+			break;
+		case PAD_INPUT_R:
+			res = d.Buttons[5] == INPUT_SENSI;// R
+			break;
+		case XINPUT_BUTTON_LEFT_SHOULDER:
+			res = d.Buttons[6] == INPUT_SENSI;// L2
+			break;
+		case XINPUT_BUTTON_RIGHT_SHOULDER:
+			res = d.Buttons[7] == INPUT_SENSI;// R2
+			break;
+		case XINPUT_BUTTON_START:
+			res = d.Buttons[9] == INPUT_SENSI;// START
+			break;
+		case XINPUT_BUTTON_BACK:
+			if (d.Buttons[8] == 1 || d.Buttons[13] == 1) {
+				res = true;// SELECT
+			}
+			else {
+				res = false;
+			}
+			break;
+		case XINPUT_BUTTON_LEFT_THUMB:
+			res = d.Buttons[10] == INPUT_SENSI;// L3
+		break; 
+		case XINPUT_BUTTON_RIGHT_THUMB:
+			res = d.Buttons[11] == INPUT_SENSI;// R3
+			break;
+		default:
 
-		idx = static_cast<int>(JOYPAD_BTN::TOP);
-		ret.ButtonsNew[idx] = d.Buttons[3];// △
+			// 左スティック
+			analogKeyLX = d.X;
+			analogKeyLY = d.Y;
 
-		idx = static_cast<int>(JOYPAD_BTN::LEFT);
-		ret.ButtonsNew[idx] = d.Buttons[0];// □
-
-		idx = static_cast<int>(JOYPAD_BTN::RIGHT);
-		ret.ButtonsNew[idx] = d.Buttons[2];// 〇
-
-		idx = static_cast<int>(JOYPAD_BTN::DOWN);
-		ret.ButtonsNew[idx] = d.Buttons[1];// ×
-
-		idx = static_cast<int>(JOYPAD_BTN::TOP_DPAD);
-		if ((int)d.POV[0] == 0 || (int)d.POV[0] == 4500 || (int)d.POV[0] == 31500) {
-		
-			ret.ButtonsNew[idx] = 128;// TOP
+			// 右スティック
+			analogKeyRX = d.Z;
+			analogKeyRY = d.Rz;
+			break;
 		}
-		else {
-
-			ret.ButtonsNew[idx] = 0;
-		}
-
-		idx = static_cast<int>(JOYPAD_BTN::LEFT_DPAD);
-		if ((int)d.POV[0] == 22500 || (int)d.POV[0] == 27000 || (int)d.POV[0] == 31500) {
-
-			ret.ButtonsNew[idx] = 128;// TOP
-		}
-		else {
-
-			ret.ButtonsNew[idx] = 0;
-		}
-
-		idx = static_cast<int>(JOYPAD_BTN::RIGHT_DPAD);
-		if ((int)d.POV[0] == 4500 || (int)d.POV[0] == 9000 || (int)d.POV[0] == 13500) {
-
-			ret.ButtonsNew[idx] = 128;// TOP
-		}
-		else {
-
-			ret.ButtonsNew[idx] = 0;
-		}
-
-		idx = static_cast<int>(JOYPAD_BTN::DOWN_DPAD);
-		if ((int)d.POV[0] == 13500 || (int)d.POV[0] == 18000 || (int)d.POV[0] == 22500) {
-
-			ret.ButtonsNew[idx] = 128;// TOP
-		}
-		else {
-
-			ret.ButtonsNew[idx] = 0;
-		}
-
-		idx = static_cast<int>(JOYPAD_BTN::R);
-		ret.ButtonsNew[idx] = d.Buttons[5];// R
-
-		idx = static_cast<int>(JOYPAD_BTN::L);
-		ret.ButtonsNew[idx] = d.Buttons[4];// L
-
-		idx = static_cast<int>(JOYPAD_BTN::R2_TRIGGER);
-		ret.ButtonsNew[idx] = d.Buttons[7];// R2
-
-		idx = static_cast<int>(JOYPAD_BTN::L2_TRIGGER);
-		ret.ButtonsNew[idx] = d.Buttons[6];// L2
-
-		idx = static_cast<int>(JOYPAD_BTN::START);
-		ret.ButtonsNew[idx] = d.Buttons[9];// START
-
-		idx = static_cast<int>(JOYPAD_BTN::SELECT);
-		if (d.Buttons[8] >= 1 || d.Buttons[13] >= 1) {
-
-			ret.ButtonsNew[idx] = 128;// SELECT
-		}
-		else {
-			ret.ButtonsNew[idx] = 0;
-		}
-
-		idx = static_cast<int>(JOYPAD_BTN::R3_PUSH);
-		ret.ButtonsNew[idx] = d.Buttons[11];// R3
-
-		idx = static_cast<int>(JOYPAD_BTN::L3_PUSH);
-		ret.ButtonsNew[idx] = d.Buttons[10];// L3
-
-		// 左スティック
-		ret.AKeyLX = d.X;
-		ret.AKeyLY = d.Y;
-
-		// 右スティック
-		ret.AKeyRX = d.Z;
-		ret.AKeyRY = d.Rz;
-
 	}
 	break;
 
@@ -255,67 +228,73 @@ Controller::JOYPAD_IN_STATE Controller::GetJPadInputState(int no)
 	case Controller::JOYPAD_TYPE::MAX:
 		break;
 	}
-	return ret;
+	return res;
 }
 
-Controller::JOYPAD_TYPE Controller::GetJPadDType(int no)
-{
-	return static_cast<Controller::JOYPAD_TYPE>(GetJoypadType(no));
-}
-
-DINPUT_JOYSTATE Controller::GetJPadDInputState(int no)
+DINPUT_JOYSTATE Controller::GetJPadDInputState(void)
 {
 	// コントローラ情報
-	GetJoypadDirectInputState(no, &joyDInState_);
+	GetJoypadDirectInputState(PAD_NUMBER, &joyDInState_);
 	return joyDInState_;
 }
 
-XINPUT_STATE Controller::GetJPadXInputState(int no)
+XINPUT_STATE Controller::GetJPadXInputState(void)
 {
 	// コントローラ情報
-	GetJoypadXInputState(no, &joyXInState_);
+	GetJoypadXInputState(PAD_NUMBER, &joyXInState_);
 	return joyXInState_;
 }
 
-void Controller::SetJPadInState(int jpNo)
+void Controller::SetJPadInState(void)
 {
-	auto stateNew = GetJPadInputState(jpNo);
-	auto& stateNow = padInfos_[jpNo];
+	anyone_ = anyoneKey_ = isAnyoneDown_ = false;
 
-	stateNow.AnyoneBotton = stateNow.Anyone = stateNow.IsAnyoneDown = false;
-
-	int max = static_cast<int>(JOYPAD_BTN::MAX);
-	for (int i = 0; i < max; i++)
+	// キーボード検知
+	for (auto& p : infos_)
 	{
-		stateNow.ButtonsOld[i] = stateNow.ButtonsNew[i];
-		stateNow.ButtonsNew[i] = stateNew.ButtonsNew[i];
+		// コントローラー以外は更新しない
+		if (p.second.type == KEYPAD_NO::KEY || p.second.type == KEYPAD_NO::MOUSE) {
 
-		stateNow.IsOld[i] = stateNow.IsNew[i];
-		//stateNow.IsNew[i] = stateNow.ButtonsNew[i] == 128 || stateNow.ButtonsNew[i] == 255;
-		stateNow.IsNew[i] = stateNow.ButtonsNew[i] > 0;
-
-		stateNow.IsTrgDown[i] = stateNow.IsNew[i] && !stateNow.IsOld[i];
-		stateNow.IsTrgUp[i] = !stateNow.IsNew[i] && stateNow.IsOld[i];
-
-		if (!stateNow.AnyoneBotton) {
-			
-			stateNow.AnyoneBotton = stateNow.IsTrgDown[i];
-			stateNow.Anyone = stateNow.IsTrgDown[i];
+			continue;
 		}
-		if (!stateNow.IsAnyoneDown) {
+		p.second.keyOld = p.second.keyNew;
 
-			stateNow.IsAnyoneDown = stateNow.IsNew[i] && !stateNow.IsOld[i];
-		}
+		// コントローラーの取得
+		p.second.keyNew = GetJPadInputState(p.second.key);
+
+		InputBase::Update(p);
 	}
-	stateNow.AKeyLX = stateNew.AKeyLX;
-	stateNow.AKeyLY = stateNew.AKeyLY;
-	stateNow.AKeyRX = stateNew.AKeyRX;
-	stateNow.AKeyRY = stateNew.AKeyRY;
 
-	if (!stateNow.Anyone) {
-		if (stateNow.AKeyLX != 0 || stateNow.AKeyLY != 0 || stateNow.AKeyRX != 0 || stateNow.AKeyRY != 0) {
 
-			stateNow.Anyone = true;
-		}
+}
+
+VECTOR Controller::GetDirectionXZAKey(int aKeyX, int aKeyY)
+{
+	VECTOR ret = { 0.0f, 0.0f, 0.0f };
+
+	// スティックの個々の入力値は、
+	// -1000.0f ～ 1000.0f の範囲で返ってくるが、
+	// X:1000.0f、Y:1000.0fになることは無い(1000と500くらいが最大)
+	// スティックの入力値を -1.0 ～ 1.0 に正規化
+	float dirX = static_cast<float>(aKeyX) / AKEY_VAL_MAX;
+	float dirZ = static_cast<float>(aKeyY) / AKEY_VAL_MAX;
+
+	// ピタゴラスの定理でニュートラル状態からの長さベクトルにする
+	// ( 円形のデッドゾーンになる )
+	// 平方根により、おおよその最大値が1.0となる
+	float len = sqrtf(dirX * dirX + dirZ * dirZ);
+
+	if (len < THRESHOLD) {
+		// (0.0f, 0.0f, 0.0f)
+		return ret;
 	}
+
+	// デッドゾーン境界からに再スケーリング(可変デッドゾーン)
+	float scale = (len - THRESHOLD) / (1.0f - THRESHOLD);
+	dirX = (dirX / len) * scale;
+	dirZ = (dirZ / len) * scale;
+
+	// Zは前に倒すとマイナス値が返ってくるので反転
+	ret = VNorm({ dirX, 0.0f, -dirZ });
+	return ret;
 }
