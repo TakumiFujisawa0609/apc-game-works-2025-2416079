@@ -583,8 +583,8 @@ void GameScene::GameCamera(void)
 	if (!isLockon_) {
 	
 		//•ûŒü‚ÌŽæ“¾
-		pitch_ += InputManager::GetInstance().GetDirectionXZAKeyR().at(InputManager::GetInstance().GetMostPriority()).z / 25000.0f;
-		yaw_ += InputManager::GetInstance().GetDirectionXZAKeyR().at(InputManager::GetInstance().GetMostPriority()).x / 12000.0f;
+		pitch_ += InputManager::GetInstance().GetDirectionXZAKeyR().at(InputManager::GetInstance().GetMostPriority()).z;
+		yaw_ += InputManager::GetInstance().GetDirectionXZAKeyR().at(InputManager::GetInstance().GetMostPriority()).x;
 
 		if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::LOCK_ON).keyTrgDown) {
 

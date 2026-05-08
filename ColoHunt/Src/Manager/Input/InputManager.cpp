@@ -98,7 +98,7 @@ void InputManager::Update(void){
 		orderOfPriority_.emplace_back(pads_.at(num)->GetAnyone());
 		// ç≈Ç‡óDêÊìIÇ…ìÆÇ¢ÇƒÇ¢ÇÈÇ‡ÇÃ
 		if (orderOfPriority_.back() && mostPriority_ == KEYPAD_NO::NON) {
-			mostPriority_ = static_cast<KEYPAD_NO>(num + 1);
+			mostPriority_ = static_cast<KEYPAD_NO>(num);
 			mostPriorityNo_ = pads_.at(num)->GetJPadType();
 		}
 	}
@@ -195,7 +195,7 @@ std::map<InputManager::KEYPAD_NO, VECTOR>  InputManager::GetDirectionXZAKeyR(voi
 	for (int num = static_cast<int>(KEYPAD_NO::PAD1); num < GetJoypadNum(); num++) {
 
 		nowPos = pads_.at(num)->GetDirectionXZAKeyR();
-		res[static_cast<KEYPAD_NO>(num)] = nowPos;
+		res[static_cast<KEYPAD_NO>(num)] = VScale(nowPos, Controller::CameraSensi);
 	}
 	return res;
 }

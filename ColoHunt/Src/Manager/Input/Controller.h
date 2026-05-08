@@ -8,6 +8,9 @@ class Controller : public InputBase
 
 public:
 
+	// ƒJƒƒ‰Š´“x
+	static constexpr float CameraSensi = 0.04f;
+
 	Controller(int num);
 	~Controller(void);
 

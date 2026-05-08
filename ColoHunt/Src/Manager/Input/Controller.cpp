@@ -154,7 +154,7 @@ bool Controller::GetJPadInputState(int key)
 			// 右スティック
 			analogKeyRX = d.Rx;
 			analogKeyRY = d.Ry;
-			if (analogKeyLX == analogKeyLY == analogKeyRX == analogKeyRY == 0) {
+			if (analogKeyLX == 0 && analogKeyLY == 0 && analogKeyRX == 0 && analogKeyRY == 0) {
 				return false;
 			}
 			return true;
@@ -246,8 +246,8 @@ bool Controller::GetJPadInputState(int key)
 			analogKeyLY = d.Y;
 			// 右スティック
 			analogKeyRX = d.Z;
-			analogKeyRY = d.Rz;
-			if (analogKeyLX == analogKeyLY == analogKeyRX == analogKeyRY == 0) {
+			analogKeyRY = -d.Rz;
+			if (analogKeyLX == 0 && analogKeyLY == 0 && analogKeyRX == 0 && analogKeyRY == 0) {
 				return false;
 			}
 			return true;
