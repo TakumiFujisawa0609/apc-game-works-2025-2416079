@@ -54,7 +54,6 @@ void AnimationController::Play(int type, bool isLoop)
 	if (prevAnim_.speed != 0) {
 
 		prevAnim_.attachNo = MV1AttachAnim(modelId_, prevAnim_.animIndex, prevAnim_.model);
-		MV1SetAttachAnimBlendRate(modelId_, prevAnim_.attachNo, 1.0f);
 		MV1SetAttachAnimTime(modelId_, prevAnim_.attachNo, prevAnim_.step);
 	}
 

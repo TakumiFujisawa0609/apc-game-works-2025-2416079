@@ -94,7 +94,7 @@ void Application::Init(void)
 	// フォグの色
 	SetFogColor(200, 200, 200);
 	// フォグを発生させる奥行きの最小、最大距離
-	SetFogStartEnd(12000.0f, 14000.0f);
+	SetFogStartEnd(10000.0f, 13000.0f);
 
 	// 定数の呼び込み
 	Parameter::CreateInstance();

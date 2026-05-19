@@ -812,17 +812,29 @@ void GameScene::Release(void)
 
 	CollisionManager::GetInstance().Release();
 
-	stage_->Release();
-	delete stage_;
+	if (stage_) {
+		stage_->Release();
+		delete stage_;
+		stage_ = nullptr;
+	}
 
-	player_->Release();
-	delete player_;
+	if (player_) {
+		player_->Release();
+		delete player_;
+		player_ = nullptr;
+	}
 
-	enemy_->Release();
-	delete enemy_;
+	if (enemy_) {
+		enemy_->Release();
+		delete enemy_;
+		enemy_ = nullptr;
+	}
 	
-	item_->Release();
-	delete item_;
+	if (item_) {
+		item_->Release();
+		delete item_;
+		item_ = nullptr;
+	}
 }
 
 void GameScene::Dodge(void) 
