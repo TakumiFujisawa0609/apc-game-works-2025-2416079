@@ -307,6 +307,10 @@ private:
 	void UpdateDamagedHeavy(void);
 	void UpdateKO(void);
 	void UpdateDrink(void);
+	void UpdateEnd(void) {}
+	// 状態別更新の関数ポインタ
+	using STATE_FUNC_PTR_DEFINE = void (Player::*)(void);
+	STATE_FUNC_PTR_DEFINE StateUpdate[(int)STATE::END + 1];
 
 	// 状態遷移の判断
 	void BoolChangeMove(void);

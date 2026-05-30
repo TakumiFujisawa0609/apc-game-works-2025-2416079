@@ -33,6 +33,20 @@ void Player::InitLoad()
 	transform_.SetModel(MV1LoadModel((Application::PATH_MODEL + "Player.mv1").c_str()));
 	powerGauge_ = LoadSoftImage((Application::PATH_IMAGE + "Power.png").c_str());
 	hpBar_ = LoadSoftImage((Application::PATH_IMAGE + "HpBar.png").c_str());
+
+#pragma region 関数ポインタのセットアップ
+	StateUpdate[(int)STATE::WAIT] = &Player::UpdateWait;
+	StateUpdate[(int)STATE::MOVE] = &Player::UpdateMove;
+	StateUpdate[(int)STATE::ATTACK] = &Player::UpdateAttack;
+	StateUpdate[(int)STATE::COMBO] = &Player::UpdateCombo;
+	StateUpdate[(int)STATE::DOGDE] = &Player::UpdateDodge;
+	StateUpdate[(int)STATE::DAMAGED_LIGHT] = &Player::UpdateDamagedLight;
+	StateUpdate[(int)STATE::DAMAGED_HEAVY] = &Player::UpdateDamagedHeavy;
+	StateUpdate[(int)STATE::KO] = &Player::UpdateKO;
+	StateUpdate[(int)STATE::DRINK] = &Player::UpdateDrink;
+	StateUpdate[(int)STATE::END] = &Player::UpdateEnd;
+#pragma endregion
+
 }
 
 void Player::InitAnim()
@@ -98,53 +112,7 @@ void Player::Update(void)
 	transform_.prevPos = transform_.pos;
 
 	//状態別更新処理
-	switch (state_) {
-
-	case STATE::WAIT:
-		
-		UpdateWait();
-		break;
-
-	case STATE::MOVE:
-
-		UpdateMove();
-		break;
-
-	case STATE::ATTACK:
-		
-		UpdateAttack();
-		break;
-
-	case STATE::COMBO:
-		
-		UpdateCombo();
-		break;
-
-	case STATE::DOGDE:
-		
-		UpdateDodge();
-		break;
-
-	case STATE::DAMAGED_LIGHT:
-		
-		UpdateDamagedLight();
-		break;
-
-	case STATE::DAMAGED_HEAVY:
-		
-		UpdateDamagedHeavy();
-		break;
-
-	case STATE::KO:
-
-		UpdateKO();
-		break;
-
-	case STATE::DRINK:
-
-		UpdateDrink();
-		break;
-	}
+	(this->*StateUpdate[(int)state_])();
 
 	Status();
 	EffectUpdate();

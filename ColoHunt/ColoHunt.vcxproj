@@ -215,6 +215,7 @@
       <AdditionalOptions>/Zc:strictStrings-</AdditionalOptions>
       <Optimization>Custom</Optimization>
       <WholeProgramOptimization>false</WholeProgramOptimization>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
