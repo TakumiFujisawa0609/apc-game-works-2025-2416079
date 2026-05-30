@@ -74,6 +74,8 @@ void GameScene::Init(void)
 	//エネミーの初期化
 	enemy_->Init();
 
+	cameraColl = new ColliderCapsule(Camera::GetInstance()->GetCameraPos(), player_->GetTransform().pos, Camera::COLLISION_RADIUS);
+
 	CollisionManager::CreateInstance();
 
 	// サウンドの読み込み
@@ -98,7 +100,7 @@ void GameScene::Init(void)
 	drawHandle_ = MakeScreen(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, TRUE);
 	
 	// シャドウマップの設定
-	shadowMap_ = MakeShadowMap(8192, 8192);
+	shadowMap_ = MakeShadowMap(4096, 4096);
 	SetShadowMapLightDirection(shadowMap_, { 0.2f, -0.8f, 0.1f });
 	SetShadowMapDrawArea(shadowMap_, { -2500.0f, 0.0f, -2500.0f }, { 2500.0f, 0.0f, 2500.0f });
 
@@ -338,7 +340,7 @@ void GameScene::Collision(void)
 {
 	if (player_->IsAttack()) {
 
-		auto info = CollisionManager::GetInstance().HitCapsule(enemy_->GetOwnColliders(), player_->GetSwordPosSta(), player_->GetSwordPosEnd(), Player::SWORD_RADIUS);
+		auto info = CollisionManager::GetInstance().Hit(enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), player_->GetOwnCollider(ActorBase::COLLIDER_TAG::SWORD));
 
 		if (!hitFlgE_) {
 			if (info.HitNum > 0) {
@@ -376,7 +378,7 @@ void GameScene::Collision(void)
 		if (player_->IsHit()) {
 			if (enemy_->IsAttackA()) {
 
-				auto info = CollisionManager::GetInstance().IsHitSphere(player_->GetOwnColliders(), enemy_->GetShotColliders());
+				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::SPHERE));
 
 				if (info) {
 					if (!hitFlgP_) {
@@ -397,9 +399,9 @@ void GameScene::Collision(void)
 					}
 				}
 			}
-			if (enemy_->IsAttackB() || enemy_->IsAttackC()) {
+			if (enemy_->IsAttackB()) {
 
-				auto info = CollisionManager::GetInstance().IsHitCapsule(player_->GetOwnColliders(), enemy_->GetAttackStartPos(), enemy_->GetAttackEndPos(), Enemy::ATTACK_RADIUS);
+				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::SWORD), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::HEAD));
 
 				if (enemy_->IsAttackB()) {
 					if (info) {
@@ -421,6 +423,11 @@ void GameScene::Collision(void)
 						}
 					}
 				}
+			}
+			if(enemy_->IsAttackC()){
+
+				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::SWORD), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::ARM_R));
+				
 				if (enemy_->IsAttackC()) {
 					if (info) {
 						if (!hitFlgP_) {
@@ -453,12 +460,12 @@ void GameScene::Collision(void)
 
 void GameScene::CollisionStage(void)
 {
-	CollisionManager::GetInstance().PushBack(stage_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 75, 0.15f);
-	CollisionManager::GetInstance().PushBack(enemy_->GetOwnColliders(), player_->GetOwnColliders(), &player_->GetTransform(), 20, 0.1f);
-	CollisionManager::GetInstance().PushBack(stage_->GetOwnColliders(), enemy_->GetOwnColliders(), &enemy_->GetTransform(), 50, 0.1f);
+	CollisionManager::GetInstance().PushBack(stage_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), player_->GetOwnCollider(ActorBase::COLLIDER_TAG::LINE), &player_->GetTransform(), 75, 0.15f);
+	CollisionManager::GetInstance().PushBack(enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), &player_->GetTransform(), 20, 0.1f);
+	CollisionManager::GetInstance().PushBack(stage_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::LINE), &enemy_->GetTransform(), 50, 0.1f);
 	
 	if (enemy_->IsAttackA()) {
-		if (CollisionManager::GetInstance().IsHitSphere(stage_->GetOwnColliders(), enemy_->GetShotColliders())) {
+		if (CollisionManager::GetInstance().IsHit(stage_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::SPHERE))) {
 
 			enemy_->DeleteShot();
 		}
@@ -467,15 +474,9 @@ void GameScene::CollisionStage(void)
 
 void GameScene::CollisionCamera(void)
 {
-	VECTOR cPos = Camera::GetInstance()->GetCameraPos();
-	VECTOR pPos = VAdd(player_->GetTransform().pos, { 0.0f, 100.0f, 0.0f });
-	
 	std::vector<int> opacityIndex = {};
 
-	ColliderCapsule* pCol = dynamic_cast<ColliderCapsule*>(player_->GetOwnColliders().at(static_cast<int>(ActorBase::COLLIDER_TYPE::CAPSULE)));
-	float pRad = pCol->GetRadius();
-
-	MV1_COLL_RESULT_POLY_DIM res = CollisionManager::GetInstance().HitCapsule(stage_->GetOwnColliders(), cPos, pPos, pRad);
+	MV1_COLL_RESULT_POLY_DIM res = CollisionManager::GetInstance().Hit(stage_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), cameraColl);
 
 	if (res.HitNum > 0) {
 

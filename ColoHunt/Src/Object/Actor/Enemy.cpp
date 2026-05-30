@@ -63,20 +63,20 @@ void Enemy::InitCollider()
 {
 	// モデルコライダ
 	ColliderModel* colModel = new ColliderModel(&transform_);
-	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::MODEL), colModel);
+	ownColliders_.emplace(COLLIDER_TAG::MODEL, colModel);
 
 	// 主に地面との衝突で仕様する線分コライダ
 	ColliderLine* colLine = new ColliderLine(&transform_, COL_LINE_START_LOCAL_POS, COL_LINE_END_LOCAL_POS);
-	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::LINE), colLine);
+	ownColliders_.emplace(COLLIDER_TAG::LINE, colLine);
 
 	// 主に壁や木などの衝突で仕様するカプセルコライダ
 	ColliderCapsule* colCapsule = new ColliderCapsule(&transform_,
 		COL_CAPSULE_TOP_LOCAL_POS, COL_CAPSULE_DOWN_LOCAL_POS, COL_CAPSULE_RADIUS);
-	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::CAPSULE), colCapsule);
+	ownColliders_.emplace(COLLIDER_TAG::CAPSULE, colCapsule);
 
 	// 攻撃用の球体コライダ
 	ColliderSphere* colSphere = new ColliderSphere(&shotTransform_, Utility::VECTOR_ZERO, ATTACK_RADIUS);
-	shotColliders_.emplace(static_cast<int>(COLLIDER_TYPE::SPHERE), colSphere);
+	ownColliders_.emplace(COLLIDER_TAG::SPHERE, colSphere);
 }
 
 void Enemy::Update(void)

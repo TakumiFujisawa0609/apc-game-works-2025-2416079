@@ -21,17 +21,21 @@ void CollisionManager::CreateInstance() {
 	}
 }
 
-void CollisionManager::PushBack(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> capsule, Transform* transform, const int tryCnt, const float dist)
+void CollisionManager::PushBack(ColliderBase* model, ColliderBase* capsule, ColliderBase* line, Transform* transform, const int tryCnt, const float dist)
 {
-	auto hit = CollisionBase::CollisionLine(model, capsule);
+	auto hit = CollisionBase::Collision(model, line);
 
 	if (hit.HitFlag) {
 
 		transform->pos.y = hit.HitPosition.y;
 	}
+	PushBack(model, capsule, transform, tryCnt, dist);
+}
 
+void CollisionManager::PushBack(ColliderBase* model, ColliderBase* capsule, Transform* transform, const int tryCnt, const float dist)
+{
 	// モデルとカプセルの衝突判定
-	auto hits = CollisionBase::CollisionCapsule(model, capsule);
+	auto hits = CollisionBase::CollisionDim(model, capsule);
 
 	// 衝突した複数のポリゴンと衝突回避するまで、位置を移動させる
 	for (int i = 0; i < hits.HitNum; i++) {
@@ -45,32 +49,15 @@ void CollisionManager::PushBack(std::map<int, ColliderBase*> model, std::map<int
 	MV1CollResultPolyDimTerminate(hits);
 }
 
-bool CollisionManager::IsHitCapsule(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> capsule)
+bool CollisionManager::IsHit(ColliderBase* colA, ColliderBase* colB)
 {
-	MV1_COLL_RESULT_POLY_DIM res = CollisionBase::CollisionCapsule(model, capsule);
+	MV1_COLL_RESULT_POLY_DIM res = CollisionBase::CollisionDim(colA, colB);
 	return res.HitNum > 0 ? true : false;
 }
 
-bool CollisionManager::IsHitCapsule(std::map<int, ColliderBase*> model, VECTOR start, VECTOR end, float radius)
+MV1_COLL_RESULT_POLY_DIM CollisionManager::Hit(ColliderBase* colA, ColliderBase* colB)
 {
-	MV1_COLL_RESULT_POLY_DIM res = CollisionBase::CollisionCapsule(model, start, end, radius);
-	return res.HitNum > 0 ? true : false;
-}
-
-bool CollisionManager::IsHitSphere(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> sphere)
-{
-	MV1_COLL_RESULT_POLY_DIM res = CollisionBase::CollisionSphere(model, sphere);
-	return res.HitNum > 0 ? true : false;
-}
-
-MV1_COLL_RESULT_POLY_DIM CollisionManager::HitCapsule(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> capsule)
-{
-	return CollisionBase::CollisionCapsule(model, capsule);
-}
-
-MV1_COLL_RESULT_POLY_DIM CollisionManager::HitCapsule(std::map<int, ColliderBase*> model, VECTOR start, VECTOR end, float radius)
-{
-	return 	CollisionBase::CollisionCapsule(model, start, end, radius);
+	return MV1_COLL_RESULT_POLY_DIM();	return CollisionBase::CollisionDim(colA, colB);
 }
 
 void CollisionManager::Release(void)

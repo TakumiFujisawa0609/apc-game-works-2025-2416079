@@ -67,9 +67,6 @@ void Player::InitTransform()
 	transform_.localRot = VScale(Utility::AXIS_Y, DX_PI_F);
 	transform_.scl = Utility::VECTOR_ONE;
 
-	swordPosSta_ = MV1GetFramePosition(transform_.modelId, 58);
-	swordPosEnd_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, 37));
-
 	speed_ = SPEED;
 	hp_ = MAX_HP;
 	moveDir_ = Utility::DIR_F;
@@ -81,15 +78,19 @@ void Player::InitCollider()
 {
 	// モデルコライダ
 	ColliderModel* colModel = new ColliderModel(&transform_);
-	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::MODEL), colModel);
+	ownColliders_.emplace(COLLIDER_TAG::MODEL, colModel);
 	
 	// 主に地面との衝突で仕様する線分コライダ
 	ColliderLine* colLine = new ColliderLine(&transform_, COL_LINE_START_LOCAL_POS, COL_LINE_END_LOCAL_POS);
-	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::LINE), colLine);
+	ownColliders_.emplace(COLLIDER_TAG::LINE, colLine);
 
 	// 主に壁や木などの衝突で仕様するカプセルコライダ
 	ColliderCapsule* colCapsule = new ColliderCapsule(&transform_, COL_CAPSULE_TOP_LOCAL_POS, COL_CAPSULE_DOWN_LOCAL_POS, COL_CAPSULE_RADIUS);
-	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::CAPSULE), colCapsule);
+	ownColliders_.emplace(COLLIDER_TAG::CAPSULE, colCapsule);
+
+	// 剣用のカプセルコライダー
+	colCapsule = new ColliderCapsule(MV1GetFramePosition(transform_.modelId, 58), VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, 37)), SWORD_RADIUS);
+	ownColliders_.emplace(COLLIDER_TAG::SWORD, colCapsule);
 }
 
 void Player::Update(void)

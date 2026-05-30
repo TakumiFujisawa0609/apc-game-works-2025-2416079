@@ -45,12 +45,6 @@ public:
 	// •`‰æˆ—
 	void Draw(void) const override;
 
-	// ’e‚ÌÕ“Ëî•ñæ“¾
-	const std::map<int, ColliderBase*>& GetShotColliders(void) const
-	{
-		return shotColliders_;
-	}
-
 	//UŒ‚À•W‚Ìæ“¾
 	VECTOR GetAttackStartPos(void) const;
 	VECTOR GetAttackEndPos(void) const;
@@ -134,9 +128,6 @@ private:
 
 	VECTOR armEndPos_;
 	VECTOR headEndPos_;
-
-	// ’e‚ÌÕ“Ëî•ñ
-	std::map<int, ColliderBase*> shotColliders_;
 
 	// Šp“x
 	VECTOR targetAngles_;

@@ -1,5 +1,6 @@
 #pragma once
 #include <DxLib.h>
+#include <string>
 #include "ColliderBase.h"
 #include "ColliderModel.h"
 
@@ -13,6 +14,8 @@ public:
 
 	// 親からの相対位置を使うコンストラクタ
 	ColliderCapsule(const Transform* follow,const VECTOR& localPosTop, const VECTOR& localPosDown, float radius);
+	ColliderCapsule(const int model, const std::string& followStart, const std::string& followEnd, float radius);
+	ColliderCapsule(const VECTOR& followStart, const VECTOR& followEnd, float radius);
 	// デストラクタ
 	~ColliderCapsule(void);
 

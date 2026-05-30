@@ -13,16 +13,14 @@ public:
 	void Release(void);
 
 	//‰Ÿ‚µ–ß‚µˆ—
-	void PushBack(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> capsule, Transform* transform, const int tryCnt, const float dist);
+	void PushBack(ColliderBase* model, ColliderBase* capsule, ColliderBase* line, Transform* transform, const int tryCnt, const float dist);
+	void PushBack(ColliderBase* model, ColliderBase* capsule, Transform* transform, const int tryCnt, const float dist);
 
 	//“–‚½‚Á‚½‚©‚Ç‚¤‚©‚¾‚¯‚Ìˆ—
-	bool IsHitCapsule(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> capsule);
-	bool IsHitCapsule(std::map<int, ColliderBase*> model, VECTOR start, VECTOR end, float radius);
-	bool IsHitSphere(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> sphere);
+	bool IsHit(ColliderBase* colA, ColliderBase* colB);
 
 	//î•ñ‚ª—~‚µ‚¢l—p‚É
-	MV1_COLL_RESULT_POLY_DIM HitCapsule(std::map<int, ColliderBase*> model, std::map<int, ColliderBase*> capsule);
-	MV1_COLL_RESULT_POLY_DIM HitCapsule(std::map<int, ColliderBase*> model, VECTOR start, VECTOR end, float radius);
+	MV1_COLL_RESULT_POLY_DIM Hit(ColliderBase* colA, ColliderBase* colB);
 
 	static CollisionManager& GetInstance(void) { return *inst_; }
 	static void CreateInstance(void);

@@ -2,6 +2,7 @@
 #include "SceneBase.h"
 #include <DxLib.h>
 #include <vector>
+#include "../Object/Collider/ColliderBase.h"
 
 
 class SceneManager;
@@ -97,6 +98,9 @@ private:
 	//被弾回数
 	int damageNum_;
 
+	// カメラのコライダー
+	ColliderBase* cameraColl;
+
 	// ブラー時のプレイヤー
 	int blurImg_[BLUR_NUM];
 	bool blurFlg_;
@@ -125,6 +129,7 @@ private:
 	void Collision(void);
 	void CollisionStage(void);
 	void CollisionCamera(void);
+
 	// 回避判定
 	void Dodge(void);
 

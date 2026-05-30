@@ -31,7 +31,7 @@ void Stage::InitCollider(void)
 {
 	// モデルコライダ
 	ColliderModel* colModel = new ColliderModel(&transform_);
-	ownColliders_.emplace(static_cast<int>(COLLIDER_TYPE::MODEL), colModel);
+	ownColliders_.emplace(COLLIDER_TAG::MODEL, colModel);
 }
 
 void Stage::Draw(void) const
@@ -84,7 +84,7 @@ void Stage::DrawModel(void) const
 
 void Stage::SetOpacityIndex(std::vector<int> index)
 {
-	int num = opacityIndex.size();
+	int num = (int)opacityIndex.size();
 
 	//透明フレームを不透明に
 	if (num > 0) {
@@ -94,7 +94,7 @@ void Stage::SetOpacityIndex(std::vector<int> index)
 	}
 
 	opacityIndex = index;
-	num = opacityIndex.size();
+	num = (int)opacityIndex.size();
 
 	//不透明フレームを透明に
 	if (num > 0) {

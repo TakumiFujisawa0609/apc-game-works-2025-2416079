@@ -9,6 +9,17 @@ ColliderCapsule::ColliderCapsule(const Transform* follow, const VECTOR& localPos
 {
 }
 
+ColliderCapsule::ColliderCapsule(const int model, const std::string& followStart, const std::string& followEnd, float radius)
+	:ColliderBase(SHAPE::CAPSULE, nullptr),
+	localPosTop_(MV1SearchFrame(model, followStart.c_str())), localPosDown_(MV1SearchFrame(model, followEnd.c_str())), radius_(radius)
+{
+}
+
+ColliderCapsule::ColliderCapsule(const VECTOR& followStart, const VECTOR& followEnd, float radius)
+	:ColliderBase(SHAPE::CAPSULE, nullptr), localPosTop_(followStart), localPosDown_(followEnd), radius_(radius)
+{
+}
+
 ColliderCapsule::~ColliderCapsule(void)
 {
 }
@@ -35,12 +46,22 @@ void ColliderCapsule::SetLocalPosDown(const VECTOR& pos)
 
 VECTOR ColliderCapsule::GetPosTop(void) const
 {
-	return GetRotPos(localPosTop_);
+	if (follow_ != nullptr) {
+		return GetRotPos(localPosTop_);
+	}
+	else {
+		return localPosTop_;
+	}
 }
 
 VECTOR ColliderCapsule::GetPosDown(void) const
 {
-	return GetRotPos(localPosDown_);
+	if (follow_ != nullptr){
+		return GetRotPos(localPosDown_);
+	}
+	else {
+		return localPosTop_;
+	}
 }
 
 float ColliderCapsule::GetRadius(void) const

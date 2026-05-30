@@ -12,10 +12,13 @@ public:
 	enum class SHAPE
 	{
 		NONE,
+
 		LINE,
 		SPHERE,
 		CAPSULE,
 		MODEL,
+
+		MAX
 	};
 
 	// コンストラクタ

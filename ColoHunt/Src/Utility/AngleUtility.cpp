@@ -60,11 +60,11 @@ float AngleUtility::NormalizeAngle(float rad)
 {
 	while (rad > DX_PI)
 	{
-		rad -= DX_TWO_PI;
+		rad -= static_cast<float>(DX_TWO_PI);
 	}
 	while (rad < -DX_PI)
 	{
-		rad += DX_TWO_PI;
+		rad += static_cast<float>(DX_TWO_PI);
 	}
 	return rad;
 }

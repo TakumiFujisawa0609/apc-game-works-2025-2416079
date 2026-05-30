@@ -11,13 +11,24 @@ class AnimationController;
 class ActorBase {
 public:
 
+
 	// Õ“Ë”»’èí•Ê
-	enum class COLLIDER_TYPE
+	enum class COLLIDER_TAG
 	{
+		NON = -1,
+
 		MODEL,
 		LINE,
 		CAPSULE,
 		SPHERE,
+		SWORD,
+		HEAD,
+		ARM_R,
+		ARM_L,
+		BODY,
+		LEG_R,
+		LEG_L,
+
 		MAX,
 	};
 
@@ -55,9 +66,15 @@ public:
 	Transform& GetTransform(void) { return transform_; }
 
 	// ©g‚ÌÕ“Ëî•ñæ“¾
-	const std::map<int, ColliderBase*>& GetOwnColliders(void) const
+	const std::map<COLLIDER_TAG, ColliderBase*>& GetOwnColliders(void) const
 	{
 		return ownColliders_;
+	}
+
+	// ©g‚ÌÕ“Ëî•ñæ“¾
+	ColliderBase* GetOwnCollider(COLLIDER_TAG tag) const
+	{
+		return ownColliders_.at(tag);
 	}
 
 protected:
@@ -69,7 +86,7 @@ protected:
 	Transform transform_;
 
 	// ©g‚ÌÕ“Ëî•ñ
-	std::map<int, ColliderBase*> ownColliders_;
+	std::map<COLLIDER_TAG, ColliderBase*> ownColliders_;
 
 	//ˆÚ“®•ûŒü
 	VECTOR moveDir_;

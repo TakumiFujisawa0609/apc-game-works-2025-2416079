@@ -6,6 +6,8 @@ class Camera
 {
 public:
 
+	static constexpr float COLLISION_RADIUS = 30.0f;
+
 	// コンストラクタ
 	Camera(void);
 	// デストラクタ

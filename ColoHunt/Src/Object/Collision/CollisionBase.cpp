@@ -16,59 +16,84 @@ CollisionBase::~CollisionBase()
 {
 }
 
-const MV1_COLL_RESULT_POLY CollisionBase::CollisionLine(const std::map<int, ColliderBase*> model, const std::map<int, ColliderBase*> line)
+const MV1_COLL_RESULT_POLY CollisionBase::Collision(ColliderBase* colA, ColliderBase* colB)
 {
-	ColliderModel* collModel = SearchType<ColliderModel>(model, ActorBase::COLLIDER_TYPE::MODEL);
-	ColliderLine* collLine = SearchType<ColliderLine>(line, ActorBase::COLLIDER_TYPE::LINE);
-	
+	if (colA->GetShape() == ColliderBase::SHAPE::MODEL && colB->GetShape() == ColliderBase::SHAPE::LINE){
+		return CollisionLine(colA, colB);
+	}
+	if (colA->GetShape() == ColliderBase::SHAPE::LINE && colB->GetShape() == ColliderBase::SHAPE::MODEL) {
+		return CollisionLine(colB, colA);
+	}
+	return MV1_COLL_RESULT_POLY();
+}
+
+const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionDim(ColliderBase* colA, ColliderBase* colB)
+{
+	if (colA->GetShape() == ColliderBase::SHAPE::MODEL && colB->GetShape() == ColliderBase::SHAPE::LINE) {
+		return CollisionDimLine(colA, colB);
+	}
+	if (colA->GetShape() == ColliderBase::SHAPE::LINE && colB->GetShape() == ColliderBase::SHAPE::MODEL) {
+		return CollisionDimLine(colB, colA);
+	}
+	if (colA->GetShape() == ColliderBase::SHAPE::MODEL && colB->GetShape() == ColliderBase::SHAPE::CAPSULE) {
+		return CollisionCapsule(colA, colB);
+	}
+	if (colA->GetShape() == ColliderBase::SHAPE::CAPSULE && colB->GetShape() == ColliderBase::SHAPE::MODEL) {
+		return CollisionCapsule (colB, colA);
+	}
+	if (colA->GetShape() == ColliderBase::SHAPE::MODEL && colB->GetShape() == ColliderBase::SHAPE::SPHERE) {
+		return CollisionSphere(colA, colB);
+	}
+	if (colA->GetShape() == ColliderBase::SHAPE::SPHERE && colB->GetShape() == ColliderBase::SHAPE::MODEL) {
+		return CollisionSphere(colB, colA);
+	}
+	return MV1_COLL_RESULT_POLY_DIM();
+}
+
+const MV1_COLL_RESULT_POLY CollisionBase::CollisionLine(ColliderBase* model, ColliderBase* line)
+{
+	ColliderModel* collModel = dynamic_cast<ColliderModel*>(model);
+	ColliderLine* collLine = dynamic_cast<ColliderLine*>(line);
+
 	if (collModel == nullptr || collLine == nullptr) return MV1_COLL_RESULT_POLY();
 
 	return MV1CollCheck_Line(collModel->GetFollow()->modelId, -1, collLine->GetPosStart(), collLine->GetPosEnd());
 }
 
-const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionPolyLine(const std::map<int, ColliderBase*> model, const std::map<int, ColliderBase*> line)
+const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionDimLine(ColliderBase* model, ColliderBase* line)
 {
-	ColliderModel* collModel = SearchType<ColliderModel>(model, ActorBase::COLLIDER_TYPE::MODEL);
-	ColliderLine* collLine = SearchType<ColliderLine>(line, ActorBase::COLLIDER_TYPE::LINE);
+	ColliderModel* collModel = dynamic_cast<ColliderModel*>(model);
+	ColliderLine* collLine = dynamic_cast<ColliderLine*>(line);
 
 	if (collModel == nullptr || collLine == nullptr) return MV1_COLL_RESULT_POLY_DIM();
 
 	return MV1CollCheck_LineDim(collModel->GetFollow()->modelId, -1, collLine->GetPosStart(), collLine->GetPosEnd());
 }
 
-const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionCapsule(const std::map<int, ColliderBase*> model, const std::map<int, ColliderBase*> capsule)
+const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionCapsule(ColliderBase* model, ColliderBase* capsule)
 {
-	ColliderModel* collModel = SearchType<ColliderModel>(model, ActorBase::COLLIDER_TYPE::MODEL);
-	ColliderCapsule* collCapsule = SearchType<ColliderCapsule>(capsule, ActorBase::COLLIDER_TYPE::CAPSULE);
+	ColliderModel* collModel = dynamic_cast<ColliderModel*>(model);
+	ColliderCapsule* collCapsule = dynamic_cast<ColliderCapsule*>(capsule);
 
 	if (collModel == nullptr || collCapsule == nullptr) return MV1_COLL_RESULT_POLY_DIM();
 
 	return MV1CollCheck_Capsule(collModel->GetFollow()->modelId, -1, collCapsule->GetPosTop(), collCapsule->GetPosDown(), collCapsule->GetRadius());
 }
 
-const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionCapsule(const std::map<int, ColliderBase*> model, const VECTOR start, const VECTOR end, const float radius)
+const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionSphere(ColliderBase* model, ColliderBase* sphere)
 {
-	ColliderModel* collModel = SearchType<ColliderModel>(model, ActorBase::COLLIDER_TYPE::MODEL);
-	
-	if (collModel == nullptr) return MV1_COLL_RESULT_POLY_DIM();
-
-	return MV1CollCheck_Capsule(collModel->GetFollow()->modelId, -1, start, end, radius);
-}
-
-const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionSphere(const std::map<int, ColliderBase*> model, const std::map<int, ColliderBase*> sphere)
-{
-	ColliderModel* collModel = SearchType<ColliderModel>(model, ActorBase::COLLIDER_TYPE::MODEL);
-	ColliderSphere* collSphere = SearchType<ColliderSphere>(sphere, ActorBase::COLLIDER_TYPE::SPHERE);
+	ColliderModel* collModel = dynamic_cast<ColliderModel*>(model);
+	ColliderSphere* collSphere = dynamic_cast<ColliderSphere*>(sphere);
 
 	if (collModel == nullptr || collSphere == nullptr) return MV1_COLL_RESULT_POLY_DIM();
 
 	return MV1CollCheck_Sphere(collModel->GetFollow()->modelId, -1, collSphere->GetPos(), collSphere->GetRadius());
 }
 
-const VECTOR CollisionBase::GetPosPushBackAlongNormal(const MV1_COLL_RESULT_POLY& hitColPoly, std::map<int, ColliderBase*> capsule,  int maxTryCnt, float pushDistance) const
+const VECTOR CollisionBase::GetPosPushBackAlongNormal(const MV1_COLL_RESULT_POLY& hitColPoly, ColliderBase* capsule, int maxTryCnt, float pushDistance) const
 {
 	// ÉRÉsÅ[ê∂ê¨
-	ColliderCapsule tmpCapsule = *SearchType<ColliderCapsule>(capsule, ActorBase::COLLIDER_TYPE::CAPSULE);
+	ColliderCapsule tmpCapsule = dynamic_cast<ColliderCapsule&>(*capsule);
 	Transform tmpTransform = *tmpCapsule.GetFollow();
 
 	// è’ìÀï‚ê≥èàóù
