@@ -1,22 +1,18 @@
 #include <DxLib.h>
 #include "../Common/Transform.h"
 #include "../../Utility/VectorUtility.h"
+#include "../../Utility/Utility.h"
 #include "ColliderCapsule.h"
 
 
 ColliderCapsule::ColliderCapsule(const Transform* follow, const VECTOR& localPosTop, const VECTOR& localPosDown, float radius)
-	:ColliderBase(SHAPE::CAPSULE, follow), localPosTop_(localPosTop), localPosDown_(localPosDown), radius_(radius)
-{
-}
-
-ColliderCapsule::ColliderCapsule(const int model, const std::string& followStart, const std::string& followEnd, float radius)
-	:ColliderBase(SHAPE::CAPSULE, nullptr),
-	localPosTop_(MV1SearchFrame(model, followStart.c_str())), localPosDown_(MV1SearchFrame(model, followEnd.c_str())), radius_(radius)
+	:ColliderBase(SHAPE::CAPSULE, follow), localPosTop_(localPosTop), localPosDown_(localPosDown), radius_(radius),
+	posTop_(Utility::VECTOR_ZERO), posDown_(Utility::VECTOR_ZERO)
 {
 }
 
 ColliderCapsule::ColliderCapsule(const VECTOR& followStart, const VECTOR& followEnd, float radius)
-	:ColliderBase(SHAPE::CAPSULE, nullptr), localPosTop_(followStart), localPosDown_(followEnd), radius_(radius)
+	:ColliderBase(SHAPE::CAPSULE, nullptr), posTop_(followStart), posDown_(followEnd), radius_(radius)
 {
 }
 
@@ -50,7 +46,7 @@ VECTOR ColliderCapsule::GetPosTop(void) const
 		return GetRotPos(localPosTop_);
 	}
 	else {
-		return localPosTop_;
+		return posTop_;
 	}
 }
 
@@ -60,7 +56,7 @@ VECTOR ColliderCapsule::GetPosDown(void) const
 		return GetRotPos(localPosDown_);
 	}
 	else {
-		return localPosTop_;
+		return posDown_;
 	}
 }
 
@@ -98,33 +94,36 @@ void ColliderCapsule::DrawDebug(int color)
 	VECTOR pos2 = GetPosDown();
 	DrawSphere3D(pos2, radius_, 5, color, color, false);
 
-	VECTOR dir;
-	VECTOR s;
-	VECTOR e;
+	if (follow_ != nullptr) {
 
-	// ‹…‘Ì‚ğŒq‚®ü(X+)
-	dir = follow_->GetRight();
-	s = VAdd(pos1, VScale(dir, radius_));
-	e = VAdd(pos2, VScale(dir, radius_));
-	DrawLine3D(s, e, color);
+		VECTOR dir;
+		VECTOR s;
+		VECTOR e;
 
-	// ‹…‘Ì‚ğŒq‚®ü(X-)
-	dir = follow_->GetLeft();
-	s = VAdd(pos1, VScale(dir, radius_));
-	e = VAdd(pos2, VScale(dir, radius_));
-	DrawLine3D(s, e, color);
+		// ‹…‘Ì‚ğŒq‚®ü(X+)
+		dir = follow_->GetRight();
+		s = VAdd(pos1, VScale(dir, radius_));
+		e = VAdd(pos2, VScale(dir, radius_));
+		DrawLine3D(s, e, color);
 
-	// ‹…‘Ì‚ğŒq‚®ü(Z+)
-	dir = follow_->GetForward();
-	s = VAdd(pos1, VScale(dir, radius_));
-	e = VAdd(pos2, VScale(dir, radius_));
-	DrawLine3D(s, e, color);
+		// ‹…‘Ì‚ğŒq‚®ü(X-)
+		dir = follow_->GetLeft();
+		s = VAdd(pos1, VScale(dir, radius_));
+		e = VAdd(pos2, VScale(dir, radius_));
+		DrawLine3D(s, e, color);
 
-	// ‹…‘Ì‚ğŒq‚®ü(Z-)
-	dir = follow_->GetBack();
-	s = VAdd(pos1, VScale(dir, radius_));
-	e = VAdd(pos2, VScale(dir, radius_));
-	DrawLine3D(s, e, color);
+		// ‹…‘Ì‚ğŒq‚®ü(Z+)
+		dir = follow_->GetForward();
+		s = VAdd(pos1, VScale(dir, radius_));
+		e = VAdd(pos2, VScale(dir, radius_));
+		DrawLine3D(s, e, color);
+
+		// ‹…‘Ì‚ğŒq‚®ü(Z-)
+		dir = follow_->GetBack();
+		s = VAdd(pos1, VScale(dir, radius_));
+		e = VAdd(pos2, VScale(dir, radius_));
+		DrawLine3D(s, e, color);
+	}
 
 	// ƒJƒvƒZƒ‹‚Ì’†S
 	DrawSphere3D(GetCenter(), 5.0f, 10, color, color, true);

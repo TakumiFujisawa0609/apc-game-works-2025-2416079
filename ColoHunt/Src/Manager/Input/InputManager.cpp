@@ -332,11 +332,11 @@ void InputManager::CommandLoad(void)
 	padCommand_[COMMAND::RUN].emplace_back(PAD_INPUT_R);
 	
 	// コンボキー
-	mouseCommand_[COMMAND::COMBO].emplace_back(MOUSE_INPUT_RIGHT);
+	mouseCommand_[COMMAND::COMBO].emplace_back(MOUSE_INPUT_LEFT);
 	padCommand_[COMMAND::COMBO].emplace_back(XINPUT_BUTTON_Y);
 
 	// 攻撃キー
-	mouseCommand_[COMMAND::ATTACK].emplace_back(MOUSE_INPUT_LEFT);
+	mouseCommand_[COMMAND::ATTACK].emplace_back(MOUSE_INPUT_RIGHT);
 	padCommand_[COMMAND::ATTACK].emplace_back(XINPUT_BUTTON_B);
 
 	// 回避キー

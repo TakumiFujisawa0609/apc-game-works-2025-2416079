@@ -114,6 +114,8 @@ private:
 	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 200.0f, 65.0f };
 	static constexpr VECTOR COL_CAPSULE_DOWN_LOCAL_POS = { 0.0f, 200.0f, -125.0f };
 	static constexpr float COL_CAPSULE_RADIUS = 135.0f;
+	static constexpr float COL_BODY_HEAD_RADIUS = 60.0f;
+	static constexpr float COL_PARTS_RADIUS = 30.0f;
 
 	//ÉQÅ[ÉÄÉVÅ[Éì
 	Player* player_;
@@ -122,6 +124,25 @@ private:
 	ATTACK attack_;
 
 	Transform shotTransform_;
+
+	VECTOR headPosStart_;
+	VECTOR headPosEnd_;
+
+	VECTOR armPosRStart_;
+	VECTOR armPosREnd_;
+
+	VECTOR armPosLStart_;
+	VECTOR armPosLEnd_;
+
+	VECTOR legPosRStart_;
+	VECTOR legPosREnd_;
+
+	VECTOR legPosLStart_;
+	VECTOR legPosLEnd_;
+
+	VECTOR bodyPosStart_;
+	VECTOR bodyPosEnd_;
+
 
 	VECTOR armStartPos_;
 	VECTOR headStartPos_;

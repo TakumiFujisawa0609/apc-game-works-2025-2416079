@@ -77,6 +77,45 @@ void Enemy::InitCollider()
 	// 攻撃用の球体コライダ
 	ColliderSphere* colSphere = new ColliderSphere(&shotTransform_, Utility::VECTOR_ZERO, ATTACK_RADIUS);
 	ownColliders_.emplace(COLLIDER_TAG::SPHERE, colSphere);
+
+	// 各部位のコライダー座標
+	headPosStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Hals"));
+	headPosEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Mauloben"));;
+
+	armPosRStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberarm_R"));;
+	armPosREnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Vorderpfote_R"));;
+
+	armPosLStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberarm_L"));;
+	armPosLEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Vorderpfote_L"));;
+
+	legPosRStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberschenkel_R"));;
+	legPosREnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Pfote2_R"));;
+
+	legPosLStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberschenkel_L"));;
+	legPosLEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Pfote2_L"));;
+
+	bodyPosStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Hals_fett_end_end"));;
+	bodyPosEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Schwanz"));;
+
+	// 各部位のコライダー
+	colCapsule = new ColliderCapsule(headPosStart_, headPosEnd_, COL_BODY_HEAD_RADIUS);
+	ownColliders_.emplace(COLLIDER_TAG::HEAD, colCapsule);
+
+	colCapsule = new ColliderCapsule(armPosRStart_, armPosREnd_, COL_PARTS_RADIUS);
+	ownColliders_.emplace(COLLIDER_TAG::ARM_R , colCapsule);
+
+	colCapsule = new ColliderCapsule(armPosLStart_, armPosLEnd_, COL_PARTS_RADIUS);
+	ownColliders_.emplace(COLLIDER_TAG::ARM_L, colCapsule);
+
+	colCapsule = new ColliderCapsule(legPosRStart_, legPosREnd_, COL_PARTS_RADIUS);
+	ownColliders_.emplace(COLLIDER_TAG::LEG_R, colCapsule);
+
+	colCapsule = new ColliderCapsule(legPosLStart_, legPosLEnd_, COL_PARTS_RADIUS);
+	ownColliders_.emplace(COLLIDER_TAG::LEG_L, colCapsule);
+
+	colCapsule = new ColliderCapsule(bodyPosStart_, bodyPosEnd_, COL_BODY_HEAD_RADIUS);
+	ownColliders_.emplace(COLLIDER_TAG::BODY, colCapsule);
+
 }
 
 void Enemy::Update(void)
@@ -125,6 +164,25 @@ void Enemy::Update(void)
 	animationCtrl_->Update();
 	transform_.Update();
 
+	// 各部位のコライダー座標
+	headPosStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Hals"));
+	headPosEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Mauloben"));;
+
+	armPosRStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberarm_R"));;
+	armPosREnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Vorderpfote_R"));;
+
+	armPosLStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberarm_L"));;
+	armPosLEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Vorderpfote_L"));;
+
+	legPosRStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberschenkel_R"));;
+	legPosREnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Pfote2_R"));;
+
+	legPosLStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberschenkel_L"));;
+	legPosLEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Pfote2_L"));;
+
+	bodyPosStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Hals_fett_end_end"));;
+	bodyPosEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Schwanz"));;
+
 	//当たり判定を更新
 	MV1RefreshCollInfo(transform_.modelId);
 }
@@ -165,6 +223,9 @@ void Enemy::ChangeState(STATE state)
 
 void Enemy::Draw(void) const
 {
+	for (auto col : ownColliders_) {
+		col.second->Draw();
+	}
 }
 
 VECTOR Enemy::GetAttackStartPos(void) const

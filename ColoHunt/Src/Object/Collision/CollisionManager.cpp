@@ -57,7 +57,7 @@ bool CollisionManager::IsHit(ColliderBase* colA, ColliderBase* colB)
 
 MV1_COLL_RESULT_POLY_DIM CollisionManager::Hit(ColliderBase* colA, ColliderBase* colB)
 {
-	return MV1_COLL_RESULT_POLY_DIM();	return CollisionBase::CollisionDim(colA, colB);
+	return CollisionBase::CollisionDim(colA, colB);
 }
 
 void CollisionManager::Release(void)

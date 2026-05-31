@@ -74,7 +74,10 @@ void GameScene::Init(void)
 	//エネミーの初期化
 	enemy_->Init();
 
-	cameraColl = new ColliderCapsule(Camera::GetInstance()->GetCameraPos(), player_->GetTransform().pos, Camera::COLLISION_RADIUS);
+	cameraPos_ = Camera::GetInstance()->GetCameraPos();
+	playerPos_ = VAdd(player_->GetTransform().pos, PLAYER_HEAD_POS);
+
+	cameraColl_ = new ColliderCapsule(cameraPos_, playerPos_, Camera::COLLISION_RADIUS);
 
 	CollisionManager::CreateInstance();
 
@@ -83,8 +86,7 @@ void GameScene::Init(void)
 
 	CollisionStage();
 
-	VECTOR headPos = VAdd(player_->GetTransform().pos, PLAYER_HEAD_POS);
-	SetCameraPos(headPos, CAMERA_TO_PLAYER);
+	SetCameraPos(playerPos_, CAMERA_TO_PLAYER);
 
 	hitFlgE_ = false;
 	hitFlgP_ = false;
@@ -143,6 +145,10 @@ void GameScene::Update(void)
 	player_->Update();
 	item_->Update();
 	enemy_->Update();
+
+	cameraPos_ = Camera::GetInstance()->GetCameraPos();
+	playerPos_ = VAdd(player_->GetTransform().pos, PLAYER_HEAD_POS);
+
 	GameCamera();
 	UpdateEffekseer3D();
 
@@ -401,7 +407,7 @@ void GameScene::Collision(void)
 			}
 			if (enemy_->IsAttackB()) {
 
-				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::SWORD), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::HEAD));
+				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::SWORD), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::ARM_R));
 
 				if (enemy_->IsAttackB()) {
 					if (info) {
@@ -426,7 +432,7 @@ void GameScene::Collision(void)
 			}
 			if(enemy_->IsAttackC()){
 
-				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::SWORD), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::ARM_R));
+				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::SWORD), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::HEAD));
 				
 				if (enemy_->IsAttackC()) {
 					if (info) {
@@ -476,7 +482,7 @@ void GameScene::CollisionCamera(void)
 {
 	std::vector<int> opacityIndex = {};
 
-	MV1_COLL_RESULT_POLY_DIM res = CollisionManager::GetInstance().Hit(stage_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), cameraColl);
+	MV1_COLL_RESULT_POLY_DIM res = CollisionManager::GetInstance().Hit(stage_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), cameraColl_);
 
 	if (res.HitNum > 0) {
 

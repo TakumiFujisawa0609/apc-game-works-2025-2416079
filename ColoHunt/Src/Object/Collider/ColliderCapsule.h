@@ -14,7 +14,6 @@ public:
 
 	// 親からの相対位置を使うコンストラクタ
 	ColliderCapsule(const Transform* follow,const VECTOR& localPosTop, const VECTOR& localPosDown, float radius);
-	ColliderCapsule(const int model, const std::string& followStart, const std::string& followEnd, float radius);
 	ColliderCapsule(const VECTOR& followStart, const VECTOR& followEnd, float radius);
 	// デストラクタ
 	~ColliderCapsule(void);
@@ -52,6 +51,11 @@ private:
 	VECTOR localPosTop_;
 	// 親Transformからの相対位置(下側)
 	VECTOR localPosDown_;
+
+	// 位置(上側)
+	const VECTOR& posTop_;
+	// 位置(下側)
+	const VECTOR& posDown_;
 
 	// 半径
 	float radius_;

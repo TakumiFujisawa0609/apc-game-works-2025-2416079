@@ -99,7 +99,10 @@ private:
 	int damageNum_;
 
 	// カメラのコライダー
-	ColliderBase* cameraColl;
+	ColliderBase* cameraColl_;
+
+	VECTOR cameraPos_;
+	VECTOR playerPos_;
 
 	// ブラー時のプレイヤー
 	int blurImg_[BLUR_NUM];

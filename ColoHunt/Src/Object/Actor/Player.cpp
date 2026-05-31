@@ -103,13 +103,18 @@ void Player::InitCollider()
 	ownColliders_.emplace(COLLIDER_TAG::CAPSULE, colCapsule);
 
 	// 剣用のカプセルコライダー
-	colCapsule = new ColliderCapsule(MV1GetFramePosition(transform_.modelId, 58), VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, 37)), SWORD_RADIUS);
+	swordPosSta_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:Sword_joint"));
+	swordPosEnd_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:RightHand")));
+	colCapsule = new ColliderCapsule(swordPosSta_, swordPosEnd_, SWORD_RADIUS);
 	ownColliders_.emplace(COLLIDER_TAG::SWORD, colCapsule);
 }
 
 void Player::Update(void)
 {
 	transform_.prevPos = transform_.pos;
+	// 剣用のカプセルコライダー
+	swordPosSta_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:Sword_joint"));
+	swordPosEnd_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:RightHand")));
 
 	//状態別更新処理
 	(this->*StateUpdate[(int)state_])();
@@ -222,6 +227,8 @@ void Player::Draw(void) const
 	}
 	//ステータスの描画
 	DrawHpAndPower();
+
+	ownColliders_.at(COLLIDER_TAG::SWORD)->Draw();
 }
 
 void Player::Release(void) const
