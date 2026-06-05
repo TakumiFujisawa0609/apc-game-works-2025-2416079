@@ -45,10 +45,6 @@ public:
 	// •`‰æˆ—
 	void Draw(void) const override;
 
-	//UŒ‚À•W‚Ìæ“¾
-	VECTOR GetAttackStartPos(void) const;
-	VECTOR GetAttackEndPos(void) const;
-
 	//UŒ‚ó‘Ô‚©‚Ç‚¤‚©
 	bool IsAttack(void) const;
 
@@ -107,6 +103,9 @@ private:
 	//‰“‹——£UŒ‚‚Ì‘¬‚³
 	static constexpr float ATTACK_SPEED = 28.0f;
 
+	// ‚à‚ª‚­‰ñ”
+	static constexpr int DOWN_NUM = 5;
+
 	//‘Ì—Í
 	static constexpr int MAX_HP = 500;
 
@@ -142,13 +141,6 @@ private:
 
 	VECTOR bodyPosStart_;
 	VECTOR bodyPosEnd_;
-
-
-	VECTOR armStartPos_;
-	VECTOR headStartPos_;
-
-	VECTOR armEndPos_;
-	VECTOR headEndPos_;
 
 	// Šp“x
 	VECTOR targetAngles_;

@@ -228,48 +228,6 @@ void Enemy::Draw(void) const
 	}
 }
 
-VECTOR Enemy::GetAttackStartPos(void) const
-{
-	switch (attack_)
-	{
-	case Enemy::ATTACK::SHOT:
-		
-		break;
-
-	case Enemy::ATTACK::ARM:
-
-		return armStartPos_;
-		break;
-
-	case Enemy::ATTACK::HEAD:
-
-		return headStartPos_;
-		break;
-	}
-	return Utility::VECTOR_ZERO;
-}
-
-VECTOR Enemy::GetAttackEndPos(void) const
-{
-	switch (attack_)
-	{
-	case Enemy::ATTACK::SHOT:
-
-		break;
-
-	case Enemy::ATTACK::ARM:
-
-		return armEndPos_;
-		break;
-
-	case Enemy::ATTACK::HEAD:
-
-		return headEndPos_;
-		break;
-	}
-	return Utility::VECTOR_ZERO;
-}
-
 void Enemy::DeleteShot(void)
 {
 	attackAFlg_ = false;
@@ -521,9 +479,6 @@ void Enemy::UpdateAttackA(void)
 
 void Enemy::UpdateAttackB(void)
 {
-	armEndPos_ = MV1GetFramePosition(transform_.modelId, 59);
-	armStartPos_ = MV1GetFramePosition(transform_.modelId, 57);
-
 	if (animationCtrl_->GetTime() >= 50) {
 
 		attackBFlg_ = false;
@@ -536,9 +491,6 @@ void Enemy::UpdateAttackB(void)
 
 void Enemy::UpdateAttackC(void)
 {
-	headEndPos_ = MV1GetFramePosition(transform_.modelId, 17);
-	headStartPos_ = MV1GetFramePosition(transform_.modelId, 6);
-
 	if (animationCtrl_->GetTime() >= 50) {
 
 		attackCFlg_ = false;
@@ -563,7 +515,7 @@ void Enemy::UpdateDown(void)
 	
 		downCnt_++;
 	}
-	if (downCnt_ >= 5) {
+	if (downCnt_ >= DOWN_NUM) {
 
 		downCnt_ = 0;
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::UP), false);
