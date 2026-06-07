@@ -16,9 +16,9 @@
 
 
 Player::Player(Item* itm): ActorBase(), item_(itm), autoHealCnt_(0), autoHealHp_(0), speed_(), effectSize_(), effectCnt_(), dodge_(), damaged_(), swordPosEnd_(),
-	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(false), knockBackDir_(0.0f), swordPosSta_(),
+	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(false), knockBackDir_(0.0f), swordPosStast_(),
 	overFlg_(false), power_(0), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),se_(true), dodgeStamina_(DODGE_STAMINA),
-	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),	barStaEY_(), barStaSY_(), damage_(BASIC_DAMAGE), goodDodge_(), greatDodge_(), guageEX_(),
+	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),	barStaminaEY_(), barStaminaSY_(), damage_(BASIC_DAMAGE), goodDodge_(), greatDodge_(), guageEX_(),
 	guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(), powerUp_(), powerUpCnt_(), effectBottomPos_(), effectTopPos_(), buff_(1.0), effectType_(EFFECT::NON)
 {
 }
@@ -103,9 +103,9 @@ void Player::InitCollider()
 	ownColliders_.emplace(COLLIDER_TAG::CAPSULE, colCapsule);
 
 	// 剣用のカプセルコライダー
-	swordPosSta_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:Sword_joint"));
+	swordPosStast_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:Sword_joint"));
 	swordPosEnd_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:RightHand")));
-	colCapsule = new ColliderCapsule(swordPosSta_, swordPosEnd_, SWORD_RADIUS);
+	colCapsule = new ColliderCapsule(swordPosStast_, swordPosEnd_, SWORD_RADIUS);
 	ownColliders_.emplace(COLLIDER_TAG::SWORD, colCapsule);
 }
 
@@ -113,7 +113,7 @@ void Player::Update(void)
 {
 	transform_.prevPos = transform_.pos;
 	// 剣用のカプセルコライダー
-	swordPosSta_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:Sword_joint"));
+	swordPosStast_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:Sword_joint"));
 	swordPosEnd_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:RightHand")));
 
 	//状態別更新処理
@@ -127,7 +127,7 @@ void Player::Update(void)
 	//アニメーションの移動
 	animationCtrl_->Update();
 	//剣の移動
-	swordPosSta_ = MV1GetFramePosition(transform_.modelId, 58);
+	swordPosStast_ = MV1GetFramePosition(transform_.modelId, 58);
 	swordPosEnd_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, 37));
 	//当たり判定の更新
 	MV1RefreshCollInfo(transform_.modelId);
@@ -227,8 +227,6 @@ void Player::Draw(void) const
 	}
 	//ステータスの描画
 	DrawHpAndPower();
-
-	ownColliders_.at(COLLIDER_TAG::SWORD)->Draw();
 }
 
 void Player::Release(void) const
@@ -387,7 +385,7 @@ void Player::Status(void)
 
 		autoHealCnt_++;
 
-		if (autoHealCnt_ >= 90) {
+		if (autoHealCnt_ >= AUTO_HEAL) {
 
 			autoHealCnt_ = 0;
 			autoHealHp_--;
@@ -425,8 +423,8 @@ void Player::Status(void)
 	//シームレスにHPが減る
 	if (damaged_ > 0) {
 
-		hp_ -= 1;
-		damaged_ -= 1;
+		hp_--;
+		damaged_--;
 
 		if (hp_ <= 0) {
 
@@ -509,11 +507,11 @@ void Player::FindHpAndPower(void)
 					//HPとXは同じところなので
 					//スタミナはYのみ
 					first = true;
-					barStaSY_ = y;
+					barStaminaSY_ = y;
 				}
-				if (barStaEY_ < y) {
+				if (barStaminaEY_ < y) {
 
-					barStaEY_ = y;
+					barStaminaEY_ = y;
 				}
 			}
 		}
@@ -525,7 +523,7 @@ void Player::FindHpAndPower(void)
 
 		DrawLineSoftImage(hpBar_, static_cast<int>(barSX_), y, static_cast<int>(barEX_) + 1, y, 0, 0, 0, 255);
 	}
-	for (int y = static_cast<int>(barStaSY_); y <= static_cast<int>(barStaEY_); y++) {
+	for (int y = static_cast<int>(barStaminaSY_); y <= static_cast<int>(barStaminaEY_); y++) {
 
 		DrawLineSoftImage(hpBar_, static_cast<int>(barSX_), y, static_cast<int>(barEX_) + 1, y, 0, 0, 0, 255);
 	}
@@ -568,14 +566,14 @@ void Player::DrawHpAndPower(void) const
 	//赤いゲージを出す分かける
 	float barRed = barRate * autoHealHp_;
 
-	DrawSoftImage(190, 0, hpBar_);
+	DrawSoftImage(BAR_POS, 0, hpBar_);
 
 	//死んでないなら赤ゲージをだす
 	if (hp_ - damaged_ > 0) {
 	
-		DrawBoxAA(190 + barSX_, barHpSY_, 190 + barSX_ + barRate * (hp_ - damaged_) + barRed, barHpEY_, 0xff0000, true);
+		DrawBoxAA(BAR_POS + barSX_, barHpSY_, BAR_POS + barSX_ + barRate * (hp_ - damaged_) + barRed, barHpEY_, 0xff0000, true);
 	}
-	DrawBoxAA(190 + barSX_, barHpSY_, 190 + barSX_ + barNorm, barHpEY_, 0x00ff00, true);
+	DrawBoxAA(BAR_POS + barSX_, barHpSY_, BAR_POS + barSX_ + barNorm, barHpEY_, 0x00ff00, true);
 
 	//バー全体をスタミナの最大値分する
 	barRate = barSize_ / static_cast<int>(MAX_STAMINA);
@@ -584,15 +582,15 @@ void Player::DrawHpAndPower(void) const
 
 	if (isStaminaMax_) {
 
-		DrawBoxAA(190 + barSX_, barStaSY_, 190 + barSX_ + barNorm, barStaEY_, GetColor(255, 255, (int)(std::abs(staminaMaxCnt_ % 101 - 50) * 5.1f)), true);
+		DrawBoxAA(BAR_POS + barSX_, barStaminaSY_, BAR_POS + barSX_ + barNorm, barStaminaEY_, GetColor(255, 255, (int)(std::abs(staminaMaxCnt_ % 101 - 50) * 5.1f)), true);
 	}
 	else {
 		if (stamina_ <= DODGE_STAMINA) {
 
-			DrawBoxAA(190 + barSX_, barStaSY_, 190 + barSX_ + barNorm, barStaEY_, 0xff0000, true);
+			DrawBoxAA(BAR_POS + barSX_, barStaminaSY_, BAR_POS + barSX_ + barNorm, barStaminaEY_, 0xff0000, true);
 		}
 		else {
-			DrawBoxAA(190 + barSX_, barStaSY_, 190 + barSX_ + barNorm, barStaEY_, 0xffff00, true);
+			DrawBoxAA(BAR_POS + barSX_, barStaminaSY_, BAR_POS + barSX_ + barNorm, barStaminaEY_, 0xffff00, true);
 		}
 	}
 
@@ -703,7 +701,7 @@ void Player::UpdateMove(void)
 {
 	//行列と方向の設定
 	MATRIX mat = MGetIdent();
-	VECTOR dir = { 0.0f, 0.0f, 0.0f };
+	VECTOR dir = Utility::VECTOR_ZERO;
 
 	//前後左右の移動処理
 	//方向の取得
@@ -799,32 +797,32 @@ void Player::UpdateAttack(void)
 	//パワーアップしていないときの連続攻撃
 	if (!powerUp_) {
 		//モーション時間に合わせて攻撃を発生させる
-		if (animationCtrl_->GetTime() >= 34.5f && animationCtrl_->GetTime() <= 36.0f) {
+		if (animationCtrl_->GetTime() >= ATTACK_START_TIMING_1_FRONT && animationCtrl_->GetTime() <= ATTACK_START_TIMING_1_BACK) {
 
 			isAttack_ = true;
 		}
-		if (animationCtrl_->GetTime() >= 58.5f && animationCtrl_->GetTime() <= 60.0f) {
+		if (animationCtrl_->GetTime() >= ATTACK_END_TIMING_1_FRONT && animationCtrl_->GetTime() <= ATTACK_END_TIMING_1_BACK) {
 
 			isAttack_ = false;
 		}
-		if (animationCtrl_->GetTime() >= 60.5f && animationCtrl_->GetTime() <= 62.5f) {
+		if (animationCtrl_->GetTime() >= ATTACK_START_TIMING_2_FRONT && animationCtrl_->GetTime() <= ATTACK_START_TIMING_2_BACK) {
 
 			isAttack_ = true;
 		}
-		if (animationCtrl_->GetTime() >= 92.0f && animationCtrl_->GetTime() <= 94.0f) {
+		if (animationCtrl_->GetTime() >= ATTACK_END_TIMING_2_FRONT && animationCtrl_->GetTime() <= ATTACK_END_TIMING_2_BACK) {
 
 			isAttack_ = false;
 		}
-		if (animationCtrl_->GetTime() >= 138.0f && animationCtrl_->GetTime() <= 140.0f) {
+		if (animationCtrl_->GetTime() >= ATTACK_START_TIMING_3_FRONT && animationCtrl_->GetTime() <= ATTACK_START_TIMING_3_BACK) {
 
 			buff_ = 1.2;
 			isAttack_ = true;
 		}
-		if (animationCtrl_->GetTime() >= 160.0f) {
+		if (animationCtrl_->GetTime() >= ATTACK_END_TIMING_3) {
 
 			isAttack_ = false;
 		}
-		if (animationCtrl_->GetTime() <= 138.0f) {
+		if (animationCtrl_->GetTime() <= ATTACK_START_TIMING_3_FRONT) {
 
 			//移動させる
 			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.2f));
@@ -832,13 +830,13 @@ void Player::UpdateAttack(void)
 	}
 	//パワーアップ時のゲージ全消費攻撃
 	else {
-		if (animationCtrl_->GetTime() >= 90.0f && animationCtrl_->GetTime() <= 91.5f) {
+		if (animationCtrl_->GetTime() >= FULL_START_TIMING_FRONT && animationCtrl_->GetTime() <= FULL_START_TIMING_BACK) {
 
 			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.8f));
 			buff_ = 2.0;
 			isAttack_ = true;
 		}
-		if (animationCtrl_->GetTime() >= 135.0f) {
+		if (animationCtrl_->GetTime() >= FULL_END_TIMING) {
 
 			isAttack_ = false;
 		}
@@ -861,12 +859,12 @@ void Player::UpdateCombo(void)
 {
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_1)) {
 		//モーション時間に合わせて攻撃を出す
-		if (animationCtrl_->GetTime() >= 32.0f && animationCtrl_->GetTime() <= 34.0f) {
+		if (animationCtrl_->GetTime() >= COMMBO_1_START_TIMING_FRONT && animationCtrl_->GetTime() <= COMMBO_1_START_TIMING_BACK) {
 
 			isAttack_ = true;
 		}
 		//攻撃判定の消失
-		if (animationCtrl_->GetTime() >= 67.5f) {
+		if (animationCtrl_->GetTime() >= COMMBO_1_END_TIMING) {
 			
 			isAttack_ = false;
 			//回避キャンセル
@@ -886,13 +884,13 @@ void Player::UpdateCombo(void)
 	}
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_2)) {
 		//モーション時間に合わせて攻撃を出す
-		if (animationCtrl_->GetTime() >= 40.0f && animationCtrl_->GetTime() <= 41.2f) {
+		if (animationCtrl_->GetTime() >= COMMBO_2_START_TIMING_FRONT && animationCtrl_->GetTime() <= COMMBO_2_START_TIMING_BACK) {
 
 			isAttack_ = true;
 
 		}
 		//攻撃判定の消失
-		if (animationCtrl_->GetTime() >= 75.0f) {
+		if (animationCtrl_->GetTime() >= COMMBO_2_END_TIMING) {
 			
 			isAttack_ = false;
 			//回避キャンセル
@@ -913,13 +911,13 @@ void Player::UpdateCombo(void)
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::COMBO_3)) {
 		//モーション時間に合わせて攻撃を出す
 		//最終段なので少しだけ攻撃力上昇
-		if (animationCtrl_->GetTime() >= 42.8f && animationCtrl_->GetTime() <= 44.2f) {
+		if (animationCtrl_->GetTime() >= COMMBO_3_START_TIMING_FRONT && animationCtrl_->GetTime() <= COMMBO_3_START_TIMING_BACK) {
 
 			buff_ = 1.1;
 			isAttack_ = true;
 		}
 		//攻撃判定の消失
-		if (animationCtrl_->GetTime() >= 64.0f) {
+		if (animationCtrl_->GetTime() >= COMMBO_3_END_TIMING) {
 			
 			buff_ = 1.0;
 			isAttack_ = false;
@@ -946,7 +944,7 @@ void Player::UpdateDodge(void)
 	transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 1.25f));
 
 	if (dodgeFlg_) {
-		if (dodgeCnt_ <= 25.0f) {
+		if (dodgeCnt_ <= DODGE_MOVE) {
 
 			dodgeCnt_++;
 		}
@@ -968,7 +966,7 @@ void Player::UpdateDodge(void)
 
 void Player::UpdateDamagedLight(void)
 {
-	if (animationCtrl_->GetTime() >= 40) {
+	if (animationCtrl_->GetTime() >= CHANGE_STATE_TIMING_LIGHT) {
 
 		DoChangeState(STATE::WAIT);
 	}
@@ -980,14 +978,14 @@ void Player::UpdateDamagedHeavy(void)
 	static bool prevPause = false;
 
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY)) {
-		if (animationCtrl_->GetTime() <= 110) {
+		if (animationCtrl_->GetTime() <= NOCKBACK_COUNT) {
 
 			KnockBack();
 		}
 		if (!prevPause){
 			//吹っ飛んだあとの起き上がりで
 			//アニメーションを止める
-			if (animationCtrl_->GetTime() >= 130) {
+			if (animationCtrl_->GetTime() >= NOCKBACK_STOP_TIMING) {
 				
 				prevPause = true;
 				animationCtrl_->ChangePause(true);
@@ -998,13 +996,13 @@ void Player::UpdateDamagedHeavy(void)
 			steps++;
 
 			//何かキーが押されるか一定時間経つまで起き上がらない
-			if (InputManager::GetInstance().GetPriorityAnyoneTrg() || steps >= 90) {
+			if (InputManager::GetInstance().GetPriorityAnyoneTrg() || steps >= NOCKBACK_UP_TIMING) {
 
 				steps = 0;
 				animationCtrl_->ChangePause(false);
 			}
 		}
-		if (animationCtrl_-> GetTime() >= 160) {
+		if (animationCtrl_-> GetTime() >= WAKE_UP_TIMING) {
 
 			prevPause = false;
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::STAND_UP), false);
@@ -1012,7 +1010,7 @@ void Player::UpdateDamagedHeavy(void)
 	}
 	if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::STAND_UP)) {
 		//起き上がりきるまで無敵
-		if (animationCtrl_->GetTime() >= 210) {
+		if (animationCtrl_->GetTime() >= CHANGE_STATE_TIMING_HEAVY) {
 
 			DoChangeState(STATE::WAIT);
 		}
@@ -1119,7 +1117,7 @@ void Player::StopSE(void)
 
 void Player::EffectCreate(void)
 {
-	effectSize_ = EFFECT_MAX_SIZE / 3;
+	effectSize_ = EFFECT_START_SIZE;
 
 	//エフェクトの数まで四方八方に生成する
 	//(頂点シェーダを使いたかった)
@@ -1129,8 +1127,8 @@ void Player::EffectCreate(void)
 		effectDir_[i].y = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
 		effectDir_[i].z = sinf(AngleUtility::Deg2RadF((float)GetRand(360)));
 
-		effectTopPos_[i] = VAdd(VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], effectSize_));
-		effectBottomPos_[i] = VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f });
+		effectTopPos_[i] = VAdd(VAdd(transform_.pos, EFFECT_POS), VScale(effectDir_[i], effectSize_));
+		effectBottomPos_[i] = VAdd(transform_.pos, EFFECT_POS);
 	}
 	effectCnt_ = 30;
 }
@@ -1145,8 +1143,8 @@ void Player::EffectUpdate(void)
 	//場所の更新
 	for (int i = 0; i < EFFECT_NUM; i++) {
 
-		effectTopPos_[i] = VAdd(VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f }), VScale(effectDir_[i], effectSize_));
-		effectBottomPos_[i] = VAdd(transform_.pos, { 0.0f, 70.0f, 0.0f });
+		effectTopPos_[i] = VAdd(VAdd(transform_.pos, EFFECT_POS), VScale(effectDir_[i], effectSize_));
+		effectBottomPos_[i] = VAdd(transform_.pos, EFFECT_POS);
 	}
 	effectCnt_--;
 }

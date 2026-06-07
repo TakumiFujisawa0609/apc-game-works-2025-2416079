@@ -69,7 +69,7 @@ public:
 	bool IsAttack(void) const { return isAttack_; }
 
 	//剣の座標の取得
-	VECTOR GetSwordPosSta(void) const { return swordPosSta_; }
+	VECTOR GetSwordPosSta(void) const { return swordPosStast_; }
 	VECTOR GetSwordPosEnd(void) const { return swordPosEnd_; }
 
 	//回避判定があるかどうか
@@ -141,6 +141,8 @@ private:
 	static constexpr int MAX_HP = 85;
 	//回復するフレーム数
 	static constexpr int HEAL_COUNT = 20;
+	// 自動回復の量
+	static constexpr int AUTO_HEAL = 90;
 
 	//マックススタミナ
 	static constexpr float MAX_STAMINA = 1000.0f;
@@ -156,8 +158,12 @@ private:
 	//パワーアップするまでに必要なゲージ量
 	static constexpr int MAX_POWER = 6;
 
+	//エフェクトを出す位置
+	static constexpr VECTOR EFFECT_POS = { 0.0f, 70.0f, 0.0f };
 	//エフェクトの数
 	static constexpr int EFFECT_NUM = 9;
+	//エフェクトのスタートサイズ
+	static constexpr float EFFECT_START_SIZE = 50.0f;
 	//エフェクトのマックスサイズ
 	static constexpr float EFFECT_MAX_SIZE = 150.0f;
 
@@ -169,6 +175,63 @@ private:
 	//剣の相対位置
 	static constexpr VECTOR SWORD_POS = { 80.5f, 30.5f, -13.5f };
 
+	// バーの位置
+	static constexpr float BAR_POS = 190.0f;
+
+	// 攻撃の開始アニメーションタイミング
+	static constexpr float ATTACK_START_TIMING_1_FRONT = 34.5f;
+	static constexpr float ATTACK_START_TIMING_1_BACK = 36.0f;
+	
+	static constexpr float ATTACK_START_TIMING_2_FRONT = 60.5f;
+	static constexpr float ATTACK_START_TIMING_2_BACK = 62.5f;
+	
+	static constexpr float ATTACK_START_TIMING_3_FRONT = 138.0f;
+	static constexpr float ATTACK_START_TIMING_3_BACK = 140.0f;
+	
+	static constexpr float FULL_START_TIMING_FRONT = 90.0f;
+	static constexpr float FULL_START_TIMING_BACK = 91.5f;
+
+	static constexpr float COMMBO_1_START_TIMING_FRONT = 32.0f;
+	static constexpr float COMMBO_1_START_TIMING_BACK = 34.0f;
+
+	static constexpr float COMMBO_2_START_TIMING_FRONT = 40.0f;
+	static constexpr float COMMBO_2_START_TIMING_BACK = 41.2f;
+
+	static constexpr float COMMBO_3_START_TIMING_FRONT = 42.8f;
+	static constexpr float COMMBO_3_START_TIMING_BACK = 44.2f;
+
+	// 攻撃の開始アニメーションタイミング
+	static constexpr float ATTACK_END_TIMING_1_FRONT = 58.5f;
+	static constexpr float ATTACK_END_TIMING_1_BACK = 60.0f;
+
+	static constexpr float ATTACK_END_TIMING_2_FRONT = 92.0f;
+	static constexpr float ATTACK_END_TIMING_2_BACK = 94.0f;
+
+	static constexpr float ATTACK_END_TIMING_3 = 160.0f;
+	
+	static constexpr float FULL_END_TIMING = 135.0f;
+
+	static constexpr float COMMBO_1_END_TIMING = 67.5f;
+	static constexpr float COMMBO_2_END_TIMING = 75.0f;
+	static constexpr float COMMBO_3_END_TIMING = 64.0f;
+
+	// 回避移動モーション
+	static constexpr float DODGE_MOVE = 25.0f;
+
+	// ダメージ後変わるタイミング
+	static constexpr float CHANGE_STATE_TIMING_LIGHT = 40.0f;
+	static constexpr float CHANGE_STATE_TIMING_HEAVY = 210.0f;
+
+	// ノックバックするカウント
+	static constexpr float NOCKBACK_COUNT = 110.0f;
+	
+	// ノックバック後一時停止タイミング
+	static constexpr float NOCKBACK_STOP_TIMING = 130.0f;
+	static constexpr int NOCKBACK_UP_TIMING = 90;
+
+	// 起き上がりタイミング
+	static constexpr float WAKE_UP_TIMING = 160.0f;
+
 	//アイテムのポインター
 	Item* item_;
 
@@ -176,7 +239,7 @@ private:
 	STATE state_;
 
 	//剣の座標
-	VECTOR swordPosSta_;
+	VECTOR swordPosStast_;
 	VECTOR swordPosEnd_;
 
 	// 移動速度
@@ -214,7 +277,7 @@ private:
 	//HPバーの最初・最後の高さ
 	float barHpSY_, barHpEY_;
 	//スタミナバーの最初・最後の高さ
-	float barStaSY_, barStaEY_;
+	float barStaminaSY_, barStaminaEY_;
 	//バーの長さ
 	float barSize_;
 

@@ -16,7 +16,7 @@
 
 
 Enemy::Enemy(Player* pl) : ActorBase(), attackAFlg_(false), attackBFlg_(false), attackCFlg_(false),
-	attackDiff_(0), attackDir_(), attackPos1_(Utility::VECTOR_ZERO), attackPos2_(Utility::VECTOR_ZERO), attackPrevPos_(Utility::VECTOR_ZERO), speed_(SPEED),
+	attackDiff_(0), attackDir_(), speed_(SPEED),
 	clearFlg_(false), cnt_(0), player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0), attackSpeed_(ATTACK_SPEED),
 	baseAttackDiff_(BASE_ATTACK_DIFF), angryFlg_(false), first_(false)
 {
@@ -157,7 +157,7 @@ void Enemy::Update(void)
 
 		//位置等々の設定
 		SetPosPlayingEffekseer3DEffect(effectHandle_, shotTransform_.pos.x, shotTransform_.pos.y, shotTransform_.pos.z);
-		SetScalePlayingEffekseer3DEffect(effectHandle_, 25.0f, 25.0f, 25.0f);
+		SetScalePlayingEffekseer3DEffect(effectHandle_, FIRE_SIZE, FIRE_SIZE, FIRE_SIZE);
 		SetRotationPlayingEffekseer3DEffect(effectHandle_, 0.0f, 0.0f, 0.0f);
 	}
 	//モデルの更新
@@ -223,9 +223,6 @@ void Enemy::ChangeState(STATE state)
 
 void Enemy::Draw(void) const
 {
-	for (auto col : ownColliders_) {
-		col.second->Draw();
-	}
 }
 
 void Enemy::DeleteShot(void)
@@ -242,7 +239,7 @@ void Enemy::DeleteShot(void)
 
 	//位置等々の設定
 	SetPosPlayingEffekseer3DEffect(effect, shotTransform_.pos.x, shotTransform_.pos.y, shotTransform_.pos.z);
-	SetScalePlayingEffekseer3DEffect(effect, 10.0f, 10.0f, 10.0f);
+	SetScalePlayingEffekseer3DEffect(effect, EFFECT_SIZE, EFFECT_SIZE, EFFECT_SIZE);
 	SetRotationPlayingEffekseer3DEffect(effect, 0.0f, 0.0f, 0.0f);
 }
 
@@ -284,10 +281,10 @@ void Enemy::DirectionPlayer(void)
 bool Enemy::Turn(void)
 {
 	//ターゲットの角度までゆっくり動く
-	transform_.rot.y = AngleUtility::LerpAngle(transform_.rot.y, targetAngles_.y, 0.1f);
+	transform_.rot.y = AngleUtility::LerpAngle(transform_.rot.y, targetAngles_.y, LERP);
 	MV1SetRotationMatrix(transform_.modelId, AngleUtility::Multiplication(DIFF_ANGLES, transform_.rot));
 
-	if (fabsf(transform_.rot.y - targetAngles_.y) <= 0.0001f || fabsf(transform_.rot.y - targetAngles_.y) >= DX_PI_F * 2 - 0.0002f) {
+	if (fabsf(transform_.rot.y - targetAngles_.y) <= NEAR_STOP_DIF || fabsf(transform_.rot.y - targetAngles_.y) >= Utility::ONE_CIRCLE - NEAR_STOP_DIF) {
 
 		//近似値まで来たので終了
 		return true;
@@ -371,7 +368,7 @@ void Enemy::Anger(void)
 	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_C), 60);
 
 	attackSpeed_ = ATTACK_SPEED * 1.5f;
-	speed_ = SPEED * 1.8f;
+	speed_ = SPEED * 1.5f;
 	baseAttackDiff_ = BASE_ATTACK_DIFF / 2;
 }
 
@@ -391,7 +388,7 @@ void Enemy::UpdateWait(void)
 		cnt_ = 0;
 		ChangeState(STATE::ATTACK);
 	}
-	else if(GetRand(attackDiff_) >= 80 && VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= 650.0f) {
+	else if(GetRand(attackDiff_) >= 80 && VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= CHANGE_MOVE_DIF) {
 
 		cnt_ = 0;
 		ChangeState(STATE::MOVE);
@@ -417,7 +414,7 @@ void Enemy::UpdateMove(void)
 	transform_.pos.x += moveDir_.x * speed_;
 	transform_.pos.z += moveDir_.z * speed_;
 
-	if (VSize(VSub(player_->GetTransform().pos, transform_.pos)) <= 285.0f || prevDist <= VSize(VSub(player_->GetTransform().pos, transform_.pos))) {
+	if (VSize(VSub(player_->GetTransform().pos, transform_.pos)) <= FAR_STOP_DIF || prevDist <= VSize(VSub(player_->GetTransform().pos, transform_.pos)) || (prevDist - VSize(transform_.pos)) <= NEAR_STOP_DIF ) {
 
 		AudioManager::GetInstance()->StopSE(SoundID::SE_WOLF_RUN);
 		ChangeState(STATE::WAIT);
@@ -452,7 +449,7 @@ void Enemy::UpdateAttack(void)
 
 void Enemy::UpdateAttackA(void)
 {
-	if (animationCtrl_->GetTime() >= 33.1f) {
+	if (animationCtrl_->GetTime() >= START_TIMING_A) {
 		if (!first_) {
 
 			attackAFlg_ = true;
@@ -471,7 +468,7 @@ void Enemy::UpdateAttackA(void)
 		Turn();
 
 		shotTransform_.pos = VAdd(transform_.pos, VTransform(ATTACK_POS_A, AngleUtility::GetMatrixRotateXYZ(transform_.rot)));
-		attackDir_ = VSub(VAdd(player_->GetTransform().pos, { 0.0f, 80.0f, 0.0f }), shotTransform_.pos);
+		attackDir_ = VSub(VAdd(player_->GetTransform().pos, SHOT_AIM), shotTransform_.pos);
 		attackDir_ = VNorm(attackDir_);
 	}
 	shotTransform_.Update();
@@ -479,11 +476,11 @@ void Enemy::UpdateAttackA(void)
 
 void Enemy::UpdateAttackB(void)
 {
-	if (animationCtrl_->GetTime() >= 50) {
+	if (animationCtrl_->GetTime() >= STOP_TIMING) {
 
 		attackBFlg_ = false;
 	}
-	else if (animationCtrl_->GetTime() >= 26) {
+	else if (animationCtrl_->GetTime() >= START_TIMING_B) {
 		
 		attackBFlg_ = true;
 	}
@@ -491,11 +488,11 @@ void Enemy::UpdateAttackB(void)
 
 void Enemy::UpdateAttackC(void)
 {
-	if (animationCtrl_->GetTime() >= 50) {
+	if (animationCtrl_->GetTime() >= STOP_TIMING) {
 
 		attackCFlg_ = false;
 	}
-	else if (animationCtrl_->GetTime() >= 30) {
+	else if (animationCtrl_->GetTime() >= START_TIMING_C) {
 
 		attackCFlg_ = true;
 	}

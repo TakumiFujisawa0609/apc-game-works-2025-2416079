@@ -98,16 +98,39 @@ private:
 	static constexpr float SPEED = 8.5f;
 	static constexpr int BASE_ATTACK_DIFF = 65;
 
+	// エフェクトのサイズ
+	static constexpr float FIRE_SIZE = 25.0f;
+	static constexpr float EFFECT_SIZE = 10.0f;
+
+	// ストップディフ
+	static constexpr float FAR_STOP_DIF = 275.0f;
+	static constexpr float NEAR_STOP_DIF = 0.0002f;
+
+	// 移動に変わる距離
+	static constexpr float CHANGE_MOVE_DIF = 650.0f;
+
+	// 回頭の補完サイズ
+	static constexpr float LERP = 0.1f;
+
 	//遠距離攻撃の頭の位置
 	static constexpr VECTOR ATTACK_POS_A = { 0.0f, 250.0f, 325.0f };
 	//遠距離攻撃の速さ
 	static constexpr float ATTACK_SPEED = 28.0f;
+	// 遠距離攻撃で狙うプレイヤーの位置
+	static constexpr VECTOR SHOT_AIM = { 0.0f, 80.0f, 0.0f };
+
+	// 近距離攻撃の停止タイミング
+	static constexpr int STOP_TIMING = 50;
+	// 近距離攻撃の開始タイミング
+	static constexpr float START_TIMING_A = 33.1f;
+	static constexpr float START_TIMING_B = 26;
+	static constexpr float START_TIMING_C = 30;
 
 	// もがく回数
-	static constexpr int DOWN_NUM = 5;
+	static constexpr float DOWN_NUM = 5;
 
 	//体力
-	static constexpr int MAX_HP = 500;
+	static constexpr float MAX_HP = 500;
 
 	//体のカプセルコライダーのサイズ
 	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 200.0f, 65.0f };
@@ -145,10 +168,7 @@ private:
 	// 角度
 	VECTOR targetAngles_;
 
-	//攻撃判定の中心
-	VECTOR attackPrevPos_;
-	VECTOR attackPos1_;
-	VECTOR attackPos2_;
+	//攻撃の向き
 	VECTOR attackDir_;
 
 	// HPがゼロになったらTrue

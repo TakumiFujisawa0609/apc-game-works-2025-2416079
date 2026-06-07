@@ -407,7 +407,7 @@ void GameScene::Collision(void)
 			}
 			if (enemy_->IsAttackB()) {
 
-				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::SWORD), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::ARM_R));
+				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::ARM_R));
 
 				if (enemy_->IsAttackB()) {
 					if (info) {
@@ -432,7 +432,7 @@ void GameScene::Collision(void)
 			}
 			if(enemy_->IsAttackC()){
 
-				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::SWORD), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::HEAD));
+				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::HEAD));
 				
 				if (enemy_->IsAttackC()) {
 					if (info) {
