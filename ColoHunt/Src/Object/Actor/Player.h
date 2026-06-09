@@ -155,8 +155,11 @@ private:
 	static constexpr int SPEED = 7;
 	//基礎攻撃力
 	static constexpr int BASIC_DAMAGE = 10;
+
 	//パワーアップするまでに必要なゲージ量
 	static constexpr int MAX_POWER = 6;
+	// ジャスト回避での上がるゲージ量
+	static constexpr int POWER_UP = MAX_POWER / 2;
 
 	//エフェクトを出す位置
 	static constexpr VECTOR EFFECT_POS = { 0.0f, 70.0f, 0.0f };

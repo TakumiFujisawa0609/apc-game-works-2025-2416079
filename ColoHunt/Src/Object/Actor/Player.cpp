@@ -317,7 +317,7 @@ void Player::GreatDodge(void)
 
 	if (!powerUp_) {
 
-		power_ += 3;
+		power_ += POWER_UP;
 	}
 	AudioManager::GetInstance()->PlaySE(SoundID::SE_DODGE);
 }

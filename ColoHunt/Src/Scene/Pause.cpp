@@ -112,51 +112,65 @@ void Pause::Update()
 
 void Pause::Draw()
 {
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 125);
+	// 背景を半透明にする
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, Utility::HALF);
 	DrawBox(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, 0x000000, true);
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, Utility::MAX);
 
-	int dx = Application::SCREEN_SIZE_X / 3;
-	int dy = Application::SCREEN_SIZE_Y / 7 - (int)pos_.y;
+	// ボックスの左上座標
+	int dx = MENU_X;
+	int dy = MENU_Y - (int)pos_.y;
 
-	DrawBox(dx, dy, dx * 2, dy * 25 / 4, 0x000000, true);
-	DrawLineBox(dx, dy, dx * 2, dy * 25 / 4, 0xcaaa00, 5);
+	// 相対的に枠組みを立てる
+	DrawBox(dx, dy, dx * MENU_SIZE_X, dy * MENU_SIZE_Y, 0x000000, true);
+	DrawLineBox(dx, dy, dx * MENU_SIZE_X, dy * MENU_SIZE_Y, 0xcaaa00, 5);
 
+	// 項目分ずらす
 	dx += Application::SCREEN_SIZE_X / 6;
 	dy += Application::SCREEN_SIZE_Y / 38;
 
+	// 文字の幅の半分をとる
 	int width = GetDrawFormatStringWidth("一時停止中", SetFontSize(40)) / 2;
 
 	DrawFormatString(dx - width, dy, 0xffffff, "一時停止中", SetFontSize(40));
 
-	dy += Application::SCREEN_SIZE_Y / 5;
+	// 項目分ずらす
+	dy += MENU_INTER;
+	// 文字の幅の半分をとる
 	width = GetDrawFormatStringWidth("再開", SetFontSize(30)) / 2;
 
 	DrawFormatString(dx - width, dy, 0xffffff, "再開", SetFontSize(30));
 
+	// 状態に応じて矢印を描く
 	if (state_ == STATE::CONTINUE) {
 
-		DrawTriangle(dx - 65, dy + 15, dx - 90, dy, dx - 90, dy + 30, 0xffffff, true);
+		DrawTriangle(dx + X1_POS, dy + Y1_POS, dx + X2_POS, dy, dx + X2_POS, dy + Y2_POS, 0xffffff, true);
 	}
 
-	dy += Application::SCREEN_SIZE_Y / 5;
+	// 項目分ずらす
+	dy += MENU_INTER;
+	// 文字の幅の半分をとる
 	width = GetDrawFormatStringWidth("リタイア", SetFontSize(30)) / 2;
 
 	DrawFormatString(dx - width, dy, 0xffffff, "リタイア", SetFontSize(30));
 
+	// 状態に応じて矢印を描く
 	if (state_ == STATE::RETURN_TITLE) {
 
-		DrawTriangle(dx - 65, dy + 15, dx - 90, dy, dx - 90, dy + 30, 0xffffff, true);
+		DrawTriangle(dx + X1_POS, dy + Y1_POS, dx + X2_POS, dy, dx + X2_POS, dy + Y2_POS, 0xffffff, true);
 	}
 
-	dy += Application::SCREEN_SIZE_Y / 5;
+	// 項目分ずらす
+	dy += MENU_INTER;
+	// 文字の幅の半分をとる
 	width = GetDrawFormatStringWidth("終了", SetFontSize(30)) / 2;
 
 	DrawFormatString(dx - width, dy, 0xffffff, "終了", SetFontSize(30));
 
+	// 状態に応じて矢印を描く
 	if (state_ == STATE::FINISH) {
 
-		DrawTriangle(dx - 65, dy + 15, dx - 90, dy, dx - 90, dy + 30, 0xffffff, true);
+		DrawTriangle(dx + X1_POS, dy + Y1_POS, dx + X2_POS, dy, dx + X2_POS, dy + Y2_POS, 0xffffff, true);
 	}
 
 

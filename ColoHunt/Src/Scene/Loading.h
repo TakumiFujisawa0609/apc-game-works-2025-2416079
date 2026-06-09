@@ -42,6 +42,9 @@ private:
 	// 最低でもロード画面を表示する時間
 	static constexpr int MIN_LOAD_TIME = 60;	// 60fps(1秒) * x
 
+	// ロード画面のサイズ倍率
+	static constexpr double IMAGE_RATE = 0.9;
+
 	// 画像ハンドル
 	int handle_;
 

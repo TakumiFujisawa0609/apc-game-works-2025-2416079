@@ -18,8 +18,8 @@ void Loading::Init(void)
 {
 	loadTimer_ = 0;
 	isLoading_ = false;
-	posX_ = Application::SCREEN_SIZE_X / 2;
-	posY_ = Application::SCREEN_SIZE_Y / 2;
+	posX_ = Application::SCREEN_SIZE_X_HALF;
+	posY_ = Application::SCREEN_SIZE_Y_HALF;
 }
 
 // ì«Ç›çûÇ›
@@ -45,7 +45,7 @@ void Loading::Update(void)
 void Loading::Draw(void)
 {
 	DrawBox(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, 0x000000, true);
-	DrawRotaGraph(posX_, posY_, 0.9, 0.0, handle_, false);
+	DrawRotaGraph(posX_, posY_, IMAGE_RATE, 0.0, handle_, false);
 }
 
 // âï˙

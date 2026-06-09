@@ -175,57 +175,46 @@ void TitleScene::UpdateLogo(void)
 
 void TitleScene::UpdateSelect(void)
 {
+	// ÉLÉÉÉìÉZÉãÇµÇΩÇÁñﬂÇÈ
 	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::CANCEL).keyTrgDown) {
 	
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_CANCEL);
 		ChangeState(STATE::LOGO);
 		return;
 	}
+	// ç°ÇÃëIëèÛë‘ÇintÇ…ïœä∑
+	int nowSelect = static_cast<int>(select_);
+	
 	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::UP).keyTrgDown) {
 		
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
 		
-		switch (select_)
-		{
-		case TitleScene::SELECT::PLAY:
+		// è„Ç…Ç∏ÇÁÇ∑
+		nowSelect--;
 
-			select_ = SELECT::END;
-			break;
+		// àÍî‘è„ÇÃèÍçáÇªÇÃÇ‹Ç‹
+		if (nowSelect < static_cast<int>(SELECT::PLAY)) {
 
-		case TitleScene::SELECT::RANKING:
-
-			select_ = SELECT::PLAY;
-			break;
-
-		case TitleScene::SELECT::END:
-			
-
-			select_ = SELECT::RANKING;
-			break;
+			nowSelect = static_cast<int>(SELECT::PLAY);
 		}
 	}
 	else if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::DOWN).keyTrgDown) {
 		
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
-		
-		switch (select_)
-		{
-		case TitleScene::SELECT::PLAY:
 
-			select_ = SELECT::RANKING;
-			break;
+		// â∫Ç…Ç∏ÇÁÇ∑
+		nowSelect--;
 
-		case TitleScene::SELECT::RANKING:
+		// àÍî‘â∫ÇÃèÍçáÇªÇÃÇ‹Ç‹
+		if (nowSelect > static_cast<int>(SELECT::END)) {
 
-			select_ = SELECT::END;
-			break;
-
-		case TitleScene::SELECT::END:
-
-			select_ = SELECT::PLAY;
-			break;
+			nowSelect = static_cast<int>(SELECT::END);
 		}
 	}
+
+	// intÇenumÇ÷
+	select_ = static_cast<SELECT>(nowSelect);
+
 	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::DECIDE).keyTrgDown) {
 		
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_DESIDE);

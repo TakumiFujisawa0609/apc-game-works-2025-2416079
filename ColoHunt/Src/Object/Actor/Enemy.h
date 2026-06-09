@@ -21,8 +21,10 @@ public:
 		END,
 	};
 
-	//攻撃範囲
-	static constexpr float ATTACK_RADIUS = 35.0f;
+	// 攻撃力
+	static constexpr int POWER_A = 13;
+	static constexpr int POWER_B = 20;
+	static constexpr int POWER_C = 30;
 
 	// コンストラクタ
 	Enemy(Player* pl);
@@ -94,23 +96,35 @@ private:
 	//初期値
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 0.0f, 1000.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
-	static constexpr VECTOR SCALE = { 6.0f, 6.0f, 6.0f };
+	static constexpr VECTOR SCALE = { 7.5f, 7.5f, 7.5f };
 	static constexpr float SPEED = 8.5f;
 	static constexpr int BASE_ATTACK_DIFF = 65;
+	static constexpr int RAND_ATTACK_DIFF = 120;
 
 	// エフェクトのサイズ
 	static constexpr float FIRE_SIZE = 25.0f;
 	static constexpr float EFFECT_SIZE = 10.0f;
 
 	// ストップディフ
-	static constexpr float FAR_STOP_DIF = 275.0f;
-	static constexpr float NEAR_STOP_DIF = 0.0002f;
+	static constexpr float FAR_STOP_DIFF = 275.0f;
+	static constexpr float NEAR_STOP_DIFF = 0.0002f;
 
 	// 移動に変わる距離
-	static constexpr float CHANGE_MOVE_DIF = 650.0f;
+	static constexpr float CHANGE_MOVE_DIFF = 650.0f;
 
 	// 回頭の補完サイズ
 	static constexpr float LERP = 0.1f;
+
+	// 怒るHP
+	static constexpr int ANGERY_HP = 230;
+
+	//遠距離攻撃の範囲
+	static constexpr float ATTACK_RADIUS = 35.0f;
+
+	// 遠距離攻撃移行の範囲
+	static constexpr float ATTACK_A_DIFF = 400.0f;
+	// 頭攻撃移行の範囲
+	static constexpr float ATTACK_C_DIFF = 250.0f;
 
 	//遠距離攻撃の頭の位置
 	static constexpr VECTOR ATTACK_POS_A = { 0.0f, 250.0f, 325.0f };

@@ -233,7 +233,7 @@ void GameScene::Update(void)
 				// 90カウントまで失敗ロゴを出す
 				changeCnt_++;
 
-				if (changeCnt_ >= 90) {
+				if (changeCnt_ >= CHANGE_CLEAR_SCENE_TIME) {
 
 					//シーンを変える
 					SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::OVER);
@@ -360,14 +360,14 @@ void GameScene::Collision(void)
 
 					enemy_->Damage((int)(player_->GetPower() * player_->GetBuff()));
 
-					if (player_->GetPower() * player_->GetBuff() >= 12.0f) {
+					if (player_->GetPower() * player_->GetBuff() >= SHAKE_POWER) {
 
-						shakeCnt_ = 30;
-						hitStopCnt_ = 5;
+						shakeCnt_ = SHAKE_TIME_A;
+						hitStopCnt_ = HITSTOP_TIME_B;
 					}
 					else {
 
-						hitStopCnt_ = 3;
+						hitStopCnt_ = HITSTOP_TIME_A;
 					}
 					player_->ResetBuff();
 				}
@@ -388,19 +388,17 @@ void GameScene::Collision(void)
 
 				if (info) {
 					if (!hitFlgP_) {
-						if (!player_->SuccessDodge()) {
-							if (!player_->IsDodge()) {
+						if (!player_->IsDodge()) {
 
-								hitFlgP_ = true;
-								player_->Damage(13, enemy_->GetTransform().rot.y);
-								shakeCnt_ = 6;
-								damageNum_++;
-								AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
-							}
-							else {
+							hitFlgP_ = true;
+							player_->Damage(Enemy::POWER_A, enemy_->GetTransform().rot.y);
+							shakeCnt_ = SHAKE_TIME_B;
+							damageNum_++;
+							AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
+						}
+						else {
 
-								Dodge();
-							}
+							Dodge();
 						}
 					}
 				}
@@ -409,23 +407,19 @@ void GameScene::Collision(void)
 
 				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::ARM_R));
 
-				if (enemy_->IsAttackB()) {
-					if (info) {
-						if (!hitFlgP_) {
-							if (!player_->SuccessDodge()) {
-								if (!player_->IsDodge()) {
+				if (info) {
+					if (!hitFlgP_) {
+						if (!player_->IsDodge()) {
 
-									hitFlgP_ = true;
-									player_->Damage(20, enemy_->GetTransform().rot.y);
-									shakeCnt_ = 15;
-									damageNum_++;
-									AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
-								}
-								else {
+							hitFlgP_ = true;
+							player_->Damage(Enemy::POWER_B, enemy_->GetTransform().rot.y);
+							shakeCnt_ = SHAKE_TIME_C;
+							damageNum_++;
+							AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
+						}
+						else {
 
-									Dodge();
-								}
-							}
+							Dodge();
 						}
 					}
 				}
@@ -434,23 +428,19 @@ void GameScene::Collision(void)
 
 				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::HEAD));
 				
-				if (enemy_->IsAttackC()) {
-					if (info) {
-						if (!hitFlgP_) {
-							if (!player_->SuccessDodge()) {
-								if (!player_->IsDodge()) {
+				if (info) {
+					if (!hitFlgP_) {
+						if (!player_->IsDodge()) {
 
-									hitFlgP_ = true;
-									player_->Damage(30, enemy_->GetTransform().rot.y);
-									shakeCnt_ = 15;
-									damageNum_++;
-									AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
-								}
-								else {
+							hitFlgP_ = true;
+							player_->Damage(Enemy::POWER_C, enemy_->GetTransform().rot.y);
+							shakeCnt_ = SHAKE_TIME_C;
+							damageNum_++;
+							AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
+						}
+						else {
 
-									Dodge();
-								}
-							}
+							Dodge();
 						}
 					}
 				}
@@ -511,7 +501,7 @@ void GameScene::GameCamera(void)
 		if (enemy_->ClearFlg()) {
 			
 			//敵を注視点にする
-			VECTOR targetPos = VAdd(enemy_->GetTransform().pos, { 0.0f, 180.0f, 0.0f });
+			VECTOR targetPos = VAdd(enemy_->GetTransform().pos, CLEAR_ENEMY_POS);
 
 			//ロックオンカメラの固定をやめる
 			if (cntDown_) {
@@ -521,20 +511,20 @@ void GameScene::GameCamera(void)
 			changeCnt_++;
 
 			//時間に応じてカメラを動かす
-			if (changeCnt_ < 80) {
+			if (changeCnt_ < CLEAR_CAMERA_CHANGE_A) {
 
 				yaw_ = DEFAULT_YAW - changeCnt_ * 0.01f;
 				pitch_ = -0.1f;
 			}
-			else if (changeCnt_ < 160) {
+			else if (changeCnt_ < CLEAR_CAMERA_CHANGE_B) {
 
 				yaw_ = -DEFAULT_YAW - changeCnt_ * 0.01f;
 				pitch_ = DEFAULT_TILT;
 			}
-			else if (changeCnt_ < 260) {
+			else if (changeCnt_ < CLEAR_CAMERA_CHANGE_C) {
 
 				yaw_ = enemy_->GetTransform().rot.y - DX_PI_F;
-				pitch_ = DX_PI_F / 2.0f - 0.1f;
+				pitch_ = MOST_TOP_SIGHT;
 				targetPos.y += changeCnt_ * 2.0f;
 			}
 			else {
@@ -567,9 +557,9 @@ void GameScene::GameCamera(void)
 			}
 			changeCnt_++;
 
-			if (pitch_ > DX_PI_F / 2.0f - 0.1f) {
+			if (pitch_ > MOST_TOP_SIGHT) {
 
-				pitch_ = DX_PI_F / 2.0f - 0.1f;
+				pitch_ = MOST_TOP_SIGHT;
 			}
 
 			SetCameraPos(headPos, CAMERA_TO_PLAYER + (changeCnt_ - 55.0f) * 2.0f);
@@ -595,14 +585,14 @@ void GameScene::GameCamera(void)
 
 		if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::LOCK_ON).keyTrgDown) {
 
-			cnt_ = 10;
+			cnt_ = ROCKON_LERP_TIME;
 			isLockon_ = true;
 			cntDown_ = true;
 		}
 	}
 	else {
 
-		VECTOR enemyPos = VAdd(enemy_->GetTransform().pos, { 0.0f, 200.f, 0.0f });
+		VECTOR enemyPos = VAdd(enemy_->GetTransform().pos, PLAYER_HEAD_POS);
 		VECTOR dir = VSub(enemyPos, headPos);
 
 		float prevPitch = pitch_;
@@ -628,19 +618,18 @@ void GameScene::GameCamera(void)
 		cnt_--;
 		if (cnt_ <= 0) {
 
-			cnt_ = 10;
 			cntDown_ = false;
 		}
 	}
 
 	// ピッチに制限（真上と床下を防ぐ）
-	if (pitch_ > DX_PI_F / 2.0f - 0.1f) {
+	if (pitch_ > MOST_TOP_SIGHT) {
 
-		pitch_ = DX_PI_F / 2.0f - 0.1f;
+		pitch_ = MOST_TOP_SIGHT;
 	}
-	if (pitch_ < -DX_PI_F / 18.0f) {
+	if (pitch_ < MOST_DOWN_SIGHT) {
 
-		pitch_ = -DX_PI_F / 18.0f;
+		pitch_ = MOST_DOWN_SIGHT;
 	}
 
 	SetCameraPos(headPos, CAMERA_TO_PLAYER);
@@ -671,7 +660,7 @@ void GameScene::Effect(MV1_COLL_RESULT_POLY dim)
 	//位置等々の設定
 	VECTOR pos = dim.Position[0];
 	SetPosPlayingEffekseer3DEffect(effect, pos.x, pos.y, pos.z);
-	SetScalePlayingEffekseer3DEffect(effect, 20.0f, 20.0f, 20.0f);
+	SetScalePlayingEffekseer3DEffect(effect, EFFECT_SIZE, EFFECT_SIZE, EFFECT_SIZE);
 	SetRotationPlayingEffekseer3DEffect(effect, 0.0f, 0.0f, 0.0f);
 }
 
@@ -846,16 +835,16 @@ void GameScene::Release(void)
 
 void GameScene::Dodge(void) 
 {
-	//3フレ以内ならジャストにする
-	if (player_->DodgeCount() <= 3) {
+	//5フレ以内ならジャストにする
+	if (player_->DodgeCount() <= GREAT_DOGDE_TIMING) {
 
-		shakeCnt_ = 20;
+		shakeCnt_ = GREAT_DOGDE_TIME;
 		player_->GreatDodge();
 	}
 	//13フレ以内ならゲージはたまる
-	else if (player_->DodgeCount() <= 13) {
+	else if (player_->DodgeCount() <= GOOD_DOGDE_TIMING) {
 
-		shakeCnt_ = 10;
+		shakeCnt_ = GOOD_DOGDE_TIME;
 		player_->GoodDodge();
 	}
 	//それ以上でフラグが立っているなら避けられてはいる
@@ -867,6 +856,7 @@ void GameScene::Dodge(void)
 	if (player_->SuccessDodge()) {
 
 		blurFlg_ = true;
-		blurCnt_ = 25;
+		blurCnt_ = BLUR_CNT;
+		hitFlgP_ = true;
 	}
 }

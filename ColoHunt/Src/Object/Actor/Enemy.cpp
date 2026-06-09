@@ -223,6 +223,9 @@ void Enemy::ChangeState(STATE state)
 
 void Enemy::Draw(void) const
 {
+	/*for (auto info : ownColliders_) {
+		info.second->Draw();
+	}*/
 }
 
 void Enemy::DeleteShot(void)
@@ -257,7 +260,7 @@ bool Enemy::IsAttack(void) const
 
 void Enemy::Damage(int damage)
 {
-	if (hp_ <= 230 && !angryFlg_) {
+	if (hp_ <= ANGERY_HP && !angryFlg_) {
 
 		Anger();
 	}
@@ -284,7 +287,7 @@ bool Enemy::Turn(void)
 	transform_.rot.y = AngleUtility::LerpAngle(transform_.rot.y, targetAngles_.y, LERP);
 	MV1SetRotationMatrix(transform_.modelId, AngleUtility::Multiplication(DIFF_ANGLES, transform_.rot));
 
-	if (fabsf(transform_.rot.y - targetAngles_.y) <= NEAR_STOP_DIF || fabsf(transform_.rot.y - targetAngles_.y) >= Utility::ONE_CIRCLE - NEAR_STOP_DIF) {
+	if (fabsf(transform_.rot.y - targetAngles_.y) <= NEAR_STOP_DIFF || fabsf(transform_.rot.y - targetAngles_.y) >= Utility::ONE_CIRCLE - NEAR_STOP_DIFF) {
 
 		//‹ßŽ—’l‚Ü‚Å—ˆ‚½‚Ì‚ÅI—¹
 		return true;
@@ -301,7 +304,7 @@ bool Enemy::Turn(void)
 
 void Enemy::ChangeWait(void)
 {
-	attackDiff_ = GetRand(120) + baseAttackDiff_;
+	attackDiff_ = GetRand(RAND_ATTACK_DIFF) + baseAttackDiff_;
 }
 
 void Enemy::ChangeMove(void)
@@ -319,13 +322,13 @@ void Enemy::ChangeAttack(void)
 	AudioManager::GetInstance()->PlaySE(SoundID::SE_WOLF_ATTACK);
 
 	float v = VSize(VSub(player_->GetTransform().pos, transform_.pos));
-	if (v >= 400.0f) {
+	if (v >= ATTACK_A_DIFF) {
 
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_A), false);
 		
 		attack_ = ATTACK::SHOT;
 	}
-	else if (v <= 250) {
+	else if (v <= ATTACK_C_DIFF) {
 		if (GetRand(2) == 1) {
 
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_C), false);
@@ -388,7 +391,7 @@ void Enemy::UpdateWait(void)
 		cnt_ = 0;
 		ChangeState(STATE::ATTACK);
 	}
-	else if(GetRand(attackDiff_) >= 80 && VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= CHANGE_MOVE_DIF) {
+	else if(GetRand(attackDiff_) >= 80 && VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= CHANGE_MOVE_DIFF) {
 
 		cnt_ = 0;
 		ChangeState(STATE::MOVE);
@@ -414,7 +417,7 @@ void Enemy::UpdateMove(void)
 	transform_.pos.x += moveDir_.x * speed_;
 	transform_.pos.z += moveDir_.z * speed_;
 
-	if (VSize(VSub(player_->GetTransform().pos, transform_.pos)) <= FAR_STOP_DIF || prevDist <= VSize(VSub(player_->GetTransform().pos, transform_.pos)) || (prevDist - VSize(transform_.pos)) <= NEAR_STOP_DIF ) {
+	if (VSize(VSub(player_->GetTransform().pos, transform_.pos)) <= FAR_STOP_DIFF || prevDist <= NEAR_STOP_DIFF ) {
 
 		AudioManager::GetInstance()->StopSE(SoundID::SE_WOLF_RUN);
 		ChangeState(STATE::WAIT);
