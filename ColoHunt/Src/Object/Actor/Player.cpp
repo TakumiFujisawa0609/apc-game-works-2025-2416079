@@ -1,5 +1,4 @@
 #include "Player.h"
-#include "../../Application.h"
 #include "../../Utility/Utility.h"
 #include "../../Utility/VectorUtility.h"
 #include "../../Utility/AngleUtility.h"
@@ -54,21 +53,15 @@ void Player::InitAnim()
 	//アニメーションのロード
 	animationCtrl_ = new AnimationController(transform_.modelId);
 
-	animationCtrl_->AddInFbx(0, 60.0f, 0);
-			
-	animationCtrl_->Add(1, 70.0f, (Application::PATH_ANIMATION + "Walking.mv1").c_str());
-	animationCtrl_->Add(2, 70.0f, (Application::PATH_ANIMATION + "Run.mv1").c_str());
-	animationCtrl_->Add(3, 110.0f, (Application::PATH_ANIMATION + "Slash.mv1").c_str());
-	animationCtrl_->Add(4, 110.0f, (Application::PATH_ANIMATION + "Slash_1.mv1").c_str());
-	animationCtrl_->Add(5, 110.0f, (Application::PATH_ANIMATION + "Slash_2.mv1").c_str());
-	animationCtrl_->Add(6, 110.0f, (Application::PATH_ANIMATION + "Slash_3.mv1").c_str());
-	animationCtrl_->Add(7, 100.0f, (Application::PATH_ANIMATION + "Dodge.mv1").c_str());
-	animationCtrl_->Add(8, 90.0f, (Application::PATH_ANIMATION + "Hit_Light.mv1").c_str());
-	animationCtrl_->Add(9, 60.0f, (Application::PATH_ANIMATION + "Hit_Heavy.mv1").c_str());
-	animationCtrl_->Add(10, 200.0f, (Application::PATH_ANIMATION + "Hit_Up.mv1").c_str());
-	animationCtrl_->Add(11, 45.0f, (Application::PATH_ANIMATION + "KO.mv1").c_str());
-	animationCtrl_->Add(12, 330.0f, (Application::PATH_ANIMATION + "Drinking.mv1").c_str());
-	animationCtrl_->Add(13, 90.0f, (Application::PATH_ANIMATION + "Finish.mv1").c_str());
+	for (const ANIMATION_FBX& init : ANIM_FXB) {
+
+		animationCtrl_->AddInFbx(init.num, init.speed, init.fbx);
+	}
+
+	for (const ANIMATION_INIT& init : ANIM_INIT) {
+
+		animationCtrl_->Add(init.num, init.speed, Application::PATH_ANIMATION + init.path);
+	}
 }
 
 void Player::InitTransform()
@@ -340,7 +333,7 @@ void Player::GoodDodge(void)
 void Player::Status(void)
 {
 	//スタミナ回復の条件
-	if ((state_ != STATE::DOGDE && (!InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::RUN).keyNew && state_ != STATE::WAIT)) || isStaminaMax_) {
+	if ((state_ != STATE::DOGDE && (!InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::RUN).keyNew || state_ != STATE::MOVE)) || isStaminaMax_) {
 		if (stamina_ < MAX_STAMINA) {
 
 			stamina_++;

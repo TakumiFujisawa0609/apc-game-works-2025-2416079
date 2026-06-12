@@ -21,10 +21,41 @@
 #include "GameScene.h"
 
 
-GameScene::GameScene(void) : enemy_(nullptr), hitFlgE_(false), hitFlgP_(false), isLockon_(false), item_(nullptr), pitch_(DEFAULT_TILT), yaw_(DEFAULT_YAW),
-	shadowMap_(-1), stage_(nullptr), player_(nullptr), cntDown_(false), cnt_(10), lockOnImg_(-1), changeCnt_(0), changeFlg_(false), clearCamera_(false),
-	shakeCnt_(0), blurFlg_(false), blurCnt_(0), timerHandle_(-1), shakeWidVer_(0.0f), shakeWidSide_(0.0f), shader_(0), shaderConstBuff_(0), mVertex_(),
-	mIndex_(), hitStopCnt_(0), failedImg_(-1), clearImg_(-1), drawHandle_(-1), damageNum_(0), blurImg_(-1), time_(0.0f)
+GameScene::GameScene(void) :
+	drawHandle_(-1),
+
+	hitStopCnt_(0),
+	shakeCnt_(0), shakeWidVer_(0.0f), shakeWidSide_(0.0f),
+
+	shadowMap_(-1),
+
+	shader_(0),	shaderConstBuff_(0),
+	mVertex_(), mIndex_(),
+
+	blurImg_(-1), blurFlg_(false), blurCnt_(0),
+
+	yaw_(DEFAULT_YAW),
+	pitch_(DEFAULT_TILT),
+
+	isLockon_(false),
+	lockOnImg_(-1),	cntDown_(false), cnt_(10),
+
+	hitFlgE_(false), hitFlgP_(false),
+
+	damageNum_(0),
+
+	time_(0.0f), timerHandle_(-1),
+
+	failedImg_(-1),
+	clearImg_(-1),
+	clearCamera_(false),
+
+	changeCnt_(0), changeFlg_(false),
+
+	stage_(nullptr),
+	item_(nullptr),
+	enemy_(nullptr),
+	player_(nullptr)
 {
 }
 
@@ -50,7 +81,7 @@ void GameScene::InitLoad(void)
 	enemy_ = new Enemy(player_);
 	enemy_->InitLoad();
 
-	timerHandle_ = CreateFontToHandle("Monserhunterfonts Xtype", 45, 3, DX_FONTTYPE_ANTIALIASING_EDGE_4X4);
+	timerHandle_ = CreateFontToHandle("Monserhunterfonts Xtype", TIME_FONT_SIZE, TIME_FONT_THICKNESS, DX_FONTTYPE_ANTIALIASING_EDGE_4X4);
 
 	backGroundHandle_ = MV1LoadModel((Application::PATH_MODEL + "Sky.mv1").c_str());
 	lockOnImg_ = LoadGraph((Application::PATH_IMAGE + "LockOn.png").c_str());
@@ -91,7 +122,6 @@ void GameScene::Init(void)
 	hitFlgE_ = false;
 	hitFlgP_ = false;
 
-
 	//ÉVÉFÅ[É_Å[ÇÃÉçÅ[Éh
 	shader_ = LoadPixelShader((Application::PATH_SHADER + "PixelShader.cso").c_str());
 	//ÉVÉFÅ[É_Å[ópÇÃíËêîÉoÉbÉtÉ@ÇÃópà”
@@ -102,9 +132,9 @@ void GameScene::Init(void)
 	drawHandle_ = MakeScreen(Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, TRUE);
 	
 	// ÉVÉÉÉhÉEÉ}ÉbÉvÇÃê›íË
-	shadowMap_ = MakeShadowMap(4096, 4096);
-	SetShadowMapLightDirection(shadowMap_, { 0.2f, -0.8f, 0.1f });
-	SetShadowMapDrawArea(shadowMap_, { -2500.0f, 0.0f, -2500.0f }, { 2500.0f, 0.0f, 2500.0f });
+	shadowMap_ = MakeShadowMap(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+	SetShadowMapLightDirection(shadowMap_, SHADOW_MAP_LIGHT_DIR);
+	SetShadowMapDrawArea(shadowMap_, SHADOW_MAP_DRAW_AREA_MIN, SHADOW_MAP_DRAW_AREA_MAX);
 
 	for (int i = 0; i < BLUR_NUM; i++) {
 		
@@ -113,7 +143,7 @@ void GameScene::Init(void)
 
 	// îwåiÇÃê›íË
 	MV1SetPosition(backGroundHandle_, { 0.0f, 0.0f, 0.0f });
-	MV1SetScale(backGroundHandle_, { 8.0f, 8.0f, 8.0f });
+	MV1SetScale(backGroundHandle_, { BACKGROUND_SCALE, BACKGROUND_SCALE, BACKGROUND_SCALE });
 }
 
 void GameScene::Update(void)
@@ -141,10 +171,11 @@ void GameScene::Update(void)
 		}
 	}
 
-	// äeçXêV
+	// äeçXêVÅ`Å`Å`Å`Å`Å`Å`Å`Å`Å`
 	player_->Update();
 	item_->Update();
 	enemy_->Update();
+	// Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`äeçXêV
 
 	cameraPos_ = Camera::GetInstance()->GetCameraPos();
 	playerPos_ = VAdd(player_->GetTransform().pos, PLAYER_HEAD_POS);
@@ -179,7 +210,8 @@ void GameScene::Update(void)
 			
 			// BGMÇñ¬ÇÁÇ∑
 			AudioManager::GetInstance()->PlayBGM(SoundID::BGM_CLEAR);
-			AudioManager::GetInstance()->SetBgmVolume(185);
+			// âπó Çê›íËÇµÇ»Ç®Ç∑
+			AudioManager::GetInstance()->SetBgmVolume(CLEAR_BGM_VOLUME);
 		}
 		// ÉVÅ[ÉìÇ™ïœÇÌÇÈÉtÉâÉOîªíË
 		if (!changeFlg_) {
@@ -193,11 +225,11 @@ void GameScene::Update(void)
 			}
 		}
 		else {
-			// 90ÉJÉEÉìÉgÇ‹Ç≈ÉNÉäÉAÉçÉSÇèoÇ∑
+			// éwíËÇÃÉJÉEÉìÉgêîÇ‹Ç≈ÉNÉäÉAÉçÉSÇèoÇ∑
 			changeCnt_++;
 
 			// åoÇ¡ÇΩÇÁ
-			if (changeCnt_ >= 90) {
+			if (changeCnt_ >= CLEAR_LOGO_TIME) {
 
 				// ÉVÅ[ÉìÇïœÇ¶ÇÈ
 				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
@@ -262,7 +294,10 @@ void GameScene::SetBlur(void)
 			SetDrawScreen(DX_SCREEN_BACK);
 
 			// ÉtÉBÉãÉ^Å[ÇÇ©ÇØÇÈ
-			GraphFilter(blurImg_[i], DX_GRAPH_FILTER_HSB, 1, 240, 150, 80);
+			GraphFilter(
+				blurImg_[i], DX_GRAPH_FILTER_HSB, 1,
+				HSB_BRIGHTNESS, HSB_SATURATION, HSB_HUE
+			);
 			break;
 		}
 	}
@@ -344,113 +379,162 @@ void GameScene::MakeSquereVertex(void)
 
 void GameScene::Collision(void)
 {
+#pragma region // ÉvÉåÉCÉÑÅ[ÇÃçUåÇ Å~ ìG
+
+	// ÉvÉåÉCÉÑÅ[Ç™çUåÇÇµÇƒÇ¢ÇÈÇ©
 	if (player_->IsAttack()) {
 
+		// ÉvÉåÉCÉÑÅ[ÇÃåïÇ∆ìGÇÃìñÇΩÇËîªíËèÓïÒÇéÊìæÇ∑ÇÈ
 		auto info = CollisionManager::GetInstance().Hit(enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), player_->GetOwnCollider(ActorBase::COLLIDER_TAG::SWORD));
 
-		if (!hitFlgE_) {
-			if (info.HitNum > 0) {
+		// ëΩíiÉqÉbÉgÇñhÇÆÇΩÇﬂÇÃÉtÉâÉOÇ™óßÇ¡ÇƒÇ¢Ç»Ç¢ Ç©Ç¬ ìñÇΩÇ¡ÇƒÇ¢ÇΩÇÁ
+		if (!hitFlgE_ && info.HitNum > 0) {
 
-				AudioManager::GetInstance()->PlaySE(SoundID::SE_ATTACK);
-				Effect(info.Dim[info.HitNum - 1]);
+			// å¯â âπ
+			AudioManager::GetInstance()->PlaySE(SoundID::SE_ATTACK);
+			// ÉGÉtÉFÉNÉg
+			Effect(info.Dim[info.HitNum - 1]);
 
-				hitFlgE_ = true;
+			// ëΩíiÉqÉbÉgÇñhÇÆÇΩÇﬂÇÃÉtÉâÉOÇóßÇƒÇÈ
+			hitFlgE_ = true;
 
-				if (!enemy_->ClearFlg()) {
+			// ìGÇ™éÄÇÒÇ≈Ç¢Ç»Ç¢Ç©
+			if (!enemy_->ClearFlg()) {
 
-					enemy_->Damage((int)(player_->GetPower() * player_->GetBuff()));
+				// ìGÇ…É_ÉÅÅ[ÉW
+				enemy_->Damage((int)(player_->GetPower() * player_->GetBuff()));
 
-					if (player_->GetPower() * player_->GetBuff() >= SHAKE_POWER) {
+				// âÊñ óhÇÍÇ∆ÉqÉbÉgÉXÉgÉbÉvÇÃéûä‘ÇåàÇﬂÇÈ
+				if (player_->GetPower() * player_->GetBuff() >= SHAKE_POWER) {
 
-						shakeCnt_ = SHAKE_TIME_A;
-						hitStopCnt_ = HITSTOP_TIME_B;
-					}
-					else {
-
-						hitStopCnt_ = HITSTOP_TIME_A;
-					}
-					player_->ResetBuff();
+					shakeCnt_ = SHAKE_TIME_A;
+					hitStopCnt_ = HITSTOP_TIME_B;
 				}
+				else {
+
+					hitStopCnt_ = HITSTOP_TIME_A;
+				}
+
+				// ÉoÉtÇÃÉäÉZÉbÉg
+				player_->ResetBuff();
 			}
 		}
 		//ìñÇΩÇËîªíËÇÃå„èàóù
 		MV1CollResultPolyDimTerminate(info);
 	}
 	else {
-
+		// çUåÇÇµÇƒÇ¢Ç»Ç¢Ç»ÇÁëΩíiÉqÉbÉgÇñhÇÆÇΩÇﬂÇÃÉtÉâÉOÇâ∫ÇÎÇ∑
 		hitFlgE_ = false;
 	}
+#pragma endregion
+
+#pragma region // ìGÇÃçUåÇ Å~ ÉvÉåÉCÉÑÅ[
+
+	// ÉvÉåÉCÉÑÅ[ ìG ÇÃê∂ë∂ÇämîFÇ∑ÇÈ
 	if (!player_->OverFlg() && !enemy_->ClearFlg()) {
+
+		// ÉvÉåÉCÉÑÅ[ÇÃìñÇΩÇËîªíËÇ™óLå¯Ç©
 		if (player_->IsHit()) {
+
+			// âŒÇÃã çUåÇ
 			if (enemy_->IsAttackA()) {
 
+				// ìGÇÃçUåÇÇ∆ÉvÉåÉCÉÑÅ[ÇÃìñÇΩÇËîªíËèÓïÒÇéÊìæÇ∑ÇÈ
 				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::SPHERE));
 
+				// éÊìæämîF
 				if (info) {
+					// ëΩíiÉqÉbÉgÇñhÇÆÇΩÇﬂÇÃÉtÉâÉOÇ™óßÇ¡ÇƒÇ¢Ç»Ç¢Ç©
 					if (!hitFlgP_) {
-						if (!player_->IsDodge()) {
 
+						// âÒîîªíË
+						if (!player_->IsDodge()) {
+							// ëΩíiÉqÉbÉgÇñhÇÆÇΩÇﬂÇÃÉtÉâÉOÇóßÇƒÇÈ
 							hitFlgP_ = true;
+							// ÉvÉåÉCÉÑÅ[Ç…É_ÉÅÅ[ÉW
 							player_->Damage(Enemy::POWER_A, enemy_->GetTransform().rot.y);
+							// âÊñ óhÇÍ
 							shakeCnt_ = SHAKE_TIME_B;
+							// É_ÉÅÅ[ÉWÇÃêîÇëùÇ‚Ç∑
 							damageNum_++;
+							// å¯â âπ
 							AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 						}
-						else {
-
-							Dodge();
-						}
+						// âÒîÇµÇƒÇ¢ÇΩÇÁ
+						else { Dodge(); }
 					}
 				}
 			}
+
+			// òrçUåÇ
 			if (enemy_->IsAttackB()) {
 
+				// ìGÇÃçUåÇÇ∆ÉvÉåÉCÉÑÅ[ÇÃìñÇΩÇËîªíËèÓïÒÇéÊìæÇ∑ÇÈ
 				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::ARM_R));
 
+				// éÊìæämîF
 				if (info) {
-					if (!hitFlgP_) {
-						if (!player_->IsDodge()) {
 
+					// ëΩíiÉqÉbÉgÇñhÇÆÇΩÇﬂÇÃÉtÉâÉOÇ™óßÇ¡ÇƒÇ¢Ç»Ç¢Ç©
+					if (!hitFlgP_) {
+
+						// âÒîîªíË
+						if (!player_->IsDodge()) {
+							// ëΩíiÉqÉbÉgÇñhÇÆÇΩÇﬂÇÃÉtÉâÉOÇóßÇƒÇÈ
 							hitFlgP_ = true;
+							// ÉvÉåÉCÉÑÅ[Ç…É_ÉÅÅ[ÉW
 							player_->Damage(Enemy::POWER_B, enemy_->GetTransform().rot.y);
+							// âÊñ óhÇÍ
 							shakeCnt_ = SHAKE_TIME_C;
+							// É_ÉÅÅ[ÉWÇÃêîÇëùÇ‚Ç∑
 							damageNum_++;
+							// å¯â âπ
 							AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 						}
-						else {
-
-							Dodge();
-						}
+						// âÒîÇµÇƒÇ¢ÇΩÇÁ
+						else { Dodge(); }
 					}
 				}
 			}
+
+			// ì™çUåÇ
 			if(enemy_->IsAttackC()){
 
+				// ìGÇÃçUåÇÇ∆ÉvÉåÉCÉÑÅ[ÇÃìñÇΩÇËîªíËèÓïÒÇéÊìæÇ∑ÇÈ
 				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::HEAD));
 				
+				// éÊìæämîF
 				if (info) {
+					// ëΩíiÉqÉbÉgÇñhÇÆÇΩÇﬂÇÃÉtÉâÉOÇ™óßÇ¡ÇƒÇ¢Ç»Ç¢Ç©
 					if (!hitFlgP_) {
+						// âÒîîªíË
 						if (!player_->IsDodge()) {
-
+							// ëΩíiÉqÉbÉgÇñhÇÆÇΩÇﬂÇÃÉtÉâÉOÇóßÇƒÇÈ
 							hitFlgP_ = true;
+							// ÉvÉåÉCÉÑÅ[Ç…É_ÉÅÅ[ÉW
 							player_->Damage(Enemy::POWER_C, enemy_->GetTransform().rot.y);
+							// âÊñ óhÇÍ
 							shakeCnt_ = SHAKE_TIME_C;
+							// É_ÉÅÅ[ÉWÇÃêîÇëùÇ‚Ç∑
 							damageNum_++;
+							// å¯â âπ
 							AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
 						}
-						else {
-
-							Dodge();
-						}
+						// âÒîÇµÇƒÇ¢ÇΩÇÁ
+						else { Dodge(); }
 					}
 				}
 			}
 		}
 	}
-	if (!enemy_->IsAttack()) {
 
+	// çUåÇÇµÇƒÇ¢Ç»Ç¢Ç»ÇÁëΩíiÉqÉbÉgÇñhÇÆÇΩÇﬂÇÃÉtÉâÉOÇâ∫ÇÎÇ∑ 
+	if (!enemy_->IsAttack()) {
 		hitFlgP_ = false;
 	}
+#pragma endregion
+
+	// ÉXÉeÅ[ÉWÇ∆ÇÃìñÇΩÇËîªíË
 	CollisionStage();
 }
 
@@ -598,28 +682,27 @@ void GameScene::GameCamera(void)
 		float prevPitch = pitch_;
 		float prevYaw = yaw_;
 
+		// ï˚å¸Ç©ÇÁäpìxÇãÅÇﬂÇÈ
 		pitch_ = -VNorm(dir).y;
 		yaw_ = atan2f(VNorm(dir).x, VNorm(dir).z);
 
-		if (pitch_ >= 0.5f) {
+		// ÉsÉbÉ`Ç…êßå¿
+		if (pitch_ >= MAX_PITCH) { pitch_ = MAX_PITCH; }
 
-			pitch_ = 0.5f;
-		}
-		pitch_ = AngleUtility::LerpAngle(prevPitch, pitch_, 0.8f);
-		yaw_ = AngleUtility::LerpAngle(prevYaw, yaw_, 0.8f);
+		// äpìxÇèôÅXÇ…ïœÇ¶ÇÈ
+		pitch_ = AngleUtility::LerpAngle(prevPitch, pitch_, CAMERA_LERP_RATE);
+		yaw_ = AngleUtility::LerpAngle(prevYaw, yaw_, CAMERA_LERP_RATE);
 
-		if ((std::abs(prevPitch - pitch_) < 0.1f && std::abs(prevYaw - yaw_) < 0.1f) || VSize(VSub(player_->GetTransform().pos, enemy_->GetTransform().pos)) <= 300.0f) {
+		// ÉçÉbÉNÉIÉìÇâèúÇ∑ÇÈèåèÅiäpìxÇÃç∑Ç™àÍíËà»â∫ Ç©Ç¬ ÉvÉåÉCÉÑÅ[Ç∆ìGÇÃãóó£Ç™àÍíËà»â∫Åj
+		if ((std::abs(prevPitch - pitch_) < LOCKON_RELEASE_ANGLE_DIFF &&
+			std::abs(prevYaw - yaw_) < LOCKON_RELEASE_ANGLE_DIFF) ||
+			VSize(VSub(player_->GetTransform().pos, enemy_->GetTransform().pos)) <= LOCKON_RELEASE_DISTANCE) {
 
 			isLockon_ = false;
 		}
 	}
 	if (cntDown_) {
-
-		cnt_--;
-		if (cnt_ <= 0) {
-
-			cntDown_ = false;
-		}
+		if (--cnt_ <= 0) { cntDown_ = false; }
 	}
 
 	// ÉsÉbÉ`Ç…êßå¿Åiê^è„Ç∆è∞â∫ÇñhÇÆÅj
@@ -670,39 +753,46 @@ void GameScene::ShakeCamera(void)
 
 	//âÊñ óhÇÍÇµÇƒÇŸÇµÇ¢ÉtÉåÅ[ÉÄêîÇÃ3âÒÇ…àÍâÒÇ∏ÇÁÇ∑
 	if (shakeCnt_ % 3 == 0) {
-		
-		shakeWidSide_ = (float)GetRand(2);
-		shakeWidSide_ -= 1;
-		shakeWidSide_ *= 2.5;
+		// ç∂âEÇÃóhÇÍÇÃïùÇÉâÉìÉ_ÉÄÇ…åàÇﬂÇÈ(2.5 or 0 or -2.5)Å`Å`
+		shakeWidSide_ = (float)GetRand(1);	//    0 or 1 or 2
+		shakeWidSide_ -= 1;					//   -1 or 0 or 1
+		shakeWidSide_ *= 2.5;				// -2.5 or 0 or 2.5
+		// Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`
 
-		shakeWidVer_ = (float)GetRand(2);
-		shakeWidVer_ -= 1;
-		shakeWidVer_ *= 10.0;
+		// è„â∫ÇÃóhÇÍÇÃïùÇÉâÉìÉ_ÉÄÇ…åàÇﬂÇÈ(10.0 or 0 or -10.0)Å`Å`
+		shakeWidVer_ = (float)GetRand(2);	//    0 or 1 or 2
+		shakeWidVer_ -= 1;					//   -1 or 0 or 1
+		shakeWidVer_ *= 10.0;				// -10.0 or 0 or 10.0
+		// Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`
 	}
-	shakeCnt_--;
-	
-	if (shakeCnt_ <= 0) {
 
-		shakeWidSide_ = shakeWidVer_ = 0.0f;
-	}
+	// âÊñ óhÇÍÇÃÉJÉEÉìÉ^Å[Çå∏ÇÁÇ∑
+	if (--shakeCnt_ <= 0) { shakeWidSide_ = shakeWidVer_ = 0.0f; }
 }
 
 void GameScene::Draw(void)
 {
 	if (hitStopCnt_ <= 0) {
 		
+		// ï`âÊêÊÇïœçXÇ∑ÇÈ
 		SetDrawScreen(drawHandle_);
 
+		// ÉXÉNÉäÅ[ÉìÇÉNÉäÉA
 		ClearDrawScreen();
+
+		// ÉJÉÅÉâèÓïÒÇê›íË
 		Camera::GetInstance()->SetBeforeDraw();
 
 		//ÉVÉÉÉhÉEÉ}ÉbÉvÇ…ï`âÊ
 		ShadowMap_DrawSetup(shadowMap_);
 
+		// äeÉIÉuÉWÉFÉNÉgÇÃï`âÊÅ`Å`Å`
 		stage_->DrawModel();
 		player_->DrawModel();
 		enemy_->DrawModel();
+		// Å`Å`Å`äeÉIÉuÉWÉFÉNÉgÇÃï`âÊ
 
+		// ÉVÉÉÉhÉEÉ}ÉbÉvÇÃï`âÊèIóπ
 		ShadowMap_DrawEnd();
 
 		// îwåiÇÃï`âÊ
@@ -735,17 +825,28 @@ void GameScene::Draw(void)
 		player_->Draw();
 		item_->Draw();
 
+		// É^ÉCÉ}Å[ÉtÉåÅ[ÉÄÇÃï`âÊÅ`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 225);
-		DrawBox(10, 25, 210, 80, 0x000000, true);
-		DrawBox(30, 10, 190, 25, 0x000000, true);
-		DrawBox(30, 80, 190, 95, 0x00000, true);
-		DrawTriangle(10, 25, 30, 25, 30, 10, 0x000000, true);
-		DrawTriangle(210, 25, 190, 25, 190, 10, 0x000000, true);
-		DrawTriangle(210, 80, 190, 95, 190, 80, 0x000000, true);
-		DrawTriangle(10, 80, 30, 95, 30, 80, 0x000000, true);
+		for (const TimerFrameBoxOffset& offset : TIMER_FRAME_BOX_OFFSETS) {
+			DrawBox(
+				TIMER_DRAW_X + offset.x1, TIMER_DRAW_Y + offset.y1,
+				TIMER_DRAW_X + offset.x2, TIMER_DRAW_Y + offset.y2,
+				TIMER_FRAME_COLOR, true
+			);
+		}
+		for (const TimerFrameTriangleOffset& offset : TIMER_FRAME_TRIANGLE_OFFSETS) {
+			DrawTriangle(
+				TIMER_DRAW_X + offset.x1, TIMER_DRAW_Y + offset.y1,
+				TIMER_DRAW_X + offset.x2, TIMER_DRAW_Y + offset.y2,
+				TIMER_DRAW_X + offset.x3, TIMER_DRAW_Y + offset.y3,
+				TIMER_FRAME_COLOR, true
+			);
+		}
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+		// Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`Å`É^ÉCÉ}Å[ÉtÉåÅ[ÉÄÇÃï`âÊ
 	}
-	DrawFormatStringToHandle(30, 30, 0xffffff, timerHandle_, "%d:%02d", (int)time_ / 60, (int)time_ % 60);
+	// É^ÉCÉ}Å[ÇÃï`âÊ
+	DrawFormatStringToHandle(TIMER_DRAW_X, TIMER_DRAW_Y, 0xffffff, timerHandle_, "%d:%02d", (int)time_ / 60, (int)time_ % 60);
 
 	if (changeFlg_) {
 
@@ -763,11 +864,18 @@ void GameScene::Draw(void)
 
 	if (cntDown_) {
 
-		VECTOR enemyPos = VAdd(enemy_->GetTransform().pos, { 0.0f, 200.f, 0.0f });
+		// ìGÇÃè„ïîÇ…ÉçÉbÉNÉIÉìÉ}Å[ÉNÇï`âÊÇ∑ÇÈÇΩÇﬂÇÃç¿ïWÇåvéZÇ∑ÇÈ
+		VECTOR enemyPos = enemy_->GetTransform().pos;
+		enemyPos.y += LOCKON_HEIGHT_OFFSET;
 
+		// 3Dç¿ïWÇÉXÉNÉäÅ[Éìç¿ïWÇ…ïœä∑Ç∑ÇÈ
 		VECTOR pos = ConvWorldPosToScreenPos(enemyPos);
+
+		// éZèoÇµÇΩç¿ïWÇ…ÉçÉbÉNÉIÉìÉ}Å[ÉNÇï`âÊÇ∑ÇÈ
 		DrawRotaGraph((int)pos.x, (int)pos.y, cnt_, 0.0, lockOnImg_, true);
 	}
+
+	// ï`âÊêÊÇÇ‡Ç∆Ç…ñﬂÇ∑
 	SetDrawScreen(DX_SCREEN_BACK);
 
 	if (shakeCnt_ > 0) {

@@ -2,6 +2,7 @@
 #include <DxLib.h>
 #include "SceneBase.h"
 #include "../Manager/Audio/AudioManager.h"
+#include "../Application.h"
 
 
 class Pause : public SceneBase

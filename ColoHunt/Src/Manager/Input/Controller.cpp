@@ -153,7 +153,7 @@ bool Controller::GetJPadInputState(int key)
 			analogKeyLY = d.Y;
 			// 右スティック
 			analogKeyRX = d.Rx;
-			analogKeyRY = d.Ry;
+			analogKeyRY = -d.Ry;
 			if (analogKeyLX == 0 && analogKeyLY == 0 && analogKeyRX == 0 && analogKeyRY == 0) {
 				return false;
 			}

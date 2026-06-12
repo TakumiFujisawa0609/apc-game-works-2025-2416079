@@ -3,7 +3,6 @@
 #include "../Manager/SceneManager.h"
 #include "../Manager/Input/InputManager.h"
 #include "../Utility/Utility.h"
-#include "../Application.h"
 
 
 Pause::Pause() : state_(STATE::CONTINUE), pos_(Utility::VECTOR_ZERO), pauseBGM_()

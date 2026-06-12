@@ -2,6 +2,7 @@
 #include <vector>
 #include <DxLib.h>
 #include "ActorBase.h"
+#include "../../Application.h"
 
 
 class AnimationController;
@@ -105,6 +106,8 @@ private:
 	// アニメーション種別
 	enum class ANIM_TYPE
 	{
+		NON = -1,
+
 		IDLE,
 		WALK,
 		RUN,
@@ -119,6 +122,7 @@ private:
 		KO,
 		DRINK,
 		FINISH,
+
 		MAX,
 	};
 
@@ -126,16 +130,45 @@ private:
 	enum class EFFECT
 	{
 		NON = -1,
+
 		GREAT_DODGE,
 		GOOD_DODGE,
 		HEAL,
 		STAMINA,
+
 		MAX,
 	};
 
 	//初期位置
 	static constexpr VECTOR DEFAULT_POS = { 0.0f, 38.0f, -500.0f };
 	static constexpr VECTOR DIFF_ANGLES = { 0.0f, DX_PI_F, 0.0f };
+
+	// アニメーション初期化構造体
+	struct ANIMATION_INIT { int num; float speed; const char* path; };
+	struct ANIMATION_FBX { int num; float speed; int fbx; };
+
+	// アニメーション初期化
+	static constexpr ANIMATION_INIT ANIM_INIT[] = {
+
+		{ static_cast<int>(ANIM_TYPE::WALK), 70.0f, "Walking.mv1"},
+		{ static_cast<int>(ANIM_TYPE::RUN), 70.0f, "Run.mv1" },
+		{ static_cast<int>(ANIM_TYPE::ATTACK), 110.0f, "Slash.mv1" },
+		{ static_cast<int>(ANIM_TYPE::COMBO_1), 110.0f, "Slash_1.mv1" },
+		{ static_cast<int>(ANIM_TYPE::COMBO_2), 110.0f, "Slash_2.mv1" },
+		{ static_cast<int>(ANIM_TYPE::COMBO_3), 110.0f, "Slash_3.mv1" },
+		{ static_cast<int>(ANIM_TYPE::DODGE), 100.0f, "Dodge.mv1" },
+		{ static_cast<int>(ANIM_TYPE::DAMAGED_LIGHT), 90.0f, "Hit_Light.mv1" },
+		{ static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY), 60.0f, "Hit_Heavy.mv1" },
+		{ static_cast<int>(ANIM_TYPE::STAND_UP), 200.0f, "Hit_Up.mv1" },
+		{ static_cast<int>(ANIM_TYPE::KO), 45.0f, "KO.mv1" },
+		{ static_cast<int>(ANIM_TYPE::DRINK), 330.0f, "Drinking.mv1" },
+		{ static_cast<int>(ANIM_TYPE::FINISH), 90.0f, "Finish.mv1" }
+
+	};
+	static constexpr ANIMATION_FBX ANIM_FXB[] = {
+
+		{ static_cast<int>(ANIM_TYPE::IDLE), 60.0f, 0 }
+	};
 
 	//マックスHP
 	static constexpr int MAX_HP = 85;

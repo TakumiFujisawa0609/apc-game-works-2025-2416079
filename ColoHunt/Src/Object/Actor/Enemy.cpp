@@ -35,15 +35,10 @@ void Enemy::InitAnim()
 {
 	animationCtrl_ = new AnimationController(transform_.modelId);
 
-	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_A), 45, 0);
-	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_B), 45, 1);
-	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::ATTACK_C), 45, 2);
-	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::IDLE), 30, 4);
-	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::WALK), 45, 9);
-	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::RUN), 60, 7);
-	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::DOWN), 30, 3);
-	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::STRUGGLE), 45, 5);
-	animationCtrl_->AddInFbx(static_cast<int>(ANIM_TYPE::UP), 60, 6);
+	for (const ANIMATION_FBX& init : ANIM_FBX) {
+
+		animationCtrl_->AddInFbx(init.num, init.speed, init.fbx);
+	}
 }
 
 void Enemy::InitTransform()
@@ -77,25 +72,6 @@ void Enemy::InitCollider()
 	// 攻撃用の球体コライダ
 	ColliderSphere* colSphere = new ColliderSphere(&shotTransform_, Utility::VECTOR_ZERO, ATTACK_RADIUS);
 	ownColliders_.emplace(COLLIDER_TAG::SPHERE, colSphere);
-
-	// 各部位のコライダー座標
-	headPosStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Hals"));
-	headPosEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Mauloben"));;
-
-	armPosRStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberarm_R"));;
-	armPosREnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Vorderpfote_R"));;
-
-	armPosLStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberarm_L"));;
-	armPosLEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Vorderpfote_L"));;
-
-	legPosRStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberschenkel_R"));;
-	legPosREnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Pfote2_R"));;
-
-	legPosLStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberschenkel_L"));;
-	legPosLEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Pfote2_L"));;
-
-	bodyPosStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Hals_fett_end_end"));;
-	bodyPosEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Schwanz"));;
 
 	// 各部位のコライダー
 	colCapsule = new ColliderCapsule(headPosStart_, headPosEnd_, COL_BODY_HEAD_RADIUS);
@@ -164,24 +140,8 @@ void Enemy::Update(void)
 	animationCtrl_->Update();
 	transform_.Update();
 
-	// 各部位のコライダー座標
-	headPosStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Hals"));
-	headPosEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Mauloben"));;
-
-	armPosRStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberarm_R"));;
-	armPosREnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Vorderpfote_R"));;
-
-	armPosLStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberarm_L"));;
-	armPosLEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Vorderpfote_L"));;
-
-	legPosRStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberschenkel_R"));;
-	legPosREnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Pfote2_R"));;
-
-	legPosLStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Oberschenkel_L"));;
-	legPosLEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Pfote2_L"));;
-
-	bodyPosStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Hals_fett_end_end"));;
-	bodyPosEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "Schwanz"));;
+	// フレームの座標の更新
+	SetFramePos();
 
 	//当たり判定を更新
 	MV1RefreshCollInfo(transform_.modelId);
@@ -223,9 +183,6 @@ void Enemy::ChangeState(STATE state)
 
 void Enemy::Draw(void) const
 {
-	/*for (auto info : ownColliders_) {
-		info.second->Draw();
-	}*/
 }
 
 void Enemy::DeleteShot(void)
@@ -260,9 +217,9 @@ bool Enemy::IsAttack(void) const
 
 void Enemy::Damage(int damage)
 {
-	if (hp_ <= ANGERY_HP && !angryFlg_) {
+	if (hp_ <= ANGRY_HP && !angryFlg_) {
 
-		Anger();
+		Angry();
 	}
 	hp_ -= damage;
 
@@ -360,7 +317,7 @@ void Enemy::ChangeKO(void)
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DOWN), false);
 }
 
-void Enemy::Anger(void)
+void Enemy::Angry(void)
 {
 	ChangeState(STATE::DOWN);
 
@@ -370,9 +327,10 @@ void Enemy::Anger(void)
 	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_B), 60);
 	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_C), 60);
 
-	attackSpeed_ = ATTACK_SPEED * 1.5f;
-	speed_ = SPEED * 1.5f;
-	baseAttackDiff_ = BASE_ATTACK_DIFF / 2;
+	// 移動等の強化
+	attackSpeed_ = ANGRY_ATTACK_SPEED;
+	speed_ = ANGRY_SPEED;
+	baseAttackDiff_ = ANGRY_DIFF;
 }
 
 void Enemy::UpdateWait(void)
@@ -391,7 +349,7 @@ void Enemy::UpdateWait(void)
 		cnt_ = 0;
 		ChangeState(STATE::ATTACK);
 	}
-	else if(GetRand(attackDiff_) >= 80 && VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= CHANGE_MOVE_DIFF) {
+	else if(GetRand(attackDiff_) >= CHANGE_MOVE_RAND && VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= CHANGE_MOVE_DIFF) {
 
 		cnt_ = 0;
 		ChangeState(STATE::MOVE);
@@ -525,4 +483,27 @@ void Enemy::UpdateDown(void)
 void Enemy::UpdateKO(void)
 {
 	clearFlg_ = true;
+}
+
+void Enemy::SetFramePos(void)
+{
+	// 各部位のコライダー用座標
+	headPosStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, HEAD_START_FRAME));
+	headPosEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, HEAD_END_FRAME));;
+
+	armPosRStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, R_ARM_START_FRAME));
+	armPosREnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, R_ARM_END_FRAME));
+
+	armPosLStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, L_ARM_START_FRAME));
+	armPosLEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, L_ARM_END_FRAME));
+
+	legPosRStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, R_LEG_START_FRAME));
+	legPosREnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, R_LEG_END_FRAME));
+
+	legPosLStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, L_LEG_START_FRAME));
+	legPosLEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, L_LEG_END_FRAME));
+
+	bodyPosStart_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, BODY_START_FRAME));
+	bodyPosEnd_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, BODY_END_FRAME));
+
 }

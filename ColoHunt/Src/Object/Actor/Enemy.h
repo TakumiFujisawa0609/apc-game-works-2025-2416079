@@ -13,12 +13,16 @@ public:
 	// 状態
 	enum class STATE
 	{
+		NON = -1,
+
 		WAIT,
 		MOVE,
 		ATTACK,
 		KO,
 		DOWN,
 		END,
+
+		MAX
 	};
 
 	// 攻撃力
@@ -73,6 +77,8 @@ private:
 	// アニメーション種別
 	enum class ANIM_TYPE
 	{
+		NON = -1,
+
 		IDLE,
 		WALK,
 		RUN,
@@ -82,6 +88,7 @@ private:
 		DOWN,
 		STRUGGLE,
 		UP,
+
 		MAX,
 	};
 
@@ -100,6 +107,42 @@ private:
 	static constexpr float SPEED = 8.5f;
 	static constexpr int BASE_ATTACK_DIFF = 65;
 	static constexpr int RAND_ATTACK_DIFF = 120;
+	
+	// アニメーション初期化構造体
+	struct ANIMATION_FBX { int num; float speed; int fbx; };
+
+	//アニメーション初期化
+	static constexpr ANIMATION_FBX ANIM_FBX[] = {
+
+		{ static_cast<int>(ANIM_TYPE::IDLE), 30.0f, 4 },
+		{ static_cast<int>(ANIM_TYPE::WALK), 45.0f, 9 },
+		{ static_cast<int>(ANIM_TYPE::RUN), 60.0f, 7 },
+		{ static_cast<int>(ANIM_TYPE::ATTACK_A), 45.0f, 0 },
+		{ static_cast<int>(ANIM_TYPE::ATTACK_B), 45.0f, 1 },
+		{ static_cast<int>(ANIM_TYPE::ATTACK_C), 45.0f, 2 },
+		{ static_cast<int>(ANIM_TYPE::DOWN), 30.0f, 3 },
+		{ static_cast<int>(ANIM_TYPE::STRUGGLE), 45.0f, 5 },
+		{ static_cast<int>(ANIM_TYPE::UP), 60.0f, 6 }
+	};
+
+	// 各部位のフレームの名前
+	static constexpr const char* HEAD_START_FRAME = "Hals";
+	static constexpr const char* HEAD_END_FRAME = "Mauloben";
+	
+	static constexpr const char* R_ARM_START_FRAME = "Oberarm_R";
+	static constexpr const char* R_ARM_END_FRAME = "Vorderpfote_R";
+	
+	static constexpr const char* L_ARM_START_FRAME = "Oberarm_L";
+	static constexpr const char* L_ARM_END_FRAME = "Vorderpfote_L";
+	
+	static constexpr const char* R_LEG_START_FRAME = "Oberschenkel_R";
+	static constexpr const char* R_LEG_END_FRAME = "Pfote2_R";
+	
+	static constexpr const char* L_LEG_START_FRAME = "Oberschenkel_L";
+	static constexpr const char* L_LEG_END_FRAME = "Pfote2_L";
+	
+	static constexpr const char* BODY_START_FRAME = "Hals_fett_end_end";
+	static constexpr const char* BODY_END_FRAME = "Schwanz";
 
 	// エフェクトのサイズ
 	static constexpr float FIRE_SIZE = 25.0f;
@@ -111,12 +154,14 @@ private:
 
 	// 移動に変わる距離
 	static constexpr float CHANGE_MOVE_DIFF = 650.0f;
+	// 移動に変わる確率
+	static constexpr int CHANGE_MOVE_RAND = 80;
 
 	// 回頭の補完サイズ
 	static constexpr float LERP = 0.1f;
 
 	// 怒るHP
-	static constexpr int ANGERY_HP = 230;
+	static constexpr int ANGRY_HP = 230;
 
 	//遠距離攻撃の範囲
 	static constexpr float ATTACK_RADIUS = 35.0f;
@@ -145,6 +190,11 @@ private:
 
 	//体力
 	static constexpr float MAX_HP = 500;
+
+	// 怒り時の強化
+	static constexpr float ANGRY_ATTACK_SPEED = ATTACK_SPEED * 1.5f;
+	static constexpr float ANGRY_SPEED = SPEED * 1.5f;
+	static constexpr float ANGRY_DIFF = BASE_ATTACK_DIFF / 2;
 
 	//体のカプセルコライダーのサイズ
 	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 200.0f, 65.0f };
@@ -229,7 +279,7 @@ private:
 	void ChangeKO(void);
 	
 	// 怒りによる変数変化
-	void Anger(void);
+	void Angry(void);
 
 	// 状態別更新
 	void UpdateWait(void);
@@ -240,4 +290,7 @@ private:
 	void UpdateAttackC(void);
 	void UpdateDown(void);
 	void UpdateKO(void);
+
+	// フレームの更新
+	void SetFramePos(void);
 };
