@@ -25,9 +25,9 @@ public:
 		HEAD,
 		ARM_R,
 		ARM_L,
-		BODY,
 		LEG_R,
 		LEG_L,
+		BODY,
 
 		MAX,
 	};

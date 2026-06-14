@@ -17,7 +17,7 @@
 
 Enemy::Enemy(Player* pl) : ActorBase(), attackAFlg_(false), attackBFlg_(false), attackCFlg_(false),
 	attackDiff_(0), attackDir_(), speed_(SPEED),
-	clearFlg_(false), cnt_(0), player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0), attackSpeed_(ATTACK_SPEED),
+	clearFlg_(false), cnt_(0), player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0), attackSpeedA_(ATTACK_ANIMATION_SPEED),
 	baseAttackDiff_(BASE_ATTACK_DIFF), angryFlg_(false), first_(false)
 {
 }
@@ -43,15 +43,26 @@ void Enemy::InitAnim()
 
 void Enemy::InitTransform()
 {
+	// 初期座標
 	transform_.pos = DEFAULT_POS;
 	DirectionPlayer();
 	transform_.rot = targetAngles_;
 	transform_.localRot = DIFF_ANGLES;
 	transform_.scl = SCALE;
-
 	moveDir_ = Utility::DIR_B;
 
+	// HP系の初期化
 	hp_ = MAX_HP;
+	for (int i = static_cast<int>(COLLIDER_TAG::HEAD); i < static_cast<int>(COLLIDER_TAG::MAX); i++) {
+
+		partsHp_.emplace(static_cast<COLLIDER_TAG>(i), 1);
+	}
+
+	// 攻撃系の初期化
+	damageA_ = POWER_A;
+	damageB_ = POWER_B;
+	damageC_ = POWER_C;
+	attackSpeedB_ = attackSpeedC_ = ATTACK_ANIMATION_SPEED;
 }
 
 void Enemy::InitCollider()
@@ -73,6 +84,9 @@ void Enemy::InitCollider()
 	ColliderSphere* colSphere = new ColliderSphere(&shotTransform_, Utility::VECTOR_ZERO, ATTACK_RADIUS);
 	ownColliders_.emplace(COLLIDER_TAG::SPHERE, colSphere);
 
+	// フレームの座標の登録
+	SetFramePos();
+
 	// 各部位のコライダー
 	colCapsule = new ColliderCapsule(headPosStart_, headPosEnd_, COL_BODY_HEAD_RADIUS);
 	ownColliders_.emplace(COLLIDER_TAG::HEAD, colCapsule);
@@ -91,7 +105,6 @@ void Enemy::InitCollider()
 
 	colCapsule = new ColliderCapsule(bodyPosStart_, bodyPosEnd_, COL_BODY_HEAD_RADIUS);
 	ownColliders_.emplace(COLLIDER_TAG::BODY, colCapsule);
-
 }
 
 void Enemy::Update(void)
@@ -129,7 +142,7 @@ void Enemy::Update(void)
 	}
 	if (attackAFlg_) {
 	
-		shotTransform_.pos = VAdd(shotTransform_.pos, VScale(attackDir_, attackSpeed_));
+		shotTransform_.pos = VAdd(shotTransform_.pos, VScale(attackDir_, attackSpeedA_));
 
 		//位置等々の設定
 		SetPosPlayingEffekseer3DEffect(effectHandle_, shotTransform_.pos.x, shotTransform_.pos.y, shotTransform_.pos.z);
@@ -215,13 +228,92 @@ bool Enemy::IsAttack(void) const
 	}
 }
 
-void Enemy::Damage(int damage)
+void Enemy::Damage(COLLIDER_TAG tag, int damage)
 {
+	// Hpが一定値を下回ったら怒って強くなる
 	if (hp_ <= ANGRY_HP && !angryFlg_) {
 
 		Angry();
 	}
+	// HPにダメージ
 	hp_ -= damage;
+	
+	if (tag != COLLIDER_TAG::NON) {
+		// 部位に3倍のダメージ
+		if (partsHp_.at(tag) > 0) {
+
+			partsHp_.at(tag) -= damage * 3;
+		}
+
+		// パーツのHPがゼロなら各効果を与える
+		if (partsHp_.at(tag) <= 0) {
+			switch (tag)
+			{
+			case ActorBase::COLLIDER_TAG::HEAD:
+			{
+				// ダメージを下げ攻撃を遅くする
+				damageC_ -= 5;
+				attackSpeedC_ = 30.0f;
+				animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_C), attackSpeedC_);
+				MV1SetFrameDifColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, HEAD_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				MV1SetFrameSpcColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, HEAD_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				MV1SetFrameAmbColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, HEAD_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				break;
+			}
+			case ActorBase::COLLIDER_TAG::ARM_R:
+			{
+				// ダメージを下げる
+				damageB_ -= 5;
+				MV1SetFrameDifColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, R_ARM_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				MV1SetFrameSpcColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, R_ARM_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				MV1SetFrameAmbColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, R_ARM_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				break;
+			}
+			case ActorBase::COLLIDER_TAG::ARM_L:
+			{
+				// 攻撃を遅くする
+				attackSpeedB_ = 30.0f;
+				animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_B), attackSpeedB_);
+				MV1SetFrameDifColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, L_ARM_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				MV1SetFrameSpcColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, L_ARM_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				MV1SetFrameAmbColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, L_ARM_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				break;
+			}
+			case ActorBase::COLLIDER_TAG::BODY:
+			{
+				// ダメージを下げ攻撃を遅くする
+				damageA_ -= 5;
+				attackSpeedA_ -= 5.0f;
+				MV1SetFrameDifColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, BODY_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				MV1SetFrameSpcColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, BODY_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				MV1SetFrameAmbColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, BODY_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				break;
+			}
+			case ActorBase::COLLIDER_TAG::LEG_R:
+			{
+				// 足を遅くする
+				speed_ -= 0.5f;
+				MV1SetFrameDifColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, R_LEG_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				MV1SetFrameSpcColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, R_LEG_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				MV1SetFrameAmbColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, R_LEG_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				break;
+			}
+			case ActorBase::COLLIDER_TAG::LEG_L:
+			{
+				// 足を遅くする
+				speed_ -= 0.5f;
+				MV1SetFrameDifColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, L_LEG_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				MV1SetFrameSpcColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, L_LEG_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				MV1SetFrameAmbColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, L_LEG_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				break;
+			}
+			default:
+			{
+				break;
+			}
+			}
+		}
+	}
 
 	//HPがゼロならクリア
 	if (hp_ <= 0 && !clearFlg_) {
@@ -234,6 +326,7 @@ void Enemy::Damage(int damage)
 
 void Enemy::DirectionPlayer(void)
 {
+	// プレイヤーを見る
 	VECTOR dir = VSub(player_->GetTransform().pos, transform_.pos);
 	targetAngles_.y = atan2f(dir.x, dir.z);
 }
@@ -266,6 +359,7 @@ void Enemy::ChangeWait(void)
 
 void Enemy::ChangeMove(void)
 {
+	// プレイヤーの方向を向ける
 	DirectionPlayer();
 	Turn();
 
@@ -276,16 +370,22 @@ void Enemy::ChangeMove(void)
 
 void Enemy::ChangeAttack(void)
 {
+	// 攻撃時の音を出す
 	AudioManager::GetInstance()->PlaySE(SoundID::SE_WOLF_ATTACK);
 
+	// 距離を出す
 	float v = VSize(VSub(player_->GetTransform().pos, transform_.pos));
+	
+	// 遠ければ遠距離攻撃を出す
 	if (v >= ATTACK_A_DIFF) {
 
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_A), false);
 		
 		attack_ = ATTACK::SHOT;
 	}
+	// 近いなら頭攻撃も選択肢に入れる
 	else if (v <= ATTACK_C_DIFF) {
+		// 1/3で頭それ以外は腕攻撃
 		if (GetRand(2) == 1) {
 
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_C), false);
@@ -299,6 +399,7 @@ void Enemy::ChangeAttack(void)
 			attack_ = ATTACK::ARM;
 		}
 	}
+	// それ以外は腕の攻撃
 	else {
 
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_B), false);
@@ -323,32 +424,40 @@ void Enemy::Angry(void)
 
 	angryFlg_ = true;
 
-	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_A), 60);
-	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_B), 60);
-	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_C), 60);
+	// 攻撃アニメーションスピードを4/3倍する
+	attackSpeedA_ *= 4 / 3;
+	attackSpeedB_ *= 4 / 3;
+	attackSpeedC_ *= 4 / 3;
+
+	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_A), attackSpeedA_);
+	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_B), attackSpeedB_);
+	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_C), attackSpeedC_);
 
 	// 移動等の強化
-	attackSpeed_ = ANGRY_ATTACK_SPEED;
-	speed_ = ANGRY_SPEED;
+	attackSpeedA_ *= 1.5f;
+	speed_ *= 1.5f;
 	baseAttackDiff_ = ANGRY_DIFF;
 }
 
 void Enemy::UpdateWait(void)
 {
+	// プレイヤーを向く
 	DirectionPlayer();
-	
 	if (Turn()) {
 
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
 	}
 
+	// カウントする
 	cnt_++;
 
+	// カウントが攻撃間隔カウントを超えると攻撃に移行
 	if (cnt_ >= attackDiff_) {
 
 		cnt_ = 0;
 		ChangeState(STATE::ATTACK);
 	}
+	// 距離があった場合確率で移動する
 	else if(GetRand(attackDiff_) >= CHANGE_MOVE_RAND && VSize(VSub(player_->GetTransform().pos, transform_.pos)) >= CHANGE_MOVE_DIFF) {
 
 		cnt_ = 0;
@@ -358,24 +467,28 @@ void Enemy::UpdateWait(void)
 
 void Enemy::UpdateMove(void)
 {
+	// 回転中だから返す
 	if (!Turn()) {
 
 		return;
 	}
 
+	// 一フレ前の座標を出す
 	float prevDist = VSize(VSub(player_->GetTransform().pos, transform_.pos));
 
+	// 再生されてないなら移動SEを出す
 	if (!AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WOLF_RUN)) {
 
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_WOLF_RUN);
 	}
 
+	// 移動させる
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
-
 	transform_.pos.x += moveDir_.x * speed_;
 	transform_.pos.z += moveDir_.z * speed_;
 
-	if (VSize(VSub(player_->GetTransform().pos, transform_.pos)) <= FAR_STOP_DIFF || prevDist <= NEAR_STOP_DIFF ) {
+	// ある程度近づくか岩に引っかかっていたら止める
+	if (VSize(VSub(player_->GetTransform().pos, transform_.pos)) <= FAR_STOP_DIFF || prevDist >= VSize(VSub(player_->GetTransform().pos, transform_.pos)) || prevDist <= NEAR_STOP_DIFF ) {
 
 		AudioManager::GetInstance()->StopSE(SoundID::SE_WOLF_RUN);
 		ChangeState(STATE::WAIT);
@@ -384,6 +497,7 @@ void Enemy::UpdateMove(void)
 
 void Enemy::UpdateAttack(void)
 {
+	// 攻撃タイプによりアップデートを変える
 	switch (attack_)
 	{
 	case Enemy::ATTACK::SHOT:
@@ -401,16 +515,20 @@ void Enemy::UpdateAttack(void)
 		UpdateAttackC();
 		break;
 	}
+	// アニメーションが終わっていたら止める
 	if (animationCtrl_->IsEnd()) {
 
 		ChangeState(STATE::WAIT);
+		// 遠距離攻撃用のフラグを変える
 		first_ = false;
 	}
 }
 
 void Enemy::UpdateAttackA(void)
 {
+	// 攻撃アニメーションの始まりのタイミングを過ぎた時
 	if (animationCtrl_->GetTime() >= START_TIMING_A) {
+		// エフェクトが出てない状態なら出す
 		if (!first_) {
 
 			attackAFlg_ = true;
@@ -425,9 +543,11 @@ void Enemy::UpdateAttackA(void)
 	}
 	else {
 
+		// プレイヤーの方向を向く
 		DirectionPlayer();
 		Turn();
 
+		// 攻撃の位置と方向を更新
 		shotTransform_.pos = VAdd(transform_.pos, VTransform(ATTACK_POS_A, AngleUtility::GetMatrixRotateXYZ(transform_.rot)));
 		attackDir_ = VSub(VAdd(player_->GetTransform().pos, SHOT_AIM), shotTransform_.pos);
 		attackDir_ = VNorm(attackDir_);
@@ -437,10 +557,14 @@ void Enemy::UpdateAttackA(void)
 
 void Enemy::UpdateAttackB(void)
 {
+	// 攻撃アニメーションの終わりのタイミングを過ぎた時
+	// 攻撃フラグを消す
 	if (animationCtrl_->GetTime() >= STOP_TIMING) {
 
 		attackBFlg_ = false;
 	}
+	// 攻撃アニメーションの始まりのタイミングを過ぎた時
+	// 攻撃フラグを出す
 	else if (animationCtrl_->GetTime() >= START_TIMING_B) {
 		
 		attackBFlg_ = true;
@@ -449,10 +573,14 @@ void Enemy::UpdateAttackB(void)
 
 void Enemy::UpdateAttackC(void)
 {
+	// 攻撃アニメーションの終わりのタイミングを過ぎた時
+	// 攻撃フラグを消す
 	if (animationCtrl_->GetTime() >= STOP_TIMING) {
 
 		attackCFlg_ = false;
 	}
+	// 攻撃アニメーションの始まりのタイミングを過ぎた時
+	// 攻撃フラグを出す
 	else if (animationCtrl_->GetTime() >= START_TIMING_C) {
 
 		attackCFlg_ = true;
@@ -461,18 +589,24 @@ void Enemy::UpdateAttackC(void)
 
 void Enemy::UpdateDown(void)
 {
+	// アニメーションが終わっていたら
 	if (animationCtrl_->IsEnd()) {
+		// 起き上がるアニメーションなら止めて返す
 		if (animationCtrl_->GetPlayType() == static_cast<int>(ANIM_TYPE::UP)) {
 
 			ChangeState(STATE::WAIT);
 			return;
 		}
+		// もう一度もがかせる
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::STRUGGLE), true);
 	}
+
+	// もがいた回数を溜める
 	if (animationCtrl_->GetTime() >= animationCtrl_->GetTotalTime()) {
 	
 		downCnt_++;
 	}
+	// もがいた数が一定数を超えると起き上がらせる
 	if (downCnt_ >= DOWN_NUM) {
 
 		downCnt_ = 0;

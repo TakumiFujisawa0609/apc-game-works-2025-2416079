@@ -9,6 +9,7 @@ public:
 	//ベクトルの大きさ
 	static double Magnitude(const VECTOR& v);
 	static float MagnitudeF(const VECTOR& v);
+
 	//ベクトルの大きさの二乗
 	static float SqrMagnitudeF(const VECTOR& v);
 	static double SqrMagnitude(const VECTOR& v);
@@ -22,4 +23,9 @@ public:
 	static bool Equals(const VECTOR& v1, const VECTOR& v2);
 	static bool EqualsVZero(const VECTOR& v1);
 	static bool Comparison(const VECTOR& v1, const VECTOR& v2);
+
+	// ベクトル同士の足し算
+	static VECTOR Add(const VECTOR& v1, const VECTOR& v2);
+	// ベクトル同士の引き算
+	static VECTOR Sub(const VECTOR& v1, const VECTOR& v2);
 };

@@ -71,3 +71,13 @@ bool VectorUtility::Comparison(const VECTOR& v1, const VECTOR& v2)
     }
     return false;
 }
+
+VECTOR VectorUtility::Add(const VECTOR& v1, const VECTOR& v2)
+{
+    return VGet(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+}
+
+VECTOR VectorUtility::Sub(const VECTOR& v1, const VECTOR& v2)
+{
+    return VGet(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+}

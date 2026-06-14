@@ -53,8 +53,8 @@ public:
 	// 状態遷移
 	void DoChangeState(STATE state);
 
-	// ダメージを与える
-	void Damage(int damage, float dir);
+	// ダメージをもらい画面揺れの時間を返す
+	int Damage(int damage, float dir);
 
 	//攻撃力を取得
 	int GetPower(void) const { return damage_; }
@@ -267,6 +267,10 @@ private:
 
 	// 起き上がりタイミング
 	static constexpr float WAKE_UP_TIMING = 160.0f;
+
+	// 画面揺れの時間
+	static constexpr int SHAKE_TIME_LIGHT = 6;
+	static constexpr int SHAKE_TIME_HEAVY = 15;
 
 	//アイテムのポインター
 	Item* item_;

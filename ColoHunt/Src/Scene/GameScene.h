@@ -3,6 +3,7 @@
 #include <DxLib.h>
 #include <vector>
 #include "../Object/Collider/ColliderBase.h"
+#include "../Object/Actor/ActorBase.h"
 
 
 class SceneManager;
@@ -149,9 +150,7 @@ private:
 	static constexpr float SHAKE_POWER = 12.0f;
 
 	// 画面揺れ時間
-	static constexpr int SHAKE_TIME_A = 30;
-	static constexpr int SHAKE_TIME_B = 6;
-	static constexpr int SHAKE_TIME_C = 15;
+	static constexpr int SHAKE_TIME = 30;
 
 	// ヒットストップ時間
 	static constexpr int HITSTOP_TIME_A = 3;
@@ -267,4 +266,7 @@ private:
 
 	//エフェクト
 	void Effect(MV1_COLL_RESULT_POLY dim);
+
+	// 当たったパーツ探し
+	ActorBase::COLLIDER_TAG FindHitParts(void);
 };

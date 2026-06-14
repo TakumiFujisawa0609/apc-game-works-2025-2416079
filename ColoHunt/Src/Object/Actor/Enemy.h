@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <map>
 #include <DxLib.h>
 #include "ActorBase.h"
 
@@ -24,11 +25,6 @@ public:
 
 		MAX
 	};
-
-	// 攻撃力
-	static constexpr int POWER_A = 13;
-	static constexpr int POWER_B = 20;
-	static constexpr int POWER_C = 30;
 
 	// コンストラクタ
 	Enemy(Player* pl);
@@ -60,11 +56,18 @@ public:
 	bool IsAttackC(void) const { return attackCFlg_; }
 	bool IsMove(void) const { return state_ == STATE::MOVE; }
 
+	// 攻撃力参照
+	int GetDamage(void) { 
+		if (attackAFlg_) { return damageA_; }
+		else if (attackBFlg_) { return damageB_; }
+		else { return damageC_; }
+	}
+
 	//弾を消させる
 	void DeleteShot(void);
 
 	// ダメージを与える
-	void Damage(int damage);
+	void Damage(COLLIDER_TAG tag, int damage);
 
 	// HPがゼロになったか
 	bool ClearFlg(void) const { return clearFlg_; }
@@ -107,7 +110,12 @@ private:
 	static constexpr float SPEED = 8.5f;
 	static constexpr int BASE_ATTACK_DIFF = 65;
 	static constexpr int RAND_ATTACK_DIFF = 120;
-	
+
+	// 攻撃力
+	static constexpr int POWER_A = 15;
+	static constexpr int POWER_B = 20;
+	static constexpr int POWER_C = 30;
+
 	// アニメーション初期化構造体
 	struct ANIMATION_FBX { int num; float speed; int fbx; };
 
@@ -128,21 +136,27 @@ private:
 	// 各部位のフレームの名前
 	static constexpr const char* HEAD_START_FRAME = "Hals";
 	static constexpr const char* HEAD_END_FRAME = "Mauloben";
+	static constexpr const char* HEAD_BREAK_FRAME = "Kopf";
 	
 	static constexpr const char* R_ARM_START_FRAME = "Oberarm_R";
 	static constexpr const char* R_ARM_END_FRAME = "Vorderpfote_R";
+	static constexpr const char* R_ARM_BREAK_FRAME = "Unterarm_R";
 	
 	static constexpr const char* L_ARM_START_FRAME = "Oberarm_L";
 	static constexpr const char* L_ARM_END_FRAME = "Vorderpfote_L";
+	static constexpr const char* L_ARM_BREAK_FRAME = "Unterarm_L";
 	
 	static constexpr const char* R_LEG_START_FRAME = "Oberschenkel_R";
 	static constexpr const char* R_LEG_END_FRAME = "Pfote2_R";
+	static constexpr const char* R_LEG_BREAK_FRAME = "Unterschenkel_R";
 	
 	static constexpr const char* L_LEG_START_FRAME = "Oberschenkel_L";
 	static constexpr const char* L_LEG_END_FRAME = "Pfote2_L";
+	static constexpr const char* L_LEG_BREAK_FRAME = "Unterschenkel_L";
 	
 	static constexpr const char* BODY_START_FRAME = "Hals_fett_end_end";
 	static constexpr const char* BODY_END_FRAME = "Schwanz";
+	static constexpr const char* BODY_BREAK_FRAME = "Bauch.001";
 
 	// エフェクトのサイズ
 	static constexpr float FIRE_SIZE = 25.0f;
@@ -180,10 +194,14 @@ private:
 
 	// 近距離攻撃の停止タイミング
 	static constexpr int STOP_TIMING = 50;
-	// 近距離攻撃の開始タイミング
+
+	// 攻撃の開始タイミング
 	static constexpr float START_TIMING_A = 33.1f;
 	static constexpr float START_TIMING_B = 26;
 	static constexpr float START_TIMING_C = 30;
+
+	// 攻撃の基礎アニメーションスピード
+	static constexpr float ATTACK_ANIMATION_SPEED = 45.0f;
 
 	// もがく回数
 	static constexpr float DOWN_NUM = 5;
@@ -191,9 +209,7 @@ private:
 	//体力
 	static constexpr float MAX_HP = 500;
 
-	// 怒り時の強化
-	static constexpr float ANGRY_ATTACK_SPEED = ATTACK_SPEED * 1.5f;
-	static constexpr float ANGRY_SPEED = SPEED * 1.5f;
+	// 怒り時の強化(定数)
 	static constexpr float ANGRY_DIFF = BASE_ATTACK_DIFF / 2;
 
 	//体のカプセルコライダーのサイズ
@@ -205,12 +221,14 @@ private:
 
 	//ゲームシーン
 	Player* player_;
+
 	// 状態
 	STATE state_;
 	ATTACK attack_;
 
 	Transform shotTransform_;
 
+	// 各部位の座標
 	VECTOR headPosStart_;
 	VECTOR headPosEnd_;
 
@@ -228,6 +246,9 @@ private:
 
 	VECTOR bodyPosStart_;
 	VECTOR bodyPosEnd_;
+
+	// 各コライダーに対するHP
+	std::map<COLLIDER_TAG, int> partsHp_;
 
 	// 角度
 	VECTOR targetAngles_;
@@ -252,13 +273,21 @@ private:
 	bool attackBFlg_;
 	bool attackCFlg_;
 
+	// 各種攻撃力
+	int damageA_;
+	int damageB_;
+	int damageC_;
+
+	// 各種攻撃アニメーションスピード
+	float attackSpeedA_;
+	float attackSpeedB_;
+	float attackSpeedC_;
+
 	// 怒ったかどうか
 	bool angryFlg_;
 
 	// 足の速さ
 	float speed_;
-	// 弾の速さ
-	float attackSpeed_;
 
 	// エフェクト画像のハンドル
 	int effectHandle_;

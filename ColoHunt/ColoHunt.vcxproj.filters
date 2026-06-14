@@ -16,7 +16,6 @@
     <ClInclude Include="Src\Object\Actor\Player.h" />
     <ClInclude Include="Src\Object\Actor\Enemy.h" />
     <ClInclude Include="Src\Utility\AngleUtility.h" />
-    <ClInclude Include="Src\Utility\CollisionUtility.h" />
     <ClInclude Include="Src\Utility\Utility.h" />
     <ClInclude Include="Src\Utility\VectorUtility.h" />
     <ClInclude Include="Src\Object\Item.h" />
@@ -60,7 +59,6 @@
     <ClCompile Include="Src\Object\Actor\Player.cpp" />
     <ClCompile Include="Src\Object\Actor\Enemy.cpp" />
     <ClCompile Include="Src\Utility\AngleUtility.cpp" />
-    <ClCompile Include="Src\Utility\CollisionUtility.cpp" />
     <ClCompile Include="Src\Utility\Utility.cpp" />
     <ClCompile Include="Src\Utility\VectorUtility.cpp" />
     <ClCompile Include="Src\Object\Item.cpp" />

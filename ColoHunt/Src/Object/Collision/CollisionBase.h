@@ -28,8 +28,10 @@ private:
 	const MV1_COLL_RESULT_POLY CollisionLine(ColliderBase* model, ColliderBase* line);
 	//モデルと線(当たったすべての場所)
 	const MV1_COLL_RESULT_POLY_DIM CollisionDimLine(ColliderBase* model, ColliderBase* line);
-	//モデルとカプセル(コライダーのあるもの{相対位置})
+	//モデルとカプセル
 	const MV1_COLL_RESULT_POLY_DIM CollisionCapsule(ColliderBase* model, ColliderBase* capsule);
 	//モデルと球
 	const MV1_COLL_RESULT_POLY_DIM CollisionSphere(ColliderBase* model, ColliderBase* sphere);
+	// カプセルとカプセル(当たり判定のみ)
+	const MV1_COLL_RESULT_POLY_DIM CollisionCapsuleCapsule(ColliderBase* capA, ColliderBase* capB);
 };

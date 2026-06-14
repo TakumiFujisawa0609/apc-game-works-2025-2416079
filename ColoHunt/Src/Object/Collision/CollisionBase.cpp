@@ -1,4 +1,6 @@
+#include <algorithm>
 #include "CollisionBase.h"
+#include "../../Utility/VectorUtility.h"
 #include "../Actor/ActorBase.h"
 #include "../Common/Transform.h"
 #include "../Collider/ColliderBase.h"
@@ -47,6 +49,9 @@ const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionDim(ColliderBase* colA, C
 	if (colA->GetShape() == ColliderBase::SHAPE::SPHERE && colB->GetShape() == ColliderBase::SHAPE::MODEL) {
 		return CollisionSphere(colB, colA);
 	}
+	if (colA->GetShape() == ColliderBase::SHAPE::CAPSULE && colB->GetShape() == ColliderBase::SHAPE::CAPSULE) {
+		return CollisionCapsuleCapsule(colA, colB);
+	}
 	return MV1_COLL_RESULT_POLY_DIM();
 }
 
@@ -88,6 +93,71 @@ const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionSphere(ColliderBase* mode
 	if (collModel == nullptr || collSphere == nullptr) return MV1_COLL_RESULT_POLY_DIM();
 
 	return MV1CollCheck_Sphere(collModel->GetFollow()->modelId, -1, collSphere->GetPos(), collSphere->GetRadius());
+}
+
+const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionCapsuleCapsule(ColliderBase* capA, ColliderBase* capB)
+{
+	// 返り値用の初期化
+	MV1_COLL_RESULT_POLY_DIM res{};
+	res.HitNum = 1;
+
+	// 一旦キャスト
+	ColliderCapsule* collCapsuleA = dynamic_cast<ColliderCapsule*>(capA);
+	ColliderCapsule* collCapsuleB = dynamic_cast<ColliderCapsule*>(capB);
+
+	// 線分の 始点/終点 
+	const VECTOR aStartPos = collCapsuleA->GetPosTop(), aEndPos = collCapsuleA->GetPosDown();
+	const VECTOR bStartPos = collCapsuleB->GetPosTop(), bEndPos = collCapsuleB->GetPosDown();
+
+	// 半径
+	const float aRadius = collCapsuleA->GetRadius(), bRadius = collCapsuleB->GetRadius();
+
+	// Aの方向ベクトル
+	VECTOR u = VSub(aEndPos, aStartPos);
+	// Bの方向ベクトル
+	VECTOR v = VSub(bEndPos, bStartPos);
+
+	// Bの始点からAの始点までのベクトル
+	VECTOR w = VSub(aStartPos, bStartPos);
+
+	float aLen = VectorUtility::SqrMagnitudeF(u);
+	float bLen = VectorUtility::SqrMagnitudeF(v);
+	float ab = VDot(u, v);
+	float aw = VDot(u, w);
+	float bw = VDot(v, w);
+
+	float denom = aLen * bLen - ab * ab;
+	float s, t;
+
+	if (denom < 1e-6f) {
+		// 線分がほぼ平行 → 片方に合わせて計算
+		s = 0.0f;
+		t = bw / bLen;
+	}
+	else {
+		s = (ab * bw - bLen * aw) / denom;
+		t = (aLen * bw - ab * aw) / denom;
+	}
+
+	// 線分内に clamp
+	s = std::clamp(s, 0.0f, 1.0f);
+	t = std::clamp(t, 0.0f, 1.0f);
+	
+	VECTOR us = VScale(u, s);
+	VECTOR vt = VScale(v, t);
+
+	VECTOR pa = VectorUtility::Add(aStartPos, us);  // A線分上の最近点
+	VECTOR pb = VectorUtility::Add(bStartPos, vt);  // B線分上の最近点
+
+	// 距離計算
+	float distSq = VectorUtility::SqrDistance(pa, pb);
+	float radSum = aRadius + bRadius;
+
+	// 当たってない
+	if (distSq >= radSum * radSum) { res.HitNum = 0; }
+
+	// 当たった
+	return res;
 }
 
 const VECTOR CollisionBase::GetPosPushBackAlongNormal(const MV1_COLL_RESULT_POLY& hitColPoly, ColliderBase* capsule, int maxTryCnt, float pushDistance) const

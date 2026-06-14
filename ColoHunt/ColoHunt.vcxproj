@@ -58,7 +58,6 @@
     <ClInclude Include="Src\Scene\SceneBase.h" />
     <ClInclude Include="Src\Scene\TitleScene.h" />
     <ClInclude Include="Src\Utility\AngleUtility.h" />
-    <ClInclude Include="Src\Utility\CollisionUtility.h" />
     <ClInclude Include="Src\Utility\Utility.h" />
     <ClInclude Include="Src\Utility\VectorUtility.h" />
   </ItemGroup>
@@ -102,7 +101,6 @@
     <ClCompile Include="Src\Scene\SceneBase.cpp" />
     <ClCompile Include="Src\Scene\TitleScene.cpp" />
     <ClCompile Include="Src\Utility\AngleUtility.cpp" />
-    <ClCompile Include="Src\Utility\CollisionUtility.cpp" />
     <ClCompile Include="Src\Utility\Utility.cpp" />
     <ClCompile Include="Src\Utility\VectorUtility.cpp" />
   </ItemGroup>

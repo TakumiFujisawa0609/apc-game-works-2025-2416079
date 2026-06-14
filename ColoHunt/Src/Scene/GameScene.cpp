@@ -2,7 +2,6 @@
 #include <cmath>
 #include "../Object/Common/AnimationController.h"
 #include "../Object/Actor/Stage.h"
-#include "../Object/Actor/ActorBase.h"
 #include "../Object/Actor/Enemy.h"
 #include "../Object/Actor/Player.h"
 #include "../Object/Item.h"
@@ -401,13 +400,16 @@ void GameScene::Collision(void)
 			// 敵が死んでいないか
 			if (!enemy_->ClearFlg()) {
 
+				// 当たったパーツのタグを取得
+				ActorBase::COLLIDER_TAG hitParts = FindHitParts();
+
 				// 敵にダメージ
-				enemy_->Damage((int)(player_->GetPower() * player_->GetBuff()));
+				enemy_->Damage(hitParts, (int)(player_->GetPower() * player_->GetBuff()));
 
 				// 画面揺れとヒットストップの時間を決める
 				if (player_->GetPower() * player_->GetBuff() >= SHAKE_POWER) {
 
-					shakeCnt_ = SHAKE_TIME_A;
+					shakeCnt_ = SHAKE_TIME;
 					hitStopCnt_ = HITSTOP_TIME_B;
 				}
 				else {
@@ -436,93 +438,44 @@ void GameScene::Collision(void)
 		// プレイヤーの当たり判定が有効か
 		if (player_->IsHit()) {
 
+			bool info = false;
+
 			// 火の玉攻撃
 			if (enemy_->IsAttackA()) {
 
 				// 敵の攻撃とプレイヤーの当たり判定情報を取得する
-				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::SPHERE));
-
-				// 取得確認
-				if (info) {
-					// 多段ヒットを防ぐためのフラグが立っていないか
-					if (!hitFlgP_) {
-
-						// 回避判定
-						if (!player_->IsDodge()) {
-							// 多段ヒットを防ぐためのフラグを立てる
-							hitFlgP_ = true;
-							// プレイヤーにダメージ
-							player_->Damage(Enemy::POWER_A, enemy_->GetTransform().rot.y);
-							// 画面揺れ
-							shakeCnt_ = SHAKE_TIME_B;
-							// ダメージの数を増やす
-							damageNum_++;
-							// 効果音
-							AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
-						}
-						// 回避していたら
-						else { Dodge(); }
-					}
-				}
+				info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::SPHERE));
 			}
-
 			// 腕攻撃
 			if (enemy_->IsAttackB()) {
 
 				// 敵の攻撃とプレイヤーの当たり判定情報を取得する
-				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::ARM_R));
-
-				// 取得確認
-				if (info) {
-
-					// 多段ヒットを防ぐためのフラグが立っていないか
-					if (!hitFlgP_) {
-
-						// 回避判定
-						if (!player_->IsDodge()) {
-							// 多段ヒットを防ぐためのフラグを立てる
-							hitFlgP_ = true;
-							// プレイヤーにダメージ
-							player_->Damage(Enemy::POWER_B, enemy_->GetTransform().rot.y);
-							// 画面揺れ
-							shakeCnt_ = SHAKE_TIME_C;
-							// ダメージの数を増やす
-							damageNum_++;
-							// 効果音
-							AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
-						}
-						// 回避していたら
-						else { Dodge(); }
-					}
-				}
+				info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::ARM_R));
 			}
-
 			// 頭攻撃
 			if(enemy_->IsAttackC()){
 
 				// 敵の攻撃とプレイヤーの当たり判定情報を取得する
-				auto info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::HEAD));
-				
-				// 取得確認
-				if (info) {
-					// 多段ヒットを防ぐためのフラグが立っていないか
-					if (!hitFlgP_) {
-						// 回避判定
-						if (!player_->IsDodge()) {
-							// 多段ヒットを防ぐためのフラグを立てる
-							hitFlgP_ = true;
-							// プレイヤーにダメージ
-							player_->Damage(Enemy::POWER_C, enemy_->GetTransform().rot.y);
-							// 画面揺れ
-							shakeCnt_ = SHAKE_TIME_C;
-							// ダメージの数を増やす
-							damageNum_++;
-							// 効果音
-							AudioManager::GetInstance()->PlaySE(SoundID::SE_HEAVY_DAMAGE);
-						}
-						// 回避していたら
-						else { Dodge(); }
+				info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::HEAD));
+			}
+			// 取得確認
+			if (info) {
+				// 多段ヒットを防ぐためのフラグが立っていないか
+				if (!hitFlgP_) {
+
+					// 回避判定
+					if (!player_->IsDodge()) {
+						// 多段ヒットを防ぐためのフラグを立てる
+						hitFlgP_ = true;
+						// プレイヤーにダメージと画面揺れ
+						shakeCnt_ = player_->Damage(enemy_->GetDamage(), enemy_->GetTransform().rot.y);
+						// ダメージの数を増やす
+						damageNum_++;
+						// 効果音
+						AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
 					}
+					// 回避していたら
+					else { Dodge(); }
 				}
 			}
 		}
@@ -745,6 +698,28 @@ void GameScene::Effect(MV1_COLL_RESULT_POLY dim)
 	SetPosPlayingEffekseer3DEffect(effect, pos.x, pos.y, pos.z);
 	SetScalePlayingEffekseer3DEffect(effect, EFFECT_SIZE, EFFECT_SIZE, EFFECT_SIZE);
 	SetRotationPlayingEffekseer3DEffect(effect, 0.0f, 0.0f, 0.0f);
+}
+
+ActorBase::COLLIDER_TAG GameScene::FindHitParts(void)
+{
+	bool info = false;
+	for (auto hit : enemy_->GetOwnColliders()) {
+		// 被攻撃パーツじゃない場合飛ばす
+		if (hit.first == ActorBase::COLLIDER_TAG::MODEL || 
+			hit.first == ActorBase::COLLIDER_TAG::LINE || 
+			hit.first == ActorBase::COLLIDER_TAG::CAPSULE ||
+			hit.first == ActorBase::COLLIDER_TAG::SPHERE ) {
+
+			continue;
+		}
+		info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::SWORD), hit.second);
+
+		if (info) {
+
+			return hit.first;
+		}
+	}
+	return ActorBase::COLLIDER_TAG::NON;
 }
 
 void GameScene::ShakeCamera(void)

@@ -232,7 +232,7 @@ void Player::Release(void) const
 	DeleteSoftImage(powerGauge_);
 }
 
-void Player::Damage(int damage, float dir)
+int Player::Damage(int damage, float dir)
 {
 	//状態の更新
 	damaged_ = damage;
@@ -254,18 +254,6 @@ void Player::Damage(int damage, float dir)
 		isHeal_ = false;
 	}
 
-	// パワーアップしていないならモーションをとる
-	if (!powerUp_) {
-		if (damage >= 15) {
-
-			DoChangeState(STATE::DAMAGED_HEAVY);
-		}
-		else {
-
-			DoChangeState(STATE::DAMAGED_LIGHT);
-		}
-	}
-
 	// HPがゼロなら死ぬ
 	if (hp_ - damaged_ <= 0) {
 
@@ -274,6 +262,22 @@ void Player::Damage(int damage, float dir)
 		SceneManager::GetInstance().SetScreenImage();
 		DoChangeState(STATE::KO);
 	}
+
+	// パワーアップしていないならモーションをとる
+	if (!powerUp_) {
+		// 被ダメ量によってアクションを変える
+		if (damage >= 15) {
+
+			DoChangeState(STATE::DAMAGED_HEAVY);
+			return SHAKE_TIME_HEAVY;
+		}
+		else {
+
+			DoChangeState(STATE::DAMAGED_LIGHT);
+			return SHAKE_TIME_LIGHT;
+		}
+	}
+
 }
 
 bool Player::IsAttackMotion(void) const
