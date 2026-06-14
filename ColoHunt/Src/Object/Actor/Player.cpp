@@ -14,11 +14,15 @@
 #include "../Item.h"
 
 
-Player::Player(Item* itm): ActorBase(), item_(itm), autoHealCnt_(0), autoHealHp_(0), speed_(), effectSize_(), effectCnt_(), dodge_(), damaged_(), swordPosEnd_(),
-	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(false), knockBackDir_(0.0f), swordPosStast_(),
-	overFlg_(false), power_(0), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT), effectDir_(),se_(true), dodgeStamina_(DODGE_STAMINA),
-	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(),	barStaminaEY_(), barStaminaSY_(), damage_(BASIC_DAMAGE), goodDodge_(), greatDodge_(), guageEX_(),
-	guageSize_(), guageSX_(), guageSY_(),hpBar_(), powerGauge_(), powerUp_(), powerUpCnt_(), effectBottomPos_(), effectTopPos_(), buff_(1.0), effectType_(EFFECT::NON)
+Player::Player(Item* itm): ActorBase(), item_(itm), autoHealCnt_(0), autoHealHp_(0), speed_(),
+effectSize_(), effectCnt_(), dodge_(), damaged_(), swordPosEnd_(),
+	dodgeCnt_(), dodgeFlg_(), healCount_(0), isAttack_(false), isHealMax_(), isHeal_(false), isStaminaMax_(false),
+	knockBackDir_(0.0f), swordPosStast_(), overFlg_(false), power_(0), staminaMaxCnt_(), stamina_(MAX_STAMINA), state_(STATE::WAIT),
+	effectDir_(),se_(true), dodgeStamina_(DODGE_STAMINA),
+	barEX_(), barHpEY_(), barHpSY_(), barSize_(), barSX_(), barStaminaEY_(), barStaminaSY_(),
+	damage_(BASIC_DAMAGE), goodDodge_(), greatDodge_(), guageEX_(), guageSize_(), guageSX_(), guageSY_(),hpBar_(),
+	powerGauge_(), powerUp_(), powerUpCnt_(), effectBottomPos_(), effectTopPos_(), buff_(1.0), effectType_(EFFECT::NON),
+	StateChange(), StateUpdate()
 {
 }
 
@@ -32,20 +36,6 @@ void Player::InitLoad()
 	transform_.SetModel(MV1LoadModel((Application::PATH_MODEL + "Player.mv1").c_str()));
 	powerGauge_ = LoadSoftImage((Application::PATH_IMAGE + "Power.png").c_str());
 	hpBar_ = LoadSoftImage((Application::PATH_IMAGE + "HpBar.png").c_str());
-
-#pragma region 関数ポインタのセットアップ
-	StateUpdate[(int)STATE::WAIT] = &Player::UpdateWait;
-	StateUpdate[(int)STATE::MOVE] = &Player::UpdateMove;
-	StateUpdate[(int)STATE::ATTACK] = &Player::UpdateAttack;
-	StateUpdate[(int)STATE::COMBO] = &Player::UpdateCombo;
-	StateUpdate[(int)STATE::DOGDE] = &Player::UpdateDodge;
-	StateUpdate[(int)STATE::DAMAGED_LIGHT] = &Player::UpdateDamagedLight;
-	StateUpdate[(int)STATE::DAMAGED_HEAVY] = &Player::UpdateDamagedHeavy;
-	StateUpdate[(int)STATE::KO] = &Player::UpdateKO;
-	StateUpdate[(int)STATE::DRINK] = &Player::UpdateDrink;
-	StateUpdate[(int)STATE::END] = &Player::UpdateEnd;
-#pragma endregion
-
 }
 
 void Player::InitAnim()
@@ -78,7 +68,29 @@ void Player::InitTransform()
 	hp_ = MAX_HP;
 	moveDir_ = Utility::DIR_F;
 
-	DoChangeState(STATE::WAIT);
+#pragma region 関数ポインタのセットアップ
+	StateUpdate[static_cast<int>(STATE::WAIT)] = &Player::UpdateWait;
+	StateUpdate[static_cast<int>(STATE::MOVE)] = &Player::UpdateMove;
+	StateUpdate[static_cast<int>(STATE::ATTACK)] = &Player::UpdateAttack;
+	StateUpdate[static_cast<int>(STATE::COMBO)] = &Player::UpdateCombo;
+	StateUpdate[static_cast<int>(STATE::DOGDE)] = &Player::UpdateDodge;
+	StateUpdate[static_cast<int>(STATE::DAMAGED_LIGHT)] = &Player::UpdateDamagedLight;
+	StateUpdate[static_cast<int>(STATE::DAMAGED_HEAVY)] = &Player::UpdateDamagedHeavy;
+	StateUpdate[static_cast<int>(STATE::KO)] = &Player::UpdateKO;
+	StateUpdate[static_cast<int>(STATE::DRINK)] = &Player::UpdateDrink;
+
+	StateChange[static_cast<int>(STATE::WAIT)] = &Player::ChangeWait;
+	StateChange[static_cast<int>(STATE::MOVE)] = &Player::ChangeMove;
+	StateChange[static_cast<int>(STATE::ATTACK)] = &Player::ChangeAttack;
+	StateChange[static_cast<int>(STATE::COMBO)] = &Player::ChangeCombo;
+	StateChange[static_cast<int>(STATE::DOGDE)] = &Player::ChangeDodge;
+	StateChange[static_cast<int>(STATE::DAMAGED_LIGHT)] = &Player::ChangeDamagedLight;
+	StateChange[static_cast<int>(STATE::DAMAGED_HEAVY)] = &Player::ChangeDamagedHeavy;
+	StateChange[static_cast<int>(STATE::KO)] = &Player::ChangeKO;
+	StateChange[static_cast<int>(STATE::DRINK)] = &Player::ChangeDrink;
+#pragma endregion
+
+	ChangeState(STATE::WAIT);
 }
 
 void Player::InitCollider()
@@ -110,7 +122,7 @@ void Player::Update(void)
 	swordPosEnd_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:RightHand")));
 
 	//状態別更新処理
-	(this->*StateUpdate[(int)state_])();
+	(this->*StateUpdate[static_cast<int>(state_)])();
 
 	Status();
 	EffectUpdate();
@@ -126,60 +138,15 @@ void Player::Update(void)
 	MV1RefreshCollInfo(transform_.modelId);
 }
 
-void Player::DoChangeState(STATE state)
+void Player::ChangeState(STATE state)
 {
 	state_ = state;
 
 	//歩く走るの音を止める
 	StopSE();
 
-	switch (state_)
-	{
-	case Player::STATE::WAIT:
-
-		ChangeWait();
-		break;
-
-	case Player::STATE::MOVE:
-		
-		ChangeMove();
-		break;
-
-	case Player::STATE::ATTACK:
-		
-		ChangeAttack();
-		break;
-
-	case Player::STATE::COMBO:
-
-		ChangeCombo();
-		break;
-
-	case Player::STATE::DOGDE:
-		
-		ChangeDodge();
-		break;
-
-	case Player::STATE::DAMAGED_LIGHT:
-		
-		ChangeDamagedLight();
-		break;
-
-	case Player::STATE::DAMAGED_HEAVY:
-	
-		ChangeDamagedHeavy();
-		break;
-
-	case Player::STATE::KO:
-
-		ChangeKO();
-		break;
-
-	case Player::STATE::DRINK:
-
-		ChangeDrink();
-		break;
-	}
+	// 状態別変化処理
+	(this->*StateChange[static_cast<int>(state_)])();
 }
 
 void Player::Draw(void) const
@@ -260,7 +227,7 @@ int Player::Damage(int damage, float dir)
 		autoHealHp_ = 0;
 		// 瞬間の画面のイメージ保存
 		SceneManager::GetInstance().SetScreenImage();
-		DoChangeState(STATE::KO);
+		ChangeState(STATE::KO);
 	}
 
 	// パワーアップしていないならモーションをとる
@@ -268,16 +235,16 @@ int Player::Damage(int damage, float dir)
 		// 被ダメ量によってアクションを変える
 		if (damage >= 15) {
 
-			DoChangeState(STATE::DAMAGED_HEAVY);
+			ChangeState(STATE::DAMAGED_HEAVY);
 			return SHAKE_TIME_HEAVY;
 		}
 		else {
 
-			DoChangeState(STATE::DAMAGED_LIGHT);
+			ChangeState(STATE::DAMAGED_LIGHT);
 			return SHAKE_TIME_LIGHT;
 		}
 	}
-
+	return 0;
 }
 
 bool Player::IsAttackMotion(void) const
@@ -563,7 +530,7 @@ void Player::DrawHpAndPower(void) const
 	//赤いゲージを出す分かける
 	float barRed = barRate * autoHealHp_;
 
-	DrawSoftImage(BAR_POS, 0, hpBar_);
+	DrawSoftImage(static_cast<int>(BAR_POS), 0, hpBar_);
 
 	//死んでないなら赤ゲージをだす
 	if (hp_ - damaged_ > 0) {
@@ -625,13 +592,13 @@ void Player::DrawHpAndPower(void) const
 	DrawSoftImage(240, 100, powerGauge_);
 }
 
-void Player::ChangeWait(void) const
+void Player::ChangeWait(void)
 {
 	//待機モーション
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::IDLE), true);
 }
 
-void Player::ChangeMove(void) const
+void Player::ChangeMove(void)
 {
 }
 
@@ -663,22 +630,22 @@ void Player::ChangeDodge(void)
 	}
 }
 
-void Player::ChangeDamagedLight(void) const
+void Player::ChangeDamagedLight(void)
 {
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_LIGHT), false);
 }
 
-void Player::ChangeDamagedHeavy(void) const
+void Player::ChangeDamagedHeavy(void)
 {
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY), false);
 }
 
-void Player::ChangeKO(void) const
+void Player::ChangeKO(void)
 {
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::KO), false);
 }
 
-void Player::ChangeDrink(void) const
+void Player::ChangeDrink(void)
 {
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DRINK), false);
 	item_->Use();
@@ -785,7 +752,7 @@ void Player::UpdateMove(void)
 	}
 	else {
 
-		DoChangeState(STATE::WAIT);
+		ChangeState(STATE::WAIT);
 	}
 }
 
@@ -848,7 +815,7 @@ void Player::UpdateAttack(void)
 		buff_ = 1.0;
 		isAttack_ = false;
 		//待機モーションに移行
-		DoChangeState(STATE::WAIT);
+		ChangeState(STATE::WAIT);
 	}
 }
 
@@ -931,7 +898,7 @@ void Player::UpdateCombo(void)
 
 		isAttack_ = false;
 		//待機モーションに移行
-		DoChangeState(STATE::WAIT);
+		ChangeState(STATE::WAIT);
 	}
 }
 
@@ -955,7 +922,7 @@ void Player::UpdateDodge(void)
 	if (animationCtrl_->IsEnd()) {
 
 		//待機モーションに移行
-		DoChangeState(STATE::WAIT);
+		ChangeState(STATE::WAIT);
 
 		greatDodge_ = goodDodge_ = dodge_ = false;
 	}
@@ -965,7 +932,7 @@ void Player::UpdateDamagedLight(void)
 {
 	if (animationCtrl_->GetTime() >= CHANGE_STATE_TIMING_LIGHT) {
 
-		DoChangeState(STATE::WAIT);
+		ChangeState(STATE::WAIT);
 	}
 }
 
@@ -1009,7 +976,7 @@ void Player::UpdateDamagedHeavy(void)
 		//起き上がりきるまで無敵
 		if (animationCtrl_->GetTime() >= CHANGE_STATE_TIMING_HEAVY) {
 
-			DoChangeState(STATE::WAIT);
+			ChangeState(STATE::WAIT);
 		}
 	}
 }
@@ -1048,7 +1015,7 @@ void Player::UpdateDrink(void)
 	}
 	//エフェクト生成
 	EffectCreate();
-	DoChangeState(STATE::WAIT);
+	ChangeState(STATE::WAIT);
 }
 
 void Player::BoolChangeMove(void)
@@ -1056,7 +1023,7 @@ void Player::BoolChangeMove(void)
 	if (!VectorUtility::EqualsVZero(InputManager::GetInstance().GetDirectionXZAKeyL().at(InputManager::GetInstance().GetMostPriority()))) {
 
 		//移動モーションに移行
-		DoChangeState(STATE::MOVE);
+		ChangeState(STATE::MOVE);
 	}
 }
 
@@ -1065,7 +1032,7 @@ void Player::BoolChangeAttack(void)
 	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::ATTACK).keyTrgDown) {
 
 		//攻撃モーションに移行
-		DoChangeState(STATE::ATTACK);
+		ChangeState(STATE::ATTACK);
 	}
 }
 
@@ -1074,7 +1041,7 @@ void Player::BoolChangeCombo(void)
 	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::COMBO).keyTrgDown) {
 
 		//攻撃モーションに移行
-		DoChangeState(STATE::COMBO);
+		ChangeState(STATE::COMBO);
 	}
 }
 
@@ -1084,7 +1051,7 @@ void Player::BoolChangeDodge(void)
 		if (stamina_ >= dodgeStamina_ || isStaminaMax_) {
 
 			//回避モーションに移行
-			DoChangeState(STATE::DOGDE);
+			ChangeState(STATE::DOGDE);
 		}
 	}
 }
@@ -1095,7 +1062,7 @@ void Player::BoolChangeDrink(void)
 		if (!isHeal_ && !isHealMax_ && damaged_ <= 0) {
 
 			//飲むモーションに移行
-			DoChangeState(STATE::DRINK);
+			ChangeState(STATE::DRINK);
 		}
 	}
 }

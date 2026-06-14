@@ -15,6 +15,8 @@ public:
 	// 状態
 	enum class STATE
 	{
+		NON = -1,
+
 		WAIT,
 		MOVE,
 		ATTACK,
@@ -24,7 +26,8 @@ public:
 		DAMAGED_HEAVY,
 		KO,
 		DRINK,
-		END,
+
+		MAX
 	};
 
 	//剣のサイズ
@@ -51,7 +54,7 @@ public:
 	void Release(void) const  override;
 
 	// 状態遷移
-	void DoChangeState(STATE state);
+	void ChangeState(STATE state);
 
 	// ダメージをもらい画面揺れの時間を返す
 	int Damage(int damage, float dir);
@@ -390,15 +393,19 @@ private:
 	void DrawHpAndPower(void) const;
 
 	// 状態遷移
-	void ChangeWait(void) const;
-	void ChangeMove(void) const;
+	void ChangeWait(void);
+	void ChangeMove(void);
 	void ChangeAttack(void);
 	void ChangeCombo(void);
 	void ChangeDodge(void);
-	void ChangeDamagedLight(void) const;
-	void ChangeDamagedHeavy(void) const;
-	void ChangeKO(void) const;
-	void ChangeDrink(void) const;
+	void ChangeDamagedLight(void);
+	void ChangeDamagedHeavy(void);
+	void ChangeKO(void);
+	void ChangeDrink(void);
+
+	// 状態別変化の関数ポインタ
+	using STATE_FUNC_PTR_DEFINE = void (Player::*)(void);
+	STATE_FUNC_PTR_DEFINE StateChange[static_cast<int>(STATE::MAX)];
 
 	// 状態別更新
 	void UpdateWait(void);
@@ -410,10 +417,9 @@ private:
 	void UpdateDamagedHeavy(void);
 	void UpdateKO(void);
 	void UpdateDrink(void);
-	void UpdateEnd(void) {}
+
 	// 状態別更新の関数ポインタ
-	using STATE_FUNC_PTR_DEFINE = void (Player::*)(void);
-	STATE_FUNC_PTR_DEFINE StateUpdate[(int)STATE::END + 1];
+	STATE_FUNC_PTR_DEFINE StateUpdate[static_cast<int>(STATE::MAX)];
 
 	// 状態遷移の判断
 	void BoolChangeMove(void);

@@ -16,9 +16,13 @@
 
 
 Enemy::Enemy(Player* pl) : ActorBase(), attackAFlg_(false), attackBFlg_(false), attackCFlg_(false),
-	attackDiff_(0), attackDir_(), speed_(SPEED),
-	clearFlg_(false), cnt_(0), player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0), attackSpeedA_(ATTACK_ANIMATION_SPEED),
-	baseAttackDiff_(BASE_ATTACK_DIFF), angryFlg_(false), first_(false)
+	attackDiff_(0), attackDir_(), speed_(SPEED), effectHandle_(),
+	clearFlg_(false), cnt_(0), player_(pl), state_(STATE::WAIT), targetAngles_(), downCnt_(0),
+	attackSpeedA_(), attackSpeedB_(), attackSpeedC_(),
+	baseAttackDiff_(BASE_ATTACK_DIFF), angryFlg_(false), first_(false),
+	armPosLEnd_(),armPosLStart_(),armPosREnd_(),armPosRStart_(), bodyPosEnd_() ,bodyPosStart_(),
+	headPosEnd_(), headPosStart_(), legPosLEnd_(), legPosLStart_(), legPosREnd_(), legPosRStart_(),
+	StateChange(), StateUpdate(), damageA_(), damageB_(), damageC_()
 {
 }
 
@@ -55,7 +59,7 @@ void Enemy::InitTransform()
 	hp_ = MAX_HP;
 	for (int i = static_cast<int>(COLLIDER_TAG::HEAD); i < static_cast<int>(COLLIDER_TAG::MAX); i++) {
 
-		partsHp_.emplace(static_cast<COLLIDER_TAG>(i), 1);
+		partsHp_.emplace(static_cast<COLLIDER_TAG>(i), MAX_HP);
 	}
 
 	// 攻撃系の初期化
@@ -63,6 +67,23 @@ void Enemy::InitTransform()
 	damageB_ = POWER_B;
 	damageC_ = POWER_C;
 	attackSpeedB_ = attackSpeedC_ = ATTACK_ANIMATION_SPEED;
+
+#pragma region 関数ポインタのセットアップ
+	StateUpdate[(int)STATE::WAIT] = &Enemy::UpdateWait;
+	StateUpdate[(int)STATE::MOVE] = &Enemy::UpdateMove;
+	StateUpdate[(int)STATE::ATTACK_A] = &Enemy::UpdateAttackA;
+	StateUpdate[(int)STATE::ATTACK_B] = &Enemy::UpdateAttackB;
+	StateUpdate[(int)STATE::ATTACK_C] = &Enemy::UpdateAttackC;
+	StateUpdate[(int)STATE::KO] = &Enemy::UpdateKO;
+	StateUpdate[(int)STATE::DOWN] = &Enemy::UpdateDown;
+
+	StateChange[(int)STATE::WAIT] = &Enemy::ChangeWait;
+	StateChange[(int)STATE::MOVE] = &Enemy::ChangeMove;
+	StateChange[(int)STATE::ATTACK] = &Enemy::ChangeAttack;
+	StateChange[(int)STATE::KO] = &Enemy::ChangeKO;
+	StateChange[(int)STATE::DOWN] = &Enemy::ChangeDown;
+#pragma endregion
+
 }
 
 void Enemy::InitCollider()
@@ -113,33 +134,8 @@ void Enemy::Update(void)
 	transform_.prevPos = transform_.pos;
 
 	//ステータス別の更新
-	switch (state_)
-	{
-	case Enemy::STATE::WAIT:
-		
-		UpdateWait();
-		break;
+	(this->*StateUpdate[static_cast<int>(state_)])();
 
-	case Enemy::STATE::MOVE:
-		
-		UpdateMove();
-		break;
-
-	case Enemy::STATE::ATTACK:
-		
-		UpdateAttack();
-		break;
-
-	case Enemy::STATE::DOWN:
-
-		UpdateDown();
-		break;
-
-	case Enemy::STATE::KO:
-		
-		UpdateKO();
-		break;
-	}
 	if (attackAFlg_) {
 	
 		shotTransform_.pos = VAdd(shotTransform_.pos, VScale(attackDir_, attackSpeedA_));
@@ -165,33 +161,7 @@ void Enemy::ChangeState(STATE state)
 	state_ = state;
 
 	//ステータス変更時の初期化
-	switch (state_)
-	{
-	case Enemy::STATE::WAIT:
-
-		ChangeWait();
-		break;
-
-	case Enemy::STATE::MOVE:
-
-		ChangeMove();
-		break;
-
-	case Enemy::STATE::ATTACK:
-		
-		ChangeAttack();
-		break;
-
-	case Enemy::STATE::DOWN:
-
-		ChangeDown();
-		break;
-
-	case Enemy::STATE::KO:
-		
-		ChangeKO();
-		break;
-	}
+	(this->*StateChange[static_cast<int>(state_)])();
 }
 
 void Enemy::Draw(void) const
@@ -381,7 +351,7 @@ void Enemy::ChangeAttack(void)
 
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_A), false);
 		
-		attack_ = ATTACK::SHOT;
+		state_ = STATE::ATTACK_A;
 	}
 	// 近いなら頭攻撃も選択肢に入れる
 	else if (v <= ATTACK_C_DIFF) {
@@ -390,13 +360,13 @@ void Enemy::ChangeAttack(void)
 
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_C), false);
 
-			attack_ = ATTACK::HEAD;
+			state_ = STATE::ATTACK_C;
 		}
 		else {
 
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_B), false);
 
-			attack_ = ATTACK::ARM;
+			state_ = STATE::ATTACK_B;
 		}
 	}
 	// それ以外は腕の攻撃
@@ -404,7 +374,7 @@ void Enemy::ChangeAttack(void)
 
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_B), false);
 
-		attack_ = ATTACK::ARM;
+		state_ = STATE::ATTACK_B;
 	}
 }
 
@@ -436,7 +406,7 @@ void Enemy::Angry(void)
 	// 移動等の強化
 	attackSpeedA_ *= 1.5f;
 	speed_ *= 1.5f;
-	baseAttackDiff_ = ANGRY_DIFF;
+	baseAttackDiff_ = static_cast<int>(ANGRY_DIFF);
 }
 
 void Enemy::UpdateWait(void)
@@ -495,35 +465,6 @@ void Enemy::UpdateMove(void)
 	}
 }
 
-void Enemy::UpdateAttack(void)
-{
-	// 攻撃タイプによりアップデートを変える
-	switch (attack_)
-	{
-	case Enemy::ATTACK::SHOT:
-	
-		UpdateAttackA();
-		break;
-
-	case Enemy::ATTACK::ARM:
-	
-		UpdateAttackB();
-		break;
-
-	case Enemy::ATTACK::HEAD:
-	
-		UpdateAttackC();
-		break;
-	}
-	// アニメーションが終わっていたら止める
-	if (animationCtrl_->IsEnd()) {
-
-		ChangeState(STATE::WAIT);
-		// 遠距離攻撃用のフラグを変える
-		first_ = false;
-	}
-}
-
 void Enemy::UpdateAttackA(void)
 {
 	// 攻撃アニメーションの始まりのタイミングを過ぎた時
@@ -553,6 +494,13 @@ void Enemy::UpdateAttackA(void)
 		attackDir_ = VNorm(attackDir_);
 	}
 	shotTransform_.Update();
+	// アニメーションが終わっていたら止める
+	if (animationCtrl_->IsEnd()) {
+
+		ChangeState(STATE::WAIT);
+		// 遠距離攻撃用のフラグを変える
+		first_ = false;
+	}
 }
 
 void Enemy::UpdateAttackB(void)
@@ -569,6 +517,11 @@ void Enemy::UpdateAttackB(void)
 		
 		attackBFlg_ = true;
 	}
+	// アニメーションが終わっていたら止める
+	if (animationCtrl_->IsEnd()) {
+
+		ChangeState(STATE::WAIT);
+	}
 }
 
 void Enemy::UpdateAttackC(void)
@@ -584,6 +537,11 @@ void Enemy::UpdateAttackC(void)
 	else if (animationCtrl_->GetTime() >= START_TIMING_C) {
 
 		attackCFlg_ = true;
+	}
+	// アニメーションが終わっていたら止める
+	if (animationCtrl_->IsEnd()) {
+
+		ChangeState(STATE::WAIT);
 	}
 }
 

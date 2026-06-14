@@ -19,9 +19,11 @@ public:
 		WAIT,
 		MOVE,
 		ATTACK,
+		ATTACK_A,
+		ATTACK_B,
+		ATTACK_C,
 		KO,
 		DOWN,
-		END,
 
 		MAX
 	};
@@ -93,14 +95,6 @@ private:
 		UP,
 
 		MAX,
-	};
-
-	// 攻撃種類
-	enum class ATTACK
-	{
-		SHOT,
-		ARM,
-		HEAD
 	};
 
 	//初期値
@@ -207,7 +201,7 @@ private:
 	static constexpr float DOWN_NUM = 5;
 
 	//体力
-	static constexpr float MAX_HP = 500;
+	static constexpr int MAX_HP = 500;
 
 	// 怒り時の強化(定数)
 	static constexpr float ANGRY_DIFF = BASE_ATTACK_DIFF / 2;
@@ -224,7 +218,6 @@ private:
 
 	// 状態
 	STATE state_;
-	ATTACK attack_;
 
 	Transform shotTransform_;
 
@@ -306,19 +299,25 @@ private:
 	void ChangeAttack(void);
 	void ChangeDown(void);
 	void ChangeKO(void);
-	
+
+	// 状態別変化の関数ポインタ
+	using STATE_FUNC_PTR_DEFINE = void (Enemy::*)(void);
+	STATE_FUNC_PTR_DEFINE StateChange[static_cast<int>(STATE::MAX)];
+
 	// 怒りによる変数変化
 	void Angry(void);
 
 	// 状態別更新
 	void UpdateWait(void);
 	void UpdateMove(void);
-	void UpdateAttack(void);
 	void UpdateAttackA(void);
 	void UpdateAttackB(void);
 	void UpdateAttackC(void);
 	void UpdateDown(void);
 	void UpdateKO(void);
+
+	// 状態別更新の関数ポインタ
+	STATE_FUNC_PTR_DEFINE StateUpdate[static_cast<int>(STATE::MAX)];
 
 	// フレームの更新
 	void SetFramePos(void);

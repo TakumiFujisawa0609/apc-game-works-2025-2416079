@@ -8,7 +8,9 @@
 #include "TitleScene.h"
 
 
-TitleScene::TitleScene(void) : SceneBase(), cnt_(0), show_(true)
+TitleScene::TitleScene(void) : SceneBase(), cnt_(0), show_(true),
+	creatorFont_(), fader_(), font_(), imgBg_(), imgTitle_(), selectFont_(),
+	select_(), timeFont_(), video_()
 {
 	imgTitle_ = -1;
 }
@@ -203,7 +205,7 @@ void TitleScene::UpdateSelect(void)
 		AudioManager::GetInstance()->PlaySE(SoundID::SE_CURSOR);
 
 		// ‰º‚É‚¸‚ç‚·
-		nowSelect--;
+		nowSelect++;
 
 		// ˆê”Ô‰º‚Ìê‡‚»‚Ì‚Ü‚Ü
 		if (nowSelect > static_cast<int>(SELECT::END)) {
