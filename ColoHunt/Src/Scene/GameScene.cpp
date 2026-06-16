@@ -703,6 +703,8 @@ void GameScene::Effect(MV1_COLL_RESULT_POLY dim)
 ActorBase::COLLIDER_TAG GameScene::FindHitParts(void)
 {
 	bool info = false;
+	ActorBase::COLLIDER_TAG temp = ActorBase::COLLIDER_TAG::NON;
+
 	for (auto hit : enemy_->GetOwnColliders()) {
 		// 被攻撃パーツじゃない場合飛ばす
 		if (hit.first == ActorBase::COLLIDER_TAG::MODEL || 
@@ -714,12 +716,23 @@ ActorBase::COLLIDER_TAG GameScene::FindHitParts(void)
 		}
 		info = CollisionManager::GetInstance().IsHit(player_->GetOwnCollider(ActorBase::COLLIDER_TAG::SWORD), hit.second);
 
+		// 当たったら
 		if (info) {
-
+			// 壊れていた時
+			if (enemy_->IsPartsBroke(hit.first)) {
+				// 一時に入っていないなら入れる
+				if (temp == ActorBase::COLLIDER_TAG::NON) {
+					
+					temp = hit.first;
+				}
+				// 飛ばす
+				continue;
+			}
+			// そのタグを返す
 			return hit.first;
 		}
 	}
-	return ActorBase::COLLIDER_TAG::NON;
+	return temp;
 }
 
 void GameScene::ShakeCamera(void)

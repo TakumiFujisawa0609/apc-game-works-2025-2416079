@@ -74,6 +74,9 @@ public:
 	// HPがゼロになったか
 	bool ClearFlg(void) const { return clearFlg_; }
 
+	// パーツが壊れているか
+	bool IsPartsBroke(COLLIDER_TAG tag) { return partsBroke_.at(tag); }
+
 	// 死んだときのモーションをとるため
 	AnimationController* GetEnemyAnim(void) { return animationCtrl_; }
 
@@ -127,6 +130,9 @@ private:
 		{ static_cast<int>(ANIM_TYPE::UP), 60.0f, 6 }
 	};
 
+	// モデルの名前
+	static constexpr const char* MODEL_NAME = "Wolf.mv1";
+
 	// 各部位のフレームの名前
 	static constexpr const char* HEAD_START_FRAME = "Hals";
 	static constexpr const char* HEAD_END_FRAME = "Mauloben";
@@ -155,6 +161,10 @@ private:
 	// エフェクトのサイズ
 	static constexpr float FIRE_SIZE = 25.0f;
 	static constexpr float EFFECT_SIZE = 10.0f;
+	static constexpr float BROKE_SIZE = 7.5f;
+
+	// 部位破壊時消すメッシュの番号
+	static constexpr int FUR_MESH = 4;
 
 	// ストップディフ
 	static constexpr float FAR_STOP_DIFF = 275.0f;
@@ -242,6 +252,8 @@ private:
 
 	// 各コライダーに対するHP
 	std::map<COLLIDER_TAG, int> partsHp_;
+	std::map<COLLIDER_TAG, bool> partsBroke_;
+	std::map<COLLIDER_TAG, int> partsBrokeEffect_;
 
 	// 角度
 	VECTOR targetAngles_;

@@ -172,7 +172,14 @@ private:
 
 		{ static_cast<int>(ANIM_TYPE::IDLE), 60.0f, 0 }
 	};
+	
+	// モデルの名前
+	static constexpr const char* PLAYER_NAME = "Player.mv1";
 
+	// 画像の名前
+	static constexpr const char* POWER_GAUGE_NAME = "Power.png";
+	static constexpr const char* HP_BAR_NAME = "HpBar.png";
+	
 	//マックスHP
 	static constexpr int MAX_HP = 85;
 	//回復するフレーム数
@@ -205,6 +212,18 @@ private:
 	static constexpr float EFFECT_START_SIZE = 50.0f;
 	//エフェクトのマックスサイズ
 	static constexpr float EFFECT_MAX_SIZE = 150.0f;
+	// エフェクトの半径
+	static constexpr float EFFECT_RADIUS = 12.0f;
+	// エフェクトの分割数
+	static constexpr int EFFECT_DIV_NUM = 32;
+
+	// エフェクトの色
+	static constexpr unsigned int GREAT_EFFECT_COLOR = 0xffff00;
+	static constexpr unsigned int GOOD_EFFECT_COLOR = 0xffffff;
+	static constexpr unsigned int HEAL_EFFECT_DIF_COLOR = 0x00ff00;
+	static constexpr unsigned int HEAL_EFFECT_SPC_COLOR = 0x44cc44;
+	static constexpr unsigned int STAMINA_EFFECT_DIF_COLOR = 0xff5500;
+	static constexpr unsigned int STAMINA_EFFECT_SPC_COLOR = 0xaa3300;
 
 	//カプセルコライダーのサイズ
 	static constexpr VECTOR COL_CAPSULE_TOP_LOCAL_POS = { 0.0f, 100.0f, 0.0f };
@@ -260,6 +279,9 @@ private:
 	// ダメージ後変わるタイミング
 	static constexpr float CHANGE_STATE_TIMING_LIGHT = 40.0f;
 	static constexpr float CHANGE_STATE_TIMING_HEAVY = 210.0f;
+
+	// 軽いダメージ量
+	static constexpr int LIGHT_ACTION_DAMAGE = 15;
 
 	// ノックバックするカウント
 	static constexpr float NOCKBACK_COUNT = 110.0f;
@@ -432,4 +454,7 @@ private:
 	void StopSE(void);
 	void EffectCreate(void);
 	void EffectUpdate(void);
+
+	// フレームのセット
+	void SetFrame(void);
 };

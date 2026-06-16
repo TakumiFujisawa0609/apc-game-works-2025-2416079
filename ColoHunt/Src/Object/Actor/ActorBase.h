@@ -23,11 +23,11 @@ public:
 		SPHERE,
 		SWORD,
 		HEAD,
+		BODY,
 		ARM_R,
 		ARM_L,
 		LEG_R,
 		LEG_L,
-		BODY,
 
 		MAX,
 	};

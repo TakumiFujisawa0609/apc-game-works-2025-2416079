@@ -33,9 +33,9 @@ Player::~Player(void)
 void Player::InitLoad()
 {
 	//モデルのロード
-	transform_.SetModel(MV1LoadModel((Application::PATH_MODEL + "Player.mv1").c_str()));
-	powerGauge_ = LoadSoftImage((Application::PATH_IMAGE + "Power.png").c_str());
-	hpBar_ = LoadSoftImage((Application::PATH_IMAGE + "HpBar.png").c_str());
+	transform_.SetModel(MV1LoadModel((Application::PATH_MODEL + PLAYER_NAME).c_str()));
+	powerGauge_ = LoadSoftImage((Application::PATH_IMAGE + POWER_GAUGE_NAME).c_str());
+	hpBar_ = LoadSoftImage((Application::PATH_IMAGE + HP_BAR_NAME).c_str());
 }
 
 void Player::InitAnim()
@@ -106,10 +106,11 @@ void Player::InitCollider()
 	// 主に壁や木などの衝突で仕様するカプセルコライダ
 	ColliderCapsule* colCapsule = new ColliderCapsule(&transform_, COL_CAPSULE_TOP_LOCAL_POS, COL_CAPSULE_DOWN_LOCAL_POS, COL_CAPSULE_RADIUS);
 	ownColliders_.emplace(COLLIDER_TAG::CAPSULE, colCapsule);
+	
+	// 剣用のフレームセット
+	SetFrame();
 
 	// 剣用のカプセルコライダー
-	swordPosStast_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:Sword_joint"));
-	swordPosEnd_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:RightHand")));
 	colCapsule = new ColliderCapsule(swordPosStast_, swordPosEnd_, SWORD_RADIUS);
 	ownColliders_.emplace(COLLIDER_TAG::SWORD, colCapsule);
 }
@@ -118,8 +119,7 @@ void Player::Update(void)
 {
 	transform_.prevPos = transform_.pos;
 	// 剣用のカプセルコライダー
-	swordPosStast_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:Sword_joint"));
-	swordPosEnd_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:RightHand")));
+	SetFrame();
 
 	//状態別更新処理
 	(this->*StateUpdate[static_cast<int>(state_)])();
@@ -157,27 +157,27 @@ void Player::Draw(void) const
 		SetUseLighting(false);
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 250);
 
-		for (int i = 0; i < 9; i++) {
+		for (int i = 0; i < EFFECT_NUM; i++) {
 			switch (effectType_)
 			{
 			case Player::EFFECT::GREAT_DODGE:
 
-				DrawCone3D(effectTopPos_[i], effectBottomPos_[i], 12.0f, 32, 0xffff00, 0xffff00, true);
+				DrawCone3D(effectTopPos_[i], effectBottomPos_[i], EFFECT_RADIUS, EFFECT_DIV_NUM, GREAT_EFFECT_COLOR, GREAT_EFFECT_COLOR, true);
 				break;
 
 			case Player::EFFECT::GOOD_DODGE:
 
-				DrawCone3D(effectTopPos_[i], effectBottomPos_[i], 12.0f, 32, 0xffffff, 0xffffff, true);
+				DrawCone3D(effectTopPos_[i], effectBottomPos_[i], EFFECT_RADIUS, EFFECT_DIV_NUM, GOOD_EFFECT_COLOR, GOOD_EFFECT_COLOR, true);
 				break;
 
 			case Player::EFFECT::HEAL:
 
-				DrawCone3D(effectTopPos_[i], effectBottomPos_[i], 12.0f, 32, 0x00ff00, 0x44cc44, true);
+				DrawCone3D(effectTopPos_[i], effectBottomPos_[i], EFFECT_RADIUS, EFFECT_DIV_NUM, HEAL_EFFECT_DIF_COLOR, HEAL_EFFECT_SPC_COLOR, true);
 				break;
 
 			case Player::EFFECT::STAMINA:
 
-				DrawCone3D(effectTopPos_[i], effectBottomPos_[i], 12.0f, 32, 0xff5500, 0xaa3300, true);
+				DrawCone3D(effectTopPos_[i], effectBottomPos_[i], EFFECT_RADIUS, EFFECT_DIV_NUM, STAMINA_EFFECT_DIF_COLOR, STAMINA_EFFECT_SPC_COLOR, true);
 				break;
 			}
 		}
@@ -233,7 +233,7 @@ int Player::Damage(int damage, float dir)
 	// パワーアップしていないならモーションをとる
 	if (!powerUp_) {
 		// 被ダメ量によってアクションを変える
-		if (damage >= 15) {
+		if (damage > LIGHT_ACTION_DAMAGE) {
 
 			ChangeState(STATE::DAMAGED_HEAVY);
 			return SHAKE_TIME_HEAVY;
@@ -376,8 +376,10 @@ void Player::Status(void)
 	}
 	//ゲージマックスでない時
 	else {
+		// ゲージマックスになったとき
 		if (power_ >= MAX_POWER) {
 
+			// ゲージを固定してバフ
 			power_ = MAX_POWER;
 			damage_ = (int)(BASIC_DAMAGE * 1.5);
 			dodgeStamina_ = DODGE_STAMINA / 2.0f;
@@ -399,6 +401,7 @@ void Player::Status(void)
 
 void Player::Heal(void)
 {
+	// 赤いHPまで自動回復
 	if (hp_ < MAX_HP) {
 		if (autoHealHp_ > 0) {
 
@@ -544,6 +547,7 @@ void Player::DrawHpAndPower(void) const
 	//現在のスタミナ分かける
 	barNorm = barRate * stamina_;
 
+	// スタミナがマックス固定状態なら点滅させる
 	if (isStaminaMax_) {
 
 		DrawBoxAA(BAR_POS + barSX_, barStaminaSY_, BAR_POS + barSX_ + barNorm, barStaminaEY_, GetColor(255, 255, (int)(std::abs(staminaMaxCnt_ % 101 - 50) * 5.1f)), true);
@@ -562,6 +566,7 @@ void Player::DrawHpAndPower(void) const
 	float powerRate = (static_cast<float>(guageEX_.front()) - static_cast<float>(guageSX_)) / static_cast<float>(MAX_POWER);
 	float power = static_cast<float>(guageSX_) + powerRate * static_cast<float>(power_);
 
+	// 横軸で埋める
 	for (int y = 0; y < guageEX_.size(); y++) {
 
 		int dy = y + guageSY_;
@@ -779,6 +784,7 @@ void Player::UpdateAttack(void)
 		}
 		if (animationCtrl_->GetTime() >= ATTACK_START_TIMING_3_FRONT && animationCtrl_->GetTime() <= ATTACK_START_TIMING_3_BACK) {
 
+			// 最終段だけ火力をあげる
 			buff_ = 1.2;
 			isAttack_ = true;
 		}
@@ -812,6 +818,7 @@ void Player::UpdateAttack(void)
 
 	if (animationCtrl_->IsEnd()) {
 
+		// バフを戻す
 		buff_ = 1.0;
 		isAttack_ = false;
 		//待機モーションに移行
@@ -877,12 +884,14 @@ void Player::UpdateCombo(void)
 		//最終段なので少しだけ攻撃力上昇
 		if (animationCtrl_->GetTime() >= COMMBO_3_START_TIMING_FRONT && animationCtrl_->GetTime() <= COMMBO_3_START_TIMING_BACK) {
 
+			// 最終段だけ火力をあげる
 			buff_ = 1.1;
 			isAttack_ = true;
 		}
 		//攻撃判定の消失
 		if (animationCtrl_->GetTime() >= COMMBO_3_END_TIMING) {
 			
+			// バフを戻す
 			buff_ = 1.0;
 			isAttack_ = false;
 			//回避キャンセル
@@ -908,6 +917,7 @@ void Player::UpdateDodge(void)
 	transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 1.25f));
 
 	if (dodgeFlg_) {
+		// 回避判定の持続
 		if (dodgeCnt_ <= DODGE_MOVE) {
 
 			dodgeCnt_++;
@@ -1069,6 +1079,7 @@ void Player::BoolChangeDrink(void)
 
 void Player::StopSE(void)
 {
+	// 走る、歩くのSEを消す
 	if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
 		AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
@@ -1111,4 +1122,10 @@ void Player::EffectUpdate(void)
 		effectBottomPos_[i] = VAdd(transform_.pos, EFFECT_POS);
 	}
 	effectCnt_--;
+}
+
+void Player::SetFrame(void)
+{
+	swordPosStast_ = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:Sword_joint"));
+	swordPosEnd_ = VTransform(SWORD_POS, MV1GetFrameLocalWorldMatrix(transform_.modelId, MV1SearchFrame(transform_.modelId, "mixamorig:RightHand")));
 }

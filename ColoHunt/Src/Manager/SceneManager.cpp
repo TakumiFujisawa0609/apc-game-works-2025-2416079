@@ -276,9 +276,6 @@ void SceneManager::JumpScene(std::shared_ptr<SceneBase> scene)
 	// 全て解放
 	for (auto& s : scenes_) { s->Release(); }
 	scenes_.clear();
-
-	// 新しく積む
-	ChangeScene(scene);
 }
 
 void SceneManager::JumpScene(SCENE_ID scene)
@@ -288,42 +285,47 @@ void SceneManager::JumpScene(SCENE_ID scene)
 
 		return;
 	}
-	// 現在のシーンを保存
-	if (!scenes_.empty()) {
+	// 一度目なら
+	if (waitSceneId_ != scene) {
 
-		sceneId_.pop_back();
+		// 待機、フェードアウト開始して返す
+		waitSceneId_ = scene;
+		fader_->SetFade(Fader::STATE::FADE_OUT);
 	}
-	sceneId_.push_back(scene);
+	else {
+		// 現在のシーンを保存
+		sceneId_.push_back(scene);
 
-	switch (scene)
-	{
-	case SCENE_ID::TITLE:
-		
-		JumpScene(std::make_shared<TitleScene>());
-		break;
-	
-	case SCENE_ID::GAME:
-		
-		JumpScene(std::make_shared<GameScene>());
-		break;
+		switch (scene)
+		{
+		case SCENE_ID::TITLE:
 
-	case SCENE_ID::CLEAR:
+			JumpScene(std::make_shared<TitleScene>());
+			break;
 
-		JumpScene(std::make_shared<GameClear>());
-		break;
+		case SCENE_ID::GAME:
 
-	case SCENE_ID::OVER:
+			JumpScene(std::make_shared<GameScene>());
+			break;
 
-		JumpScene(std::make_shared<GameOver>());
-		break;
+		case SCENE_ID::CLEAR:
 
-	case SCENE_ID::PAUSE:
+			JumpScene(std::make_shared<GameClear>());
+			break;
 
-		JumpScene(std::make_shared<Pause>());
-		break;
+		case SCENE_ID::OVER:
 
-	default:
-		break;
+			JumpScene(std::make_shared<GameOver>());
+			break;
+
+		case SCENE_ID::PAUSE:
+
+			JumpScene(std::make_shared<Pause>());
+			break;
+
+		default:
+			break;
+		}
 	}
 }
 

@@ -32,7 +32,7 @@ Enemy::~Enemy(void)
 
 void Enemy::InitLoad()
 {
-	transform_.SetModel(MV1LoadModel((Application::PATH_MODEL + "Wolf.mv1").c_str()));
+	transform_.SetModel(MV1LoadModel((Application::PATH_MODEL + MODEL_NAME).c_str()));
 }
 
 void Enemy::InitAnim()
@@ -60,12 +60,14 @@ void Enemy::InitTransform()
 	for (int i = static_cast<int>(COLLIDER_TAG::HEAD); i < static_cast<int>(COLLIDER_TAG::MAX); i++) {
 
 		partsHp_.emplace(static_cast<COLLIDER_TAG>(i), MAX_HP);
+		partsBroke_.emplace(static_cast<COLLIDER_TAG>(i), false);
 	}
 
 	// 攻撃系の初期化
 	damageA_ = POWER_A;
 	damageB_ = POWER_B;
 	damageC_ = POWER_C;
+	attackSpeedA_ = ATTACK_SPEED;
 	attackSpeedB_ = attackSpeedC_ = ATTACK_ANIMATION_SPEED;
 
 #pragma region 関数ポインタのセットアップ
@@ -139,12 +141,48 @@ void Enemy::Update(void)
 	if (attackAFlg_) {
 	
 		shotTransform_.pos = VAdd(shotTransform_.pos, VScale(attackDir_, attackSpeedA_));
+		shotTransform_.Update();
 
 		//位置等々の設定
 		SetPosPlayingEffekseer3DEffect(effectHandle_, shotTransform_.pos.x, shotTransform_.pos.y, shotTransform_.pos.z);
 		SetScalePlayingEffekseer3DEffect(effectHandle_, FIRE_SIZE, FIRE_SIZE, FIRE_SIZE);
 		SetRotationPlayingEffekseer3DEffect(effectHandle_, 0.0f, 0.0f, 0.0f);
 	}
+
+	for (int i = static_cast<int>(COLLIDER_TAG::ARM_R); i < static_cast<int>(COLLIDER_TAG::MAX); i++) {
+		if (partsBroke_.at(static_cast<COLLIDER_TAG>(i))) {
+
+			VECTOR pos{};
+			switch (static_cast<COLLIDER_TAG>(i))
+			{
+			case ActorBase::COLLIDER_TAG::ARM_R:
+
+				pos = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, R_ARM_BREAK_FRAME));
+				break;
+
+			case ActorBase::COLLIDER_TAG::ARM_L:
+				
+				pos = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, L_ARM_BREAK_FRAME));
+				break;
+
+			case ActorBase::COLLIDER_TAG::LEG_R:
+				
+				pos = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, R_LEG_BREAK_FRAME));
+				break;
+
+			case ActorBase::COLLIDER_TAG::LEG_L:
+				
+				pos = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, L_LEG_BREAK_FRAME));
+				break;
+
+			default:
+				break;
+			}
+
+			SetPosPlayingEffekseer3DEffect(partsBrokeEffect_.at(static_cast<COLLIDER_TAG>(i)), pos.x, pos.y, pos.z);
+		}
+	}
+
 	//モデルの更新
 	animationCtrl_->Update();
 	transform_.Update();
@@ -209,14 +247,16 @@ void Enemy::Damage(COLLIDER_TAG tag, int damage)
 	hp_ -= damage;
 	
 	if (tag != COLLIDER_TAG::NON) {
-		// 部位に3倍のダメージ
+		// 部位に15倍のダメージ
 		if (partsHp_.at(tag) > 0) {
 
-			partsHp_.at(tag) -= damage * 3;
+			partsHp_.at(tag) -= damage * 15;
 		}
 
 		// パーツのHPがゼロなら各効果を与える
-		if (partsHp_.at(tag) <= 0) {
+		if (partsHp_.at(tag) <= 0 && !partsBroke_.at(tag)) {
+			partsBroke_.at(tag) = true;
+			AudioManager::GetInstance()->PlaySE(SoundID::SE_WOLF_BREAK);
 			switch (tag)
 			{
 			case ActorBase::COLLIDER_TAG::HEAD:
@@ -225,28 +265,10 @@ void Enemy::Damage(COLLIDER_TAG tag, int damage)
 				damageC_ -= 5;
 				attackSpeedC_ = 30.0f;
 				animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_C), attackSpeedC_);
-				MV1SetFrameDifColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, HEAD_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				MV1SetFrameSpcColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, HEAD_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				MV1SetFrameAmbColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, HEAD_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				break;
-			}
-			case ActorBase::COLLIDER_TAG::ARM_R:
-			{
-				// ダメージを下げる
-				damageB_ -= 5;
-				MV1SetFrameDifColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, R_ARM_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				MV1SetFrameSpcColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, R_ARM_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				MV1SetFrameAmbColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, R_ARM_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				break;
-			}
-			case ActorBase::COLLIDER_TAG::ARM_L:
-			{
-				// 攻撃を遅くする
-				attackSpeedB_ = 30.0f;
-				animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_B), attackSpeedB_);
-				MV1SetFrameDifColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, L_ARM_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				MV1SetFrameSpcColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, L_ARM_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				MV1SetFrameAmbColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, L_ARM_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				if (partsBroke_.at(COLLIDER_TAG::BODY)) {
+
+					MV1SetMeshVisible(transform_.modelId, FUR_MESH, false);
+				}
 				break;
 			}
 			case ActorBase::COLLIDER_TAG::BODY:
@@ -254,33 +276,90 @@ void Enemy::Damage(COLLIDER_TAG tag, int damage)
 				// ダメージを下げ攻撃を遅くする
 				damageA_ -= 5;
 				attackSpeedA_ -= 5.0f;
-				MV1SetFrameDifColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, BODY_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				MV1SetFrameSpcColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, BODY_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				MV1SetFrameAmbColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, BODY_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+				if (partsBroke_.at(COLLIDER_TAG::HEAD)) {
+
+					MV1SetMeshVisible(transform_.modelId, FUR_MESH, false);
+				}
+				break;
+			}
+			case ActorBase::COLLIDER_TAG::ARM_R:
+			{
+				// ダメージを下げる
+				damageB_ -= 5;
+
+				//リソースを得る
+				int resource = EffectResManager::GetInstance().GetResourceId(EffectResManager::TYPE::BROKE);
+
+				//エフェクトの再生
+				partsBrokeEffect_.emplace(tag, PlayEffekseer3DEffect(resource));
+
+				//位置等々の設定
+				VECTOR pos = pos = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, R_ARM_BREAK_FRAME));
+				SetPosPlayingEffekseer3DEffect(partsBrokeEffect_.at(tag), pos.x, pos.y, pos.z);
+
+				break;
+			}
+			case ActorBase::COLLIDER_TAG::ARM_L:
+			{
+				// 攻撃を遅くする
+				attackSpeedB_ = 30.0f;
+				animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_B), attackSpeedB_);
+
+				//リソースを得る
+				int resource = EffectResManager::GetInstance().GetResourceId(EffectResManager::TYPE::BROKE);
+
+				//エフェクトの再生
+				partsBrokeEffect_.emplace(tag, PlayEffekseer3DEffect(resource));
+
+				//位置等々の設定
+				VECTOR pos = pos = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, L_ARM_BREAK_FRAME));
+				SetPosPlayingEffekseer3DEffect(partsBrokeEffect_.at(tag), pos.x, pos.y, pos.z);
+
 				break;
 			}
 			case ActorBase::COLLIDER_TAG::LEG_R:
 			{
 				// 足を遅くする
 				speed_ -= 0.5f;
-				MV1SetFrameDifColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, R_LEG_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				MV1SetFrameSpcColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, R_LEG_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				MV1SetFrameAmbColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, R_LEG_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+
+				//リソースを得る
+				int resource = EffectResManager::GetInstance().GetResourceId(EffectResManager::TYPE::BROKE);
+
+				//エフェクトの再生
+				partsBrokeEffect_.emplace(tag, PlayEffekseer3DEffect(resource));
+
+				//位置等々の設定
+				VECTOR pos = pos = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, R_LEG_BREAK_FRAME));
+				SetPosPlayingEffekseer3DEffect(partsBrokeEffect_.at(tag), pos.x, pos.y, pos.z);
+
 				break;
 			}
 			case ActorBase::COLLIDER_TAG::LEG_L:
 			{
 				// 足を遅くする
 				speed_ -= 0.5f;
-				MV1SetFrameDifColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, L_LEG_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				MV1SetFrameSpcColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, L_LEG_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
-				MV1SetFrameAmbColorScale(transform_.modelId, MV1SearchFrame(transform_.modelId, L_LEG_BREAK_FRAME), GetColorF(1.0f, 0.0f, 0.0f, 1.0f));
+
+				//リソースを得る
+				int resource = EffectResManager::GetInstance().GetResourceId(EffectResManager::TYPE::BROKE);
+
+				//エフェクトの再生
+				partsBrokeEffect_.emplace(tag, PlayEffekseer3DEffect(resource));
+
+				//位置等々の設定
+				VECTOR pos = pos = MV1GetFramePosition(transform_.modelId, MV1SearchFrame(transform_.modelId, L_LEG_BREAK_FRAME));
+				SetPosPlayingEffekseer3DEffect(partsBrokeEffect_.at(tag), pos.x, pos.y, pos.z);
+
 				break;
 			}
 			default:
 			{
 				break;
 			}
+			}
+			if (tag != COLLIDER_TAG::HEAD && tag != COLLIDER_TAG::BODY) {
+
+				SetScalePlayingEffekseer3DEffect(partsBrokeEffect_.at(tag), BROKE_SIZE, BROKE_SIZE, BROKE_SIZE);
+				SetRotationPlayingEffekseer3DEffect(partsBrokeEffect_.at(tag), 0.0f, 0.0f, 0.0f);
 			}
 		}
 	}
@@ -313,7 +392,7 @@ bool Enemy::Turn(void)
 		return true;
 	}
 	else{
-		if (state_ != STATE::ATTACK) {
+		if (state_ != STATE::ATTACK_A) {
 		
 			//攻撃中以外軸合わせは歩きモーション使う
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
@@ -345,9 +424,12 @@ void Enemy::ChangeAttack(void)
 
 	// 距離を出す
 	float v = VSize(VSub(player_->GetTransform().pos, transform_.pos));
-	
+
 	// 遠ければ遠距離攻撃を出す
 	if (v >= ATTACK_A_DIFF) {
+
+		// 念のため
+		first_ = false;
 
 		animationCtrl_->Play(static_cast<int>(ANIM_TYPE::ATTACK_A), false);
 		
@@ -395,9 +477,9 @@ void Enemy::Angry(void)
 	angryFlg_ = true;
 
 	// 攻撃アニメーションスピードを4/3倍する
-	attackSpeedA_ *= 4 / 3;
-	attackSpeedB_ *= 4 / 3;
-	attackSpeedC_ *= 4 / 3;
+	attackSpeedA_ *= 4.0f / 3.0f;
+	attackSpeedB_ *= 4.0f / 3.0f;
+	attackSpeedC_ *= 4.0f / 3.0f;
 
 	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_A), attackSpeedA_);
 	animationCtrl_->ChangeSpeed(static_cast<int>(ANIM_TYPE::ATTACK_B), attackSpeedB_);
@@ -458,7 +540,7 @@ void Enemy::UpdateMove(void)
 	transform_.pos.z += moveDir_.z * speed_;
 
 	// ある程度近づくか岩に引っかかっていたら止める
-	if (VSize(VSub(player_->GetTransform().pos, transform_.pos)) <= FAR_STOP_DIFF || prevDist >= VSize(VSub(player_->GetTransform().pos, transform_.pos)) || prevDist <= NEAR_STOP_DIFF ) {
+	if (VSize(VSub(player_->GetTransform().pos, transform_.pos)) <= FAR_STOP_DIFF || prevDist < VSize(VSub(player_->GetTransform().pos, transform_.pos)) || prevDist <= NEAR_STOP_DIFF ) {
 
 		AudioManager::GetInstance()->StopSE(SoundID::SE_WOLF_RUN);
 		ChangeState(STATE::WAIT);
@@ -490,10 +572,10 @@ void Enemy::UpdateAttackA(void)
 
 		// 攻撃の位置と方向を更新
 		shotTransform_.pos = VAdd(transform_.pos, VTransform(ATTACK_POS_A, AngleUtility::GetMatrixRotateXYZ(transform_.rot)));
+		shotTransform_.Update();
 		attackDir_ = VSub(VAdd(player_->GetTransform().pos, SHOT_AIM), shotTransform_.pos);
 		attackDir_ = VNorm(attackDir_);
 	}
-	shotTransform_.Update();
 	// アニメーションが終わっていたら止める
 	if (animationCtrl_->IsEnd()) {
 

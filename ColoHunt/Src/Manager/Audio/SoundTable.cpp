@@ -39,6 +39,7 @@ namespace SoundTable_Game
 		{ SoundID::SE_HEAL, (Application::PATH_SOUND + "Heal.mp3").c_str() },
 		{ SoundID::SE_WOLF_ATTACK, (Application::PATH_SOUND + "WolfAttack.mp3").c_str() },
 		{ SoundID::SE_WOLF_RUN, (Application::PATH_SOUND + "WolfRun.mp3").c_str() },
+		{ SoundID::SE_WOLF_BREAK, (Application::PATH_SOUND + "Break.mp3").c_str() },
 	};
 }
 

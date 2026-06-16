@@ -12,6 +12,7 @@ public:
 		ENEMY_HIT,
 		SHOT,
 		BURST,
+		BROKE
 	};
 
 	// インスタンスの生成
