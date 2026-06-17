@@ -22,25 +22,10 @@ void Item::InitLoad(void)
 
 void Item::Init(void)
 {
+	// アイテムの初期化
 	for (int i = 0; i < static_cast<int>(TYPE::MAX); i++) {
 
-		switch (i)
-		{
-		case 0:
-
-			itemNum_[i] = 10;
-			break;
-
-		case 1:
-
-			itemNum_[i] = 2;
-			break;
-
-		case 2:
-
-			itemNum_[i] = 5;
-			break;
-		}
+		itemNum_[i] = ITEM_NUM[i];
 	}
 	type_ = TYPE::HP;
 	use_  = false;
@@ -174,32 +159,40 @@ void Item::Update(void)
 
 void Item::Draw(void) const
 {
+	// アイテム描画の相対座標の取得(画像中心)
 	float dxF = Application::SCREEN_SIZE_X - 100.0f;
 	float dyF = Application::SCREEN_SIZE_Y - 100.0f;
 	int dx = static_cast<int>(dxF);
 	int dy = static_cast<int>(dyF);
 	int itemNo = static_cast<int>(type_);
 
-	DrawBox(dx - 40, dy - 40, dx + 40, dy + 40, 0x222255, true);
+	// アイテム描画の外枠の描画
+	DrawBox(dx + LEFT_POS, dy + UP_POS, dx + RIGHT_POS, dy + DOWN_POS, BOX_COLOR, true);
+	DrawLine(dx + LEFT_POS, dy + UP_POS, dx + RIGHT_POS, dy + UP_POS, LINE_COLOR, LINE_WIDTH);
+	DrawLine(dx + LEFT_POS, dy + UP_POS, dx + LEFT_POS, dy + DOWN_POS, LINE_COLOR, LINE_WIDTH);
+	DrawLine(dx + RIGHT_POS, dy + UP_POS, dx + RIGHT_POS, dy + DOWN_POS, LINE_COLOR, LINE_WIDTH);
+	DrawLine(dx + LEFT_POS, dy + DOWN_POS, dx + RIGHT_POS, dy + DOWN_POS, LINE_COLOR, LINE_WIDTH);
+	DrawCircleAA(dxF + CIRCLE_POS, dyF + CIRCLE_POS, CIRCLE_RAD, CIRCLE_DIV_NUM, BOX_COLOR);
+
+	// アイテムがあればアイテムの描画
 	if (itemNo != -1) {
-	
+
 		DrawRotaGraph(dx, dy, 1.0f, 0.0f, itemImg_[itemNo], true);
 	}
-	DrawLine(dx - 40, dy - 38, dx + 40, dy - 38, 0xeeee33, 4);
-	DrawLine(dx - 38, dy - 36, dx - 38, dy + 40, 0xeeee33, 4);
-	DrawLine(dx + 38, dy - 36, dx + 38, dy + 40, 0xeeee33, 4);
-	DrawLine(dx - 36, dy + 38, dx + 36, dy + 38, 0xeeee33, 4);
-	DrawCircleAA(dxF + 40.0f, dyF + 40.0f, 15.0f, 32, 0x222255);
+
+	// アイテムの残数の描画
 	SetFontSize(20);
 	if (itemNo != -1) {
 
+		// 文字幅分だけずらす
 		int width = GetDrawFormatStringWidth("%d", itemNum_[itemNo]);
-		DrawFormatString(dx + 40 - width / 2, dy + 30, 0xffffff, "%d", itemNum_[itemNo]);
+		DrawFormatString(dx + FONT_WIDTH - width / 2, dy + FONT_HEIGHT, FONT_COLOR, "%d", itemNum_[itemNo]);
 	}
 	else {
 
+		// 文字幅分だけずらす
 		int width = GetDrawFormatStringWidth("0");
-		DrawFormatString(dx + 40 - width / 2, dy + 30, 0xffffff, "0");
+		DrawFormatString(dx + FONT_WIDTH - width / 2, dy + FONT_HEIGHT, FONT_COLOR, "0");
 	}
 }
 

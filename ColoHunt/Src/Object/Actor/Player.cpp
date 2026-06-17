@@ -637,22 +637,27 @@ void Player::ChangeDodge(void)
 
 void Player::ChangeDamagedLight(void)
 {
+	// アニメーションを再生
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_LIGHT), false);
 }
 
 void Player::ChangeDamagedHeavy(void)
 {
+	// アニメーションを再生
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DAMAGED_HEAVY), false);
 }
 
 void Player::ChangeKO(void)
 {
+	// アニメーションを再生
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::KO), false);
 }
 
 void Player::ChangeDrink(void)
 {
+	// アニメーションを再生
 	animationCtrl_->Play(static_cast<int>(ANIM_TYPE::DRINK), false);
+	// 選択中のアイテムを使う
 	item_->Use();
 }
 
@@ -694,11 +699,14 @@ void Player::UpdateMove(void)
 				//移動モーション
 				animationCtrl_->Play(static_cast<int>(ANIM_TYPE::RUN), true);
 				
+				// SEを出してもよいなら
 				if (se_) {
+					// 歩いている音を止め
 					if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
 
 						AudioManager::GetInstance()->StopSE(SoundID::SE_WALK);
 					}
+					// 走っている音を出す
 					if (!AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
 						AudioManager::GetInstance()->PlaySE(SoundID::SE_RUN);
@@ -711,10 +719,12 @@ void Player::UpdateMove(void)
 				if (!isStaminaMax_) {
 					if (!powerUp_) {
 					
+						// 通常時は二倍早くスタミナを減らす
 						stamina_ -= 2;
 					}
 					else {
 
+						// 強化時はスタミナの減少を緩やかに
 						stamina_--;
 					}
 				}
@@ -733,11 +743,14 @@ void Player::UpdateMove(void)
 			//移動モーション
 			animationCtrl_->Play(static_cast<int>(ANIM_TYPE::WALK), true);
 			
+			// SEを鳴らしてよいなら
 			if (se_) {
+				// 走っている音を止め
 				if (AudioManager::GetInstance()->IsPlaySE(SoundID::SE_RUN)) {
 
 					AudioManager::GetInstance()->StopSE(SoundID::SE_RUN);
 				}
+				// 歩いている音を出す
 				if (!AudioManager::GetInstance()->IsPlaySE(SoundID::SE_WALK)) {
 
 					AudioManager::GetInstance()->PlaySE(SoundID::SE_WALK);
@@ -803,6 +816,7 @@ void Player::UpdateAttack(void)
 		if (animationCtrl_->GetTime() >= FULL_START_TIMING_FRONT && animationCtrl_->GetTime() <= FULL_START_TIMING_BACK) {
 
 			transform_.pos = VAdd(transform_.pos, VScale(moveDir_, speed_ * 0.8f));
+			// 攻撃力二倍で渡す
 			buff_ = 2.0;
 			isAttack_ = true;
 		}

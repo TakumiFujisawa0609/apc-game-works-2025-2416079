@@ -114,6 +114,8 @@ void GameScene::Init(void)
 	// サウンドの読み込み
 	AudioManager::GetInstance()->PlayBGM(SoundID::BGM_BATTLE);
 
+	se_ = true;
+
 	CollisionStage();
 
 	SetCameraPos(playerPos_, CAMERA_TO_PLAYER);
@@ -205,6 +207,7 @@ void GameScene::Update(void)
 
 			// SEを消す
 			AudioManager::GetInstance()->StopSE();
+			se_ = false;
 			player_->NoSe();
 			
 			// BGMを鳴らす
@@ -388,9 +391,13 @@ void GameScene::Collision(void)
 
 		// 多段ヒットを防ぐためのフラグが立っていない かつ 当たっていたら
 		if (!hitFlgE_ && info.HitNum > 0) {
+			
+			// SEを出してもよいなら
+			if (se_) {
+				// 効果音
+				AudioManager::GetInstance()->PlaySE(SoundID::SE_ATTACK);
+			}
 
-			// 効果音
-			AudioManager::GetInstance()->PlaySE(SoundID::SE_ATTACK);
 			// エフェクト
 			Effect(info.Dim[info.HitNum - 1]);
 
@@ -471,8 +478,12 @@ void GameScene::Collision(void)
 						shakeCnt_ = player_->Damage(enemy_->GetDamage(), enemy_->GetTransform().rot.y);
 						// ダメージの数を増やす
 						damageNum_++;
-						// 効果音
-						AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
+
+						// SEを出してもよいなら
+						if (se_) {
+							// 効果音
+							AudioManager::GetInstance()->PlaySE(SoundID::SE_LIGHT_DAMAGE);
+						}
 					}
 					// 回避していたら
 					else { Dodge(); }
@@ -512,15 +523,27 @@ void GameScene::CollisionCamera(void)
 	MV1_COLL_RESULT_POLY_DIM res = CollisionManager::GetInstance().Hit(stage_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), cameraColl_);
 
 	if (res.HitNum > 0) {
+		for (int num = 0; num < res.HitNum; num++) {
 
-		int num = res.HitNum;
+			// もう入っているインデックス判定用
+			bool equal = false;
 
-		while (num > 0) {
+			// 返り値すべて回す
+			for (int i = 0; i < opacityIndex.size(); i++) {
+				// 返り値と当たった時のフレームが一致したらフラグを立てる
+				if (opacityIndex.at(i) == res.Dim[num].FrameIndex) {
 
-			opacityIndex.push_back(res.Dim[num - 1].FrameIndex);
-			num--;
+					equal = true;
+					break;
+				}
+			}
+			// まだ入っていないインデックスなら入れる
+			if (!equal) {
+				opacityIndex.push_back(res.Dim[num].FrameIndex);
+			}
 		}
 	}
+	// ステージに渡す
 	stage_->SetOpacityIndex(opacityIndex);
 }
 

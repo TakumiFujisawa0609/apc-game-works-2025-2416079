@@ -245,6 +245,9 @@ private:
 	// クリア時のくるくるカメラ
 	bool clearCamera_;
 
+	// SEを鳴らしてもよいか
+	bool se_;
+
 	//ブラー用
 	void SetBlur(void);
 

@@ -39,19 +39,16 @@ void Stage::Draw(void) const
 	//裏側が見えるためバックカリングを有効に
 	SetUseBackCulling(false);
 	//透明モデルをフレームごとに描画
-	for (int i = 0; i < MV1GetFrameNum(transform_.modelId); i++) {
-		if (opacityIndex.size() == 0) {
+	// なければ書かない
+	if (opacityIndex.size() == 0) {
 		
-			break;
-		}
-		else {
-			for (int j : opacityIndex) {
-				if (i == j) {
-
-					MV1DrawFrame(transform_.modelId, i);
-					break;
-				}
-			}
+		return;
+	}
+	else {
+		// 不透明になってるインデックスのフレームを書く
+		for (int i : opacityIndex) {
+	
+			MV1DrawFrame(transform_.modelId, i);
 		}
 	}
 	SetUseBackCulling(true);
@@ -59,22 +56,30 @@ void Stage::Draw(void) const
 
 void Stage::DrawModel(void) const
 {
+	// コピーを作る
+	std::vector<int> copyIndex = opacityIndex;
+
 	//不透明モデルをフレームごとに描画
 	for (int i = 0; i < MV1GetFrameNum(transform_.modelId); i++) {
+		// 透明モデルがなければモデルを書いて終わり
 		if (opacityIndex.size() == 0) {
 
-			MV1DrawFrame(transform_.modelId, i);
+			MV1DrawModel(transform_.modelId);
+			return;
 		}
 		else {
 			bool opaFlg = false;
-			for (int j : opacityIndex) {
-				if (i == j) {
+			for (auto j = copyIndex.begin(); j != copyIndex.end();) {
+				if (i == *j) {
 
 					opaFlg = true;
-					break;
+					j = copyIndex.erase(j);
+				}
+				else {
+					j++;
 				}
 			}
-			if (opaFlg == false) {
+			if (!opaFlg) {
 
 				MV1DrawFrame(transform_.modelId, i);
 			}
@@ -84,22 +89,18 @@ void Stage::DrawModel(void) const
 
 void Stage::SetOpacityIndex(std::vector<int> index)
 {
-	int num = (int)opacityIndex.size();
-
 	//透明フレームを不透明に
-	if (num > 0) {
+	for (int i = 0; i < opacityIndex.size(); i++) {
 
-		MV1SetFrameOpacityRate(transform_.modelId, opacityIndex.at(num - 1), 1.0f);
-		num--;
+		MV1SetFrameOpacityRate(transform_.modelId, opacityIndex.at(i), 1.0f);
 	}
 
+	// 透明インデックスを更新
 	opacityIndex = index;
-	num = (int)opacityIndex.size();
 
 	//不透明フレームを透明に
-	if (num > 0) {
-		
-		MV1SetFrameOpacityRate(transform_.modelId, opacityIndex.at(num - 1), 0.5f);
-		num--;
+	for (int i = 0; i < opacityIndex.size(); i++) {
+
+		MV1SetFrameOpacityRate(transform_.modelId, opacityIndex.at(i), 0.5f);
 	}
 }

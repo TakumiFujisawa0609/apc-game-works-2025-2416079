@@ -41,6 +41,31 @@ public:
 
 private:
 
+	// アイテムの個数
+	static constexpr int ITEM_NUM[static_cast<int>(TYPE::MAX)] = {
+
+		10,
+		2,
+		5
+	};
+
+	// アイテムのボックスの色
+	static constexpr unsigned int BOX_COLOR = 0x222255;
+	static constexpr unsigned int LINE_COLOR = 0xeeee33;
+	static constexpr unsigned int FONT_COLOR = 0xffffff;
+
+	// アイテムボックスの相対座標
+	static constexpr int LEFT_POS = -40;
+	static constexpr int RIGHT_POS = 40;
+	static constexpr int UP_POS = LEFT_POS;
+	static constexpr int DOWN_POS = RIGHT_POS;
+	static constexpr int LINE_WIDTH = 4;
+	static constexpr float CIRCLE_POS = 40.0f;
+	static constexpr float CIRCLE_RAD = 15.0f;
+	static constexpr float CIRCLE_DIV_NUM = 32;
+	static constexpr int FONT_WIDTH = RIGHT_POS;
+	static constexpr int FONT_HEIGHT = 30;
+
 	//アイテムのイメージハンドル
 	int itemImg_[static_cast<int>(TYPE::MAX)];
 
