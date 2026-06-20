@@ -504,9 +504,9 @@ void GameScene::Collision(void)
 
 void GameScene::CollisionStage(void)
 {
-	CollisionManager::GetInstance().PushBack(stage_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), player_->GetOwnCollider(ActorBase::COLLIDER_TAG::LINE), &player_->GetTransform(), 75, 0.15f);
-	CollisionManager::GetInstance().PushBack(enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), player_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), &player_->GetTransform(), 20, 0.1f);
-	CollisionManager::GetInstance().PushBack(stage_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::LINE), &enemy_->GetTransform(), 50, 0.1f);
+	CollisionManager::GetInstance().PushBack(stage_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), player_->GetOwnCollider(ActorBase::COLLIDER_TAG::CAPSULE), player_->GetOwnCollider(ActorBase::COLLIDER_TAG::LINE), &player_->GetTransform(), 75, 0.15f);
+	CollisionManager::GetInstance().PushBack(enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), player_->GetOwnCollider(ActorBase::COLLIDER_TAG::CAPSULE), &player_->GetTransform(), 20, 0.1f);
+	CollisionManager::GetInstance().PushBack(stage_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::CAPSULE), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::LINE), &enemy_->GetTransform(), 50, 0.1f);
 	
 	if (enemy_->IsAttackA()) {
 		if (CollisionManager::GetInstance().IsHit(stage_->GetOwnCollider(ActorBase::COLLIDER_TAG::MODEL), enemy_->GetOwnCollider(ActorBase::COLLIDER_TAG::SPHERE))) {
