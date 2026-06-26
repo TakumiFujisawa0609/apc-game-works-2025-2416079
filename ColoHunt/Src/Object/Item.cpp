@@ -39,20 +39,9 @@ void Item::Update(void)
 	// 今のアイテムの位置を覚える
 	int prevNo = itemNo;
 
-	// 右を押したとき
-	if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::RIGHT).keyTrgDown) {
-
-		// 右にずらす
-		itemNo++;
-
-		// 一番右なら
-		if (itemNo >= static_cast<int>(TYPE::MAX)) {
-
-			// 一番左に戻す
-			itemNo = 0;
-		}
-		// 移動先のアイテム数がゼロなら
-		while (itemNum_[itemNo] <= 0) {
+	if (itemNo != -1) {
+		// 右を押したとき
+		if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::RIGHT).keyTrgDown) {
 
 			// 右にずらす
 			itemNo++;
@@ -63,65 +52,10 @@ void Item::Update(void)
 				// 一番左に戻す
 				itemNo = 0;
 			}
-			// 一周してるなら返す
-			if (itemNo == prevNo) {
+			// 移動先のアイテム数がゼロなら
+			while (itemNum_[itemNo] <= 0) {
 
-				break;
-			}
-		}
-	}
-	// 左を押したとき
-	else if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::LEFT).keyTrgDown) {
-
-		// 左にずらす
-		itemNo--;
-
-		// 一番左なら
-		if (itemNo < 0) {
-
-			// 一番右に戻す
-			itemNo = static_cast<int>(TYPE::MAX) - 1;
-		}
-		// 移動先のアイテム数がゼロなら
-		while (itemNum_[itemNo] <= 0) {
-
-			// 左にずらす
-			itemNo--;
-			
-			// 一番左なら
-			if (itemNo < 0) {
-
-				// 一番右に戻す
-				itemNo = static_cast<int>(TYPE::MAX) - 1;
-			}
-			// 一周してるなら返す
-			if (itemNo == prevNo) {
-
-				break;
-			}
-		}
-	}
-	// intをアイテムに戻す
-	type_ = static_cast<TYPE>(itemNo);
-
-	// 念のためアイテムがある場合
-	if (itemNum_[static_cast<int>(type_)] > 0) {
-		// 使うフラグが立ったら
-		if (use_) {
-
-			// 使った
-			useType_ = type_;
-			itemNum_[static_cast<int>(type_)]--;
-			useNum_++;
-			
-			// アイテムがなくなった
-			if (itemNum_[static_cast<int>(type_)] <= 0) {
-
-				// 今のアイテムをintに変換
-				int itemNo = static_cast<int>(type_);
-				// 今のアイテムの位置を覚える
-				int prevNo = itemNo;
-				// アイテムを右にずらす
+				// 右にずらす
 				itemNo++;
 
 				// 一番右なら
@@ -130,31 +64,107 @@ void Item::Update(void)
 					// 一番左に戻す
 					itemNo = 0;
 				}
-				// 移動先のアイテムがないなら
-				while (itemNum_[itemNo] <= 0) {
+				// 一周してるなら返す
+				if (itemNo == prevNo) {
 
+					break;
+				}
+			}
+		}
+		// 左を押したとき
+		else if (InputManager::GetInstance().GetPriorityKey(InputManager::COMMAND::LEFT).keyTrgDown) {
+
+			// 左にずらす
+			itemNo--;
+
+			// 一番左なら
+			if (itemNo < 0) {
+
+				// 一番右に戻す
+				itemNo = static_cast<int>(TYPE::MAX) - 1;
+			}
+			// 移動先のアイテム数がゼロなら
+			while (itemNum_[itemNo] <= 0) {
+
+				// 左にずらす
+				itemNo--;
+
+				// 一番左なら
+				if (itemNo < 0) {
+
+					// 一番右に戻す
+					itemNo = static_cast<int>(TYPE::MAX) - 1;
+				}
+				// 一周してるなら返す
+				if (itemNo == prevNo) {
+
+					break;
+				}
+			}
+		}
+		// intをアイテムに戻す
+		type_ = static_cast<TYPE>(itemNo);
+
+		// セーフ処理
+		if (static_cast<int>(type_) < 0) {
+			type_ = static_cast<TYPE>(0);
+		}
+		else if (static_cast<int>(type_) >= static_cast<int>(TYPE::MAX)) {
+			type_ = static_cast<TYPE>(static_cast<int>(TYPE::MAX) - 1);
+		}
+
+		// 念のためアイテムがある場合
+		if (itemNum_[static_cast<int>(type_)] > 0) {
+			// 使うフラグが立ったら
+			if (use_) {
+
+				// 使った
+				useType_ = type_;
+				itemNum_[static_cast<int>(type_)]--;
+				useNum_++;
+
+				// アイテムがなくなった
+				if (itemNum_[static_cast<int>(type_)] <= 0) {
+
+					// 今のアイテムをintに変換
+					int itemNo = static_cast<int>(type_);
+					// 今のアイテムの位置を覚える
+					int prevNo = itemNo;
 					// アイテムを右にずらす
 					itemNo++;
-					
+
 					// 一番右なら
 					if (itemNo >= static_cast<int>(TYPE::MAX)) {
 
 						// 一番左に戻す
 						itemNo = 0;
 					}
-					// 一周してるなら
-					if (itemNo == prevNo) {
+					// 移動先のアイテムがないなら
+					while (itemNum_[itemNo] <= 0) {
 
-						// 非表示ように-1をいれて返す
-						itemNo = -1;
-						break;
+						// アイテムを右にずらす
+						itemNo++;
+
+						// 一番右なら
+						if (itemNo >= static_cast<int>(TYPE::MAX)) {
+
+							// 一番左に戻す
+							itemNo = 0;
+						}
+						// 一周してるなら
+						if (itemNo == prevNo) {
+
+							// 非表示ように-1をいれて返す
+							itemNo = -1;
+							break;
+						}
 					}
+					type_ = static_cast<TYPE>(itemNo);
 				}
-				type_ = static_cast<TYPE>(itemNo);
 			}
 		}
+		use_ = false;
 	}
-	use_ = false;
 }
 
 void Item::Draw(void) const
@@ -172,7 +182,7 @@ void Item::Draw(void) const
 	DrawLine(dx + LEFT_POS, dy + UP_POS, dx + LEFT_POS, dy + DOWN_POS, LINE_COLOR, LINE_WIDTH);
 	DrawLine(dx + RIGHT_POS, dy + UP_POS, dx + RIGHT_POS, dy + DOWN_POS, LINE_COLOR, LINE_WIDTH);
 	DrawLine(dx + LEFT_POS, dy + DOWN_POS, dx + RIGHT_POS, dy + DOWN_POS, LINE_COLOR, LINE_WIDTH);
-	DrawCircleAA(dxF + CIRCLE_POS, dyF + CIRCLE_POS, CIRCLE_RAD, CIRCLE_DIV_NUM, BOX_COLOR);
+	DrawCircleAA(dxF + CIRCLE_POS, dyF + CIRCLE_POS, CIRCLE_RAD, (int)CIRCLE_DIV_NUM, BOX_COLOR);
 
 	// アイテムがあればアイテムの描画
 	if (itemNo != -1) {

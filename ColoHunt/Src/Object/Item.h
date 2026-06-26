@@ -8,9 +8,11 @@ public:
 	enum class TYPE {
 
 		NON = -1,
+
 		HP,
 		HP_MAX,
 		STAMINA,
+
 		MAX,
 	};
 

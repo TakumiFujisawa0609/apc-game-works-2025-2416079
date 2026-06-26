@@ -664,6 +664,7 @@ void GameScene::GameCamera(void)
 
 		// ピッチに制限
 		if (pitch_ >= MAX_PITCH) { pitch_ = MAX_PITCH; }
+		if (pitch_ <= -MAX_PITCH) { pitch_ = -MAX_PITCH; }
 
 		// 角度を徐々に変える
 		pitch_ = AngleUtility::LerpAngle(prevPitch, pitch_, CAMERA_LERP_RATE);
