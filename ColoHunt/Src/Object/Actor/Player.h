@@ -181,7 +181,7 @@ private:
 	static constexpr const char* HP_BAR_NAME = "HpBar.png";
 	
 	//マックスHP
-	static constexpr int MAX_HP = 85;
+	static constexpr int MAX_HP = 1;
 	//回復するフレーム数
 	static constexpr int HEAL_COUNT = 20;
 	// 自動回復の量
