@@ -228,7 +228,7 @@ int Player::Damage(int damage, float dir)
 		// 瞬間の画面のイメージ保存
 		SceneManager::GetInstance().SetScreenImage();
 		ChangeState(STATE::KO);
-		return;
+		return 0;
 	}
 
 	// パワーアップしていないならモーションをとる

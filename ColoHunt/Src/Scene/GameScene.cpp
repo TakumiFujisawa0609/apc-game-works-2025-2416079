@@ -31,7 +31,7 @@ GameScene::GameScene(void) :
 	shader_(0),	shaderConstBuff_(0),
 	mVertex_(), mIndex_(),
 
-	blurImg_(-1), blurFlg_(false), blurCnt_(0),
+	blurImg_{ -1, -1, -1 }, blurFlg_(false), blurCnt_(0),
 
 	yaw_(DEFAULT_YAW),
 	pitch_(DEFAULT_TILT),
