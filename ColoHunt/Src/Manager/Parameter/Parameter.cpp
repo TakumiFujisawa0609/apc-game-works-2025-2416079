@@ -30,7 +30,7 @@ void Parameter::LoadParameter(void)
 
 			vectorData_.emplace(strSplit.at(0), VGet(std::stof(strSplit.at(1).c_str()), std::stof(strSplit.at(2).c_str()), std::stof(strSplit.at(3).c_str())));
 		}
-		else if (strSplit.at(1).contains("f")) {
+		else if (strSplit.at(1).find("f") != -1) {
 
 			floatData_.emplace(strSplit.at(0), std::stof(strSplit.at(1)));
 		}

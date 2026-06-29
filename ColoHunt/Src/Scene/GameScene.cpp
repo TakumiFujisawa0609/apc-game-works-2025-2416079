@@ -31,7 +31,7 @@ GameScene::GameScene(void) :
 	shader_(0),	shaderConstBuff_(0),
 	mVertex_(), mIndex_(),
 
-	blurImg_(-1), blurFlg_(false), blurCnt_(0),
+	blurImg_{ -1, -1, -1 }, blurFlg_(false), blurCnt_(0),
 
 	yaw_(DEFAULT_YAW),
 	pitch_(DEFAULT_TILT),
@@ -664,6 +664,7 @@ void GameScene::GameCamera(void)
 
 		// ピッチに制限
 		if (pitch_ >= MAX_PITCH) { pitch_ = MAX_PITCH; }
+		if (pitch_ <= -MAX_PITCH) { pitch_ = -MAX_PITCH; }
 
 		// 角度を徐々に変える
 		pitch_ = AngleUtility::LerpAngle(prevPitch, pitch_, CAMERA_LERP_RATE);

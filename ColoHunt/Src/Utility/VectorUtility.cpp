@@ -37,6 +37,16 @@ double VectorUtility::SqrDistance(const VECTOR& v1, const VECTOR& v2)
     return pow(v2.x - v1.x, 2) + pow(v2.y - v1.y, 2) + pow(v2.z - v1.z, 2);
 }
 
+float VectorUtility::DistanceF(const VECTOR& v1, const VECTOR& v2)
+{
+    return sqrt(SqrDistanceF(v1, v2));
+}
+
+float VectorUtility::SqrDistanceF(const VECTOR& v1, const VECTOR& v2)
+{
+    return powf(v2.x - v1.x, 2) + powf(v2.y - v1.y, 2) + powf(v2.z - v1.z, 2);
+}
+
 bool VectorUtility::Equals(const VECTOR& v1, const VECTOR& v2)
 {
     if (v1.x == v2.x && v1.y == v2.y && v1.z == v2.z)

@@ -150,7 +150,7 @@ const MV1_COLL_RESULT_POLY_DIM CollisionBase::CollisionCapsuleCapsule(ColliderBa
 	VECTOR pb = VectorUtility::Add(bStartPos, vt);  // Bü•ªã‚ÌÅ‹ß“_
 
 	// ‹——£ŒvZ
-	float distSq = VectorUtility::SqrDistance(pa, pb);
+	float distSq = VectorUtility::SqrDistanceF(pa, pb);
 	float radSum = aRadius + bRadius;
 
 	// “–‚½‚Á‚Ä‚È‚¢
