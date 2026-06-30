@@ -139,6 +139,9 @@ void Application::Run(void)
 
 void Application::Destroy(void)
 {
+	RemoveFontResource((Application::PATH_FONT + "toroman.ttf").c_str());
+	RemoveFontResource((Application::PATH_FONT + "MonserhunterfontsXtype-Regular.ttf").c_str());
+
 	AudioManager::GetInstance()->DeleteAll();
 
 	// ƒV[ƒ“ŠÇ—‰ð•ú
